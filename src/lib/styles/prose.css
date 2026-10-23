@@ -107,3 +107,30 @@
 	--callout: var(--success);
 	--callout-bg: var(--success-soft);
 }
+
+/* Diagrams (```plantuml, ```mermaid). PlantUML keeps its exam look on a white card in both themes. */
+.prose .diagram {
+	margin: 24px 0;
+	text-align: center;
+}
+.prose .diagram-plantuml img {
+	max-width: 100%;
+	height: auto;
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: #ffffff;
+}
+.prose .diagram-mermaid pre.mermaid {
+	overflow-x: auto;
+	margin: 0;
+	padding: 12px;
+	border: 1px solid var(--border);
+	background: var(--surface) !important;
+	color: var(--text-muted);
+}
+.prose .diagram figcaption {
+	margin-top: 8px;
+	font-size: 14px;
+	color: var(--text-muted);
+}

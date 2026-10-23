@@ -3,10 +3,17 @@
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
+	import { renderMermaid } from '#lib/diagrams/mermaid.js';
 	import '#lib/styles/prose.css';
 
 	let { data } = $props();
 	const Unit = $derived(data.component);
+
+	let article: HTMLElement;
+	$effect(() => {
+		void data.component; // re-run after navigating to another unit
+		renderMermaid(article);
+	});
 </script>
 
 <svelte:head>
@@ -31,7 +38,7 @@
 	</div>
 </header>
 
-<article class="prose">
+<article class="prose" bind:this={article}>
 	<Unit />
 </article>
 
