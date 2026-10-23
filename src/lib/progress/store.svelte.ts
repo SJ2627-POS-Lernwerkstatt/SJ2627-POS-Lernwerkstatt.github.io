@@ -1,5 +1,7 @@
 import { browser } from '$app/env';
-import { BROKEN_KEY, emptyProgress, STORAGE_KEY, type Progress } from './schema.ts';
+import type { CurrentRun, GroupResult } from '#lib/quiz/run.js';
+import { updateGroupProgress } from '#lib/quiz/run.js';
+import { BROKEN_KEY, emptyProgress, MAX_RUNS, STORAGE_KEY, type Progress } from './schema.ts';
 import { loadProgress, serialize } from './storage.ts';
 
 /** localStorage can throw (private mode, blocked site data). Progress then lives only in memory. */
@@ -55,6 +57,21 @@ class ProgressStore {
 	setRead(unitId: string, read: boolean) {
 		if (read) this.data.units[unitId] = { readAt: new Date().toISOString() };
 		else delete this.data.units[unitId];
+		this.save();
+	}
+
+	setCurrentRun(run: CurrentRun | undefined) {
+		this.data.currentRun = run;
+		this.save();
+	}
+
+	/** Stores a finished run: repetition boxes per group, the score in the history, and clears the current run. */
+	finishRun(scope: string, results: GroupResult[], correct: number, total: number, now = new Date()) {
+		for (const r of results) {
+			this.data.groups[r.groupId] = updateGroupProgress(this.data.groups[r.groupId], r.allCorrect, now);
+		}
+		this.data.runs = [...this.data.runs, { scope, at: now.toISOString(), correct, total }].slice(-MAX_RUNS);
+		this.data.currentRun = undefined;
 		this.save();
 	}
 
