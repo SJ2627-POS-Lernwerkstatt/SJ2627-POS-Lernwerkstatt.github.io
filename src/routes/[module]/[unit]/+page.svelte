@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
 	import Button from '#lib/components/Button.svelte';
+	import CheckGroup from '#lib/components/quiz/CheckGroup.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
 	import { renderMermaid } from '#lib/diagrams/mermaid.js';
 	import { progress } from '#lib/progress/store.svelte.js';
@@ -44,6 +45,16 @@
 <article class="prose" bind:this={article}>
 	<Unit />
 </article>
+
+{#if data.checks.length}
+	<section class="checks" aria-labelledby="checks-title">
+		<h2 id="checks-title">Wissenscheck</h2>
+		<p class="hint">Teste, ob du das Wichtigste verstanden hast. Deine Antworten werden hier nicht gespeichert.</p>
+		{#each data.checks as group, i (group.id)}
+			<CheckGroup {group} number={i + 1} />
+		{/each}
+	</section>
+{/if}
 
 <footer class="unit-foot">
 	<div class="read" class:done={read}>
@@ -96,6 +107,20 @@
 		align-items: center;
 		gap: 8px 12px;
 		font-size: 14px;
+		color: var(--text-muted);
+	}
+	.checks {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		margin-top: 48px;
+	}
+	.checks h2 {
+		margin: 0;
+		font-size: 24px;
+	}
+	.checks .hint {
+		margin: 0;
 		color: var(--text-muted);
 	}
 	.unit-foot {
