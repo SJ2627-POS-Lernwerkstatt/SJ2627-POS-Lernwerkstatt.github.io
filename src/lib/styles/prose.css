@@ -134,3 +134,10 @@
 	font-size: 14px;
 	color: var(--text-muted);
 }
+
+/* Block that is being read aloud. */
+.prose .tts-active {
+	border-radius: 4px;
+	background: var(--warn-soft);
+	box-shadow: 0 0 0 4px var(--warn-soft);
+}
