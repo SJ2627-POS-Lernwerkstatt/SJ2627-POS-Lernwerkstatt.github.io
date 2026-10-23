@@ -18,6 +18,10 @@
 <div class="page">
 	<header>
 		<a class="home" href={resolve('/')} aria-label="Startseite"><Logo /></a>
+		<nav class="main-nav" aria-label="Hauptnavigation">
+			<a href={resolve('/')}>Lernen</a>
+			<a href={resolve('/ueben')}>Üben</a>
+		</nav>
 	</header>
 	<main>
 		{@render children()}
@@ -45,6 +49,19 @@
 	}
 	.home {
 		text-decoration: none;
+	}
+	.main-nav {
+		display: flex;
+		gap: 20px;
+		margin-left: auto;
+	}
+	.main-nav a {
+		color: var(--text-muted);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.main-nav a:hover {
+		color: var(--primary);
 	}
 	main {
 		flex: 1;
