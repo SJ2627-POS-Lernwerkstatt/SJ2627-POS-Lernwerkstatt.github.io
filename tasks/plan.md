@@ -2,21 +2,23 @@
 
 Scope (SPEC → Milestones): site with study mode, exercise mode, TTS, progress export, review page; modules **testing** and **streams** complete; **jpa** units 1–10 with 2 autograded exercises.
 
+Current state and next steps: `tasks/status.md`.
+
 Order: platform first (weeks 1–2), content in parallel from week 2 so you can review on the live site early. Each task is one branch and ends with `npm run check && npm test && npm run build` green.
 
 ## Phase A: Platform (Oct 26 – Nov 8)
 
 | # | Task | Done when |
 |---|---|---|
-| A1 | Scaffold SvelteKit + adapter-static + mdsvex, tokens.css and fonts from parsonxam, Pages deploy workflow | Empty start page is live at `sj2627-pos-lernwerkstatt.github.io` |
-| A2 | Content loading: zod schemas for unit frontmatter, question groups, exercises; validation runs in `npm test` and the build | A broken frontmatter or duplicate id fails CI |
-| A3 | Unit page: Markdown, Shiki, callouts, cheat sheet link, "Entwurf" badge, "Fehler melden" link, mark as read | Sample unit renders with all elements |
-| A4 | Diagrams: PlantUML at build time (SVG inline, dark-mode friendly), Mermaid lazy-loaded | A unit with both diagram types renders without network requests to third parties |
-| A5 | Progress store: localStorage with try/catch, versioning, export/import file | Unit tests for migration, import validation, broken store |
-| A6 | Question components: single, multi, template (port parsonxam `template.ts` + tests + `TemplatePuzzle.svelte`) | All three kinds answerable with keyboard and mouse |
-| A7 | Study mode Wissenscheck: groups for a unit, instant feedback, explanation | Answer shown after each question |
-| A8 | Exercise mode: scope picker, run selection (Leitner), main/follow-up locking, no feedback during the run, result and review, run survives reload | Unit tests for selection, scoring, locking, box updates |
-| A9 | TTS: German voice picker, reads prose only, highlights the current block, hides itself without a German voice | Manually tested in Chrome, Edge, Safari |
+| A1 ✓ | Scaffold SvelteKit + adapter-static + mdsvex, tokens.css and fonts from parsonxam, Pages deploy workflow | Empty start page is live at `sj2627-pos-lernwerkstatt.github.io` |
+| A2 ✓ | Content loading: zod schemas for unit frontmatter, question groups, exercises; validation runs in `npm test` and the build | A broken frontmatter or duplicate id fails CI |
+| A3 ✓ | Unit page: Markdown, Shiki, callouts, cheat sheet link, "Entwurf" badge, "Fehler melden" link, mark as read | Sample unit renders with all elements |
+| A4 ✓ | Diagrams: PlantUML at build time (SVG inline, dark-mode friendly), Mermaid lazy-loaded | A unit with both diagram types renders without network requests to third parties |
+| A5 ✓ | Progress store: localStorage with try/catch, versioning, export/import file | Unit tests for migration, import validation, broken store |
+| A6 ✓ | Question components: single, multi, template (port parsonxam `template.ts` + tests + `TemplatePuzzle.svelte`) | All three kinds answerable with keyboard and mouse |
+| A7 ✓ | Study mode Wissenscheck: groups for a unit, instant feedback, explanation | Answer shown after each question |
+| A8 ✓ | Exercise mode: scope picker, run selection (Leitner), main/follow-up locking, no feedback during the run, result and review, run survives reload | Unit tests for selection, scoring, locking, box updates |
+| A9 ✓ | TTS: German voice picker, reads prose only, highlights the current block, hides itself without a German voice | Manually tested in Chrome, Edge, Safari |
 | A10 | Start page and module overviews with progress; `/review` page; dark mode toggle | Review page lists every unit with status and question count |
 | A11 | Exercise page (task, Classroom50 link, rubric, "abgegeben") | Sample exercise renders |
 | A12 | Playwright smoke test in CI | Green on main |
