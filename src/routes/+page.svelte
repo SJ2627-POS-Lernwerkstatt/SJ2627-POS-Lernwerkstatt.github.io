@@ -1,12 +1,6 @@
 <script lang="ts">
-	const modules = [
-		{ title: 'Unit Testing', note: 'Auffrischung' },
-		{ title: 'Stream API', note: 'Auffrischung' },
-		{ title: 'Spring Data JPA', note: 'Aufgabe 1' },
-		{ title: 'Service-Schicht', note: 'Aufgabe 2' },
-		{ title: 'REST-Controller', note: 'Aufgabe 3' },
-		{ title: 'Probeprüfungen', note: 'alles zusammen' }
-	];
+	import { resolve } from '$app/paths';
+	import { MODULES } from '#lib/content/modules.js';
 </script>
 
 <svelte:head>
@@ -20,15 +14,13 @@
 </p>
 
 <ol class="modules">
-	{#each modules as m (m.title)}
+	{#each MODULES as m (m.slug)}
 		<li>
-			<span class="title">{m.title}</span>
+			<a href={resolve('/[module]', { module: m.slug })}>{m.title}</a>
 			<span class="note">{m.note}</span>
 		</li>
 	{/each}
 </ol>
-
-<p class="soon">Die ersten Module erscheinen Anfang Dezember.</p>
 
 <style>
 	h1 {
@@ -63,16 +55,17 @@
 		font: 600 14px var(--font-mono);
 		color: var(--text-muted);
 	}
-	.title {
+	.modules a {
 		font-weight: 600;
+		color: var(--text);
+		text-decoration: none;
+	}
+	.modules a:hover {
+		color: var(--primary);
 	}
 	.note {
 		margin-left: auto;
 		font-size: 14px;
 		color: var(--text-muted);
-	}
-	.soon {
-		color: var(--text-muted);
-		font-size: 14px;
 	}
 </style>
