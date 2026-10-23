@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import Badge from '#lib/components/Badge.svelte';
+	import { progress } from '#lib/progress/store.svelte.js';
 
 	let { data } = $props();
 
@@ -18,7 +19,8 @@
 {#snippet list(units: typeof data.units)}
 	<ol class="units">
 		{#each units as u (u.id)}
-			<li>
+			<li class:read={progress.isRead(u.id)}>
+				<span class="check" aria-label={progress.isRead(u.id) ? 'gelesen' : 'noch nicht gelesen'}></span>
 				<a href={resolve('/[module]/[unit]', { module: data.module.slug, unit: u.slug })}>{u.title}</a>
 				<span class="meta">
 					{#if u.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
@@ -76,6 +78,18 @@
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
+	}
+	.check {
+		flex: none;
+		width: 18px;
+		height: 18px;
+		border: 2px solid var(--border-strong);
+		border-radius: 50%;
+	}
+	.read .check {
+		border-color: var(--success);
+		background: var(--success);
+		box-shadow: inset 0 0 0 3px var(--surface);
 	}
 	.units a {
 		font-weight: 600;

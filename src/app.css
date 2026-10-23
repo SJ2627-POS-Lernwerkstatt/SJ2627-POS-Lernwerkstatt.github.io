@@ -15,6 +15,9 @@
 	--primary: #3d5afe;
 	--primary-soft: #e8ecff;
 	--primary-dark: #2a3fc2;
+	--primary-hover: #2a3fc2;
+	/* Text on a --primary background. */
+	--on-primary: #ffffff;
 	--success: #1f8a4c;
 	--success-soft: #e3f4ea;
 	--danger: #d13b3b;
@@ -46,6 +49,8 @@
 	--primary: #7b8cff;
 	--primary-soft: #262c4d;
 	--primary-dark: #a6b1ff;
+	--primary-hover: #96a4ff;
+	--on-primary: #10131f;
 	--success: #4cc27f;
 	--success-soft: #17301f;
 	--danger: #f07272;
@@ -69,6 +74,8 @@
 		--primary: #7b8cff;
 		--primary-soft: #262c4d;
 		--primary-dark: #a6b1ff;
+	--primary-hover: #96a4ff;
+	--on-primary: #10131f;
 		--success: #4cc27f;
 		--success-soft: #17301f;
 		--danger: #f07272;

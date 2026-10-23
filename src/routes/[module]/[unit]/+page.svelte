@@ -2,12 +2,15 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
+	import Button from '#lib/components/Button.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
 	import { renderMermaid } from '#lib/diagrams/mermaid.js';
+	import { progress } from '#lib/progress/store.svelte.js';
 	import '#lib/styles/prose.css';
 
 	let { data } = $props();
 	const Unit = $derived(data.component);
+	const read = $derived(progress.isRead(data.unit.id));
 
 	let article: HTMLElement;
 	$effect(() => {
@@ -43,6 +46,14 @@
 </article>
 
 <footer class="unit-foot">
+	<div class="read" class:done={read}>
+		{#if read}
+			<p>Du hast diese Einheit als gelesen markiert.</p>
+			<Button variant="ghost" onclick={() => progress.setRead(data.unit.id, false)}>Rückgängig</Button>
+		{:else}
+			<Button onclick={() => progress.setRead(data.unit.id, true)}>Als gelesen markieren</Button>
+		{/if}
+	</div>
 	<nav class="pager" aria-label="Einheiten">
 		{#if data.prev}
 			<a class="prev" href={resolve('/[module]/[unit]', { module: data.module.slug, unit: data.prev.slug })}>
@@ -91,6 +102,21 @@
 		margin-top: 48px;
 		padding-top: 24px;
 		border-top: 1px solid var(--border);
+	}
+	.read {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 16px;
+		margin-bottom: 24px;
+	}
+	.read p {
+		margin: 0;
+		font-weight: 600;
+		color: var(--success);
+	}
+	.read p::before {
+		content: '✓ ';
 	}
 	.pager {
 		display: grid;

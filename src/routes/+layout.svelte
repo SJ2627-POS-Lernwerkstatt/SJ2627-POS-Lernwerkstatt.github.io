@@ -1,10 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import '../app.css';
 	import Logo from '#lib/components/Logo.svelte';
 	import favicon from '#lib/assets/favicon.svg';
+	import { progress } from '#lib/progress/store.svelte.js';
 
 	let { children } = $props();
+
+	onMount(() => progress.init());
 </script>
 
 <svelte:head>
@@ -49,6 +53,8 @@
 		padding: 40px 32px 64px;
 	}
 	footer {
+		display: flex;
+		gap: 20px;
 		padding: 16px 32px;
 		border-top: 1px solid var(--border);
 		font-size: 14px;

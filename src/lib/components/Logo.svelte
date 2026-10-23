@@ -19,7 +19,7 @@
 		height: 32px;
 		border-radius: 8px;
 		background: var(--primary);
-		color: var(--text-inverse);
+		color: var(--on-primary);
 		font: 700 13px var(--font-mono);
 	}
 </style>
