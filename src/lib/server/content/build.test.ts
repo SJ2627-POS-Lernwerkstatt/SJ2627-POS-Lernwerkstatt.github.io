@@ -100,4 +100,27 @@ describe('buildIndex', () => {
 		expect(errors).toEqual([]);
 		expect(index.exercises[0]).toMatchObject({ id: 'jpa/uebungen/schule', grading: 'auto', status: 'draft' });
 	});
+
+	it('reports template errors with question and line', () => {
+		const yaml = `
+- id: t-1
+  unit: jpa/enums
+  main:
+    kind: template
+    prompt: P
+    explanation: E
+    template: |
+      @{{Entity}}
+      class A {{extends
+    reusable: [Nope]
+`;
+		const { errors } = build({ units: { 'jpa/06-enums.md': okUnit }, pools: pool(yaml) });
+		expect(errors).toEqual(
+			expect.arrayContaining([
+				expect.stringMatching(/t-1\.main: template line 2: Marker .* never closed/),
+				expect.stringContaining('t-1.main: a template needs at least 2 pieces'),
+				expect.stringContaining('Reusable “Nope”')
+			])
+		);
+	});
 });

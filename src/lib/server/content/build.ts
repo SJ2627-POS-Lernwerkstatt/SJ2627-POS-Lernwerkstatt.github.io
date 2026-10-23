@@ -1,6 +1,7 @@
 import { parse as parseYaml } from 'yaml';
 import type { z } from 'zod';
 import { isModuleSlug, type ModuleSlug } from '#lib/content/modules.js';
+import { buildPool, parseTemplate } from '#lib/puzzle/template.js';
 import {
 	exerciseFrontmatter,
 	questionPool,
@@ -58,7 +59,13 @@ function zodErrors(file: string, error: z.ZodError): string[] {
 	return error.issues.map((i) => `${file}: ${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`);
 }
 
-function checkAnswer(q: Question, where: string, errors: string[]) {
+function checkQuestion(q: Question, where: string, errors: string[]) {
+	if (q.kind === 'template') {
+		const parsed = parseTemplate(q.template.trimEnd());
+		for (const e of parsed.errors) errors.push(`${where}: template line ${e.line}: ${e.message}`);
+		if (parsed.pieces.length < 2) errors.push(`${where}: a template needs at least 2 pieces`);
+		for (const e of buildPool(parsed, q.redHerrings, q.reusable).errors) errors.push(`${where}: ${e}`);
+	}
 	if (q.kind === 'single' && q.answer >= q.options.length) {
 		errors.push(`${where}: answer ${q.answer} is out of range (${q.options.length} options)`);
 	}
@@ -137,8 +144,8 @@ export function buildIndex(files: ContentFiles): { index: ContentIndex; errors: 
 		}
 		for (const g of parsed.data) {
 			if (!g.unit.startsWith(`${m[1]}/`)) errors.push(`${file}: group "${g.id}" refers to unit "${g.unit}" of another module`);
-			checkAnswer(g.main, `${file}: ${g.id}.main`, errors);
-			g.followUps.forEach((q, i) => checkAnswer(q, `${file}: ${g.id}.followUps.${i}`, errors));
+			checkQuestion(g.main, `${file}: ${g.id}.main`, errors);
+			g.followUps.forEach((q, i) => checkQuestion(q, `${file}: ${g.id}.followUps.${i}`, errors));
 			groups.push(g);
 		}
 	}
