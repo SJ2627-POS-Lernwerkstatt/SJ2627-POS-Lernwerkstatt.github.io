@@ -5,7 +5,7 @@ Self-study site for the POS Reife- und Diplomprüfung 2026/27: https://sj2627-po
 - `SPEC.md` – what we are building and why
 - `CURRICULUM.md` – modules and units
 - `tasks/plan.md` – release plan
-- `docs/` – cheat sheet and its errata
+- `docs/` – errata for the [cheat sheet](https://studious-system-8e43kky.pages.github.io/POS_Java_CheatSheet.pdf) (hosted privately, not in this repo)
 
 ## Development
 

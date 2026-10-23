@@ -168,7 +168,7 @@ Export downloads `lernwerkstatt-fortschritt-<date>.json`; import validates with 
 ## Features
 
 - **TTS**: a "Vorlesen" control per unit. Reads headings, paragraphs, lists and callouts; **skips code blocks and diagrams** (says "Codebeispiel" once instead); inline code is read as its text. Highlights the block being read. Voice picker (German voices only) and speed. If no German voice exists, the control explains that and hides.
-- **Cheat sheet**: `static/POS_Java_CheatSheet.pdf`, units link to `#page=<n>`. A glossary-style "Spickzettel-Fehler" page lists `docs/cheat-sheet-errors.md`.
+- **Cheat sheet**: hosted privately at `https://studious-system-8e43kky.pages.github.io/POS_Java_CheatSheet.pdf` (students are logged in to GitHub and have access). Units link to `…pdf#page=<n>`. The PDF is never copied into this repo or the site. A glossary-style "Spickzettel-Fehler" page lists `docs/cheat-sheet-errors.md`.
 - **Dark mode** (system default, toggle).
 - **Review support**: units with `status: draft` show an "Entwurf" badge. A hidden page `/review` lists all units, question counts and exercises with their status. Each unit has a "Fehler melden" link that opens a prefilled GitHub issue (unit id and title).
 - **Start page**: modules with progress (units read, groups in box ≥ 2), "Weiter lernen" and "Üben" entry points.
@@ -190,7 +190,7 @@ Export downloads `lernwerkstatt-fortschritt-<date>.json`; import validates with 
 
 ```
 SPEC.md, CURRICULUM.md
-docs/                         cheat sheet PDF, cheat-sheet-errors.md
+docs/                         cheat-sheet-errors.md (the PDF stays private, see Features)
 src/
   content/<module>/           units (*.md), exercises/
   content/questions/          <module>.yaml
