@@ -64,12 +64,11 @@ All modules are open; the start page suggests the order. Unit outline: `CURRICUL
 
 ### Unit
 
-One file per unit: `src/content/<module>/<nn>-<slug>.md`.
+One file per unit: `src/content/<module>/<nn>-<slug>.md`. `<nn>` sets the order; the unit id is `<module>/<slug>` (e.g. `jpa/enums`), so renumbering never breaks references.
 
 ```yaml
 ---
 title: Enums richtig abbilden
-order: 6
 minutes: 8               # estimated reading time
 core: true               # false = Vertiefung (optional)
 cheatsheet: 12           # page in POS_Java_CheatSheet.pdf, rendered as a link
@@ -90,7 +89,7 @@ One file per module: `src/content/questions/<module>.yaml`. A **question group**
 
 ```yaml
 - id: jpa-enum-01
-  unit: jpa/06-enums
+  unit: jpa/enums
   main:
     kind: single            # single | multi | template
     prompt: Wie speichert JPA ein Enum ohne weitere Angabe?
@@ -195,7 +194,8 @@ src/
   content/<module>/           units (*.md), exercises/
   content/questions/          <module>.yaml
   lib/
-    content/                  loading, zod schemas, validation
+    content/                  module list, zod schemas (shared with the browser)
+    server/content/           content index: parsing, cross-checks (build time only)
     quiz/                     question kinds, scoring, run selection, Leitner
     puzzle/                   template.ts (from parsonxam), TemplatePuzzle.svelte
     progress/                 store, export/import, migration
@@ -210,7 +210,6 @@ src/
     review/
 scripts/
   plantuml.ts                 build-time rendering
-  check-content.ts            CI content validation
 .github/workflows/deploy.yml
 ```
 
@@ -230,7 +229,7 @@ As in parsonxam's student app: Svelte 5 runes, logic in `lib/` as plain TS with 
 ## Testing Strategy
 
 - `vitest`: run selection, Leitner updates, scoring incl. follow-up locking, template parser (ported tests), progress migration and import validation.
-- Content validation in CI (fails the build): schemas, ids, unit references, template parsing, PlantUML rendering.
+- Content validation (fails `npm test` and the build): schemas, ids, unit references, template parsing, PlantUML rendering. Loading the content index throws on any problem; `content.test.ts` loads the real files.
 - Playwright smoke test: open a unit, answer a Wissenscheck question, complete a run of one scope.
 - Manual: TTS in Safari, Chrome and Edge on Windows/macOS (school laptops).
 

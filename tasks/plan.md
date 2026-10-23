@@ -9,7 +9,7 @@ Order: platform first (weeks 1–2), content in parallel from week 2 so you can 
 | # | Task | Done when |
 |---|---|---|
 | A1 | Scaffold SvelteKit + adapter-static + mdsvex, tokens.css and fonts from parsonxam, Pages deploy workflow | Empty start page is live at `sj2627-pos-lernwerkstatt.github.io` |
-| A2 | Content loading: zod schemas for unit frontmatter, question groups, exercises; `check-content` script in CI | A broken frontmatter or duplicate id fails CI |
+| A2 | Content loading: zod schemas for unit frontmatter, question groups, exercises; validation runs in `npm test` and the build | A broken frontmatter or duplicate id fails CI |
 | A3 | Unit page: Markdown, Shiki, callouts, cheat sheet link, "Entwurf" badge, "Fehler melden" link, mark as read | Sample unit renders with all elements |
 | A4 | Diagrams: PlantUML at build time (SVG inline, dark-mode friendly), Mermaid lazy-loaded | A unit with both diagram types renders without network requests to third parties |
 | A5 | Progress store: localStorage with try/catch, versioning, export/import file | Unit tests for migration, import validation, broken store |
