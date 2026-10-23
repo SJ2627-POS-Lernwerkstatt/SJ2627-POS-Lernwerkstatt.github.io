@@ -1,7 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { mdsvex } from 'mdsvex';
 import { defineConfig } from 'vitest/config';
+import { markdown } from './scripts/markdown/index.ts';
 
 export default defineConfig({
 	plugins: [
@@ -13,7 +13,7 @@ export default defineConfig({
 			},
 			// Units and pages can be written in Markdown (.md) with Svelte components inside.
 			extensions: ['.svelte', '.md'],
-			preprocess: [mdsvex({ extensions: ['.md'] })],
+			preprocess: markdown,
 			// Every page is prerendered; 404.html is the fallback for unknown paths on GitHub Pages.
 			adapter: adapter({ fallback: '404.html' })
 		})
