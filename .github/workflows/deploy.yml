@@ -25,6 +25,24 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # PlantUML diagrams are rendered at build time (scripts/markdown/plantuml.ts).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: sudo apt-get install -y --no-install-recommends graphviz
+      - name: Download PlantUML
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/plantuml.jar" \
+            "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          echo "PLANTUML_JAR=$RUNNER_TEMP/plantuml.jar" >> "$GITHUB_ENV"
+        env:
+          PLANTUML_VERSION: 1.2026.8
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/plantuml
+          key: plantuml-${{ hashFiles('src/content/**/*.md') }}
+          restore-keys: plantuml-
       - run: npm run check
       - run: npm test
       - run: npm run build

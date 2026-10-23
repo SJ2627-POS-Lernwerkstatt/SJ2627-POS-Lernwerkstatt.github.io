@@ -9,6 +9,8 @@ Self-study site for the POS Reife- und Diplomprüfung 2026/27: https://sj2627-po
 
 ## Development
 
+Needs Node 22 and [PlantUML](https://plantuml.com) (`brew install plantuml`, or set `PLANTUML_JAR` to a plantuml.jar) because diagrams are rendered at build time.
+
 ```bash
 npm install
 npm run dev      # local site
