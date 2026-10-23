@@ -1,0 +1,90 @@
+- id: testing-aufbau-import
+  unit: testing/aufbau
+  main:
+    kind: single
+    prompt: Welcher Import gehört zu einem JUnit-Jupiter-Test?
+    options:
+      - "`import org.junit.Test;`"
+      - "`import org.junit.jupiter.api.Test;`"
+      - "`import org.springframework.test.Test;`"
+      - "`import org.assertj.core.api.Test;`"
+    answer: 1
+    explanation: |
+      Alle JUnit-Jupiter-Annotationen kommen aus `org.junit.jupiter.api`. `org.junit.Test` ist JUnit 4 – damit werden Tests in Spring-Projekten nicht richtig ausgeführt.
+  followUps:
+    - kind: multi
+      prompt: Welche Aussagen über Testmethoden in JUnit Jupiter stimmen?
+      options:
+        - Testklasse und Testmethoden müssen nicht `public` sein.
+        - Eine Testmethode gibt `void` zurück.
+        - Die Tests einer Klasse laufen immer in der Reihenfolge, in der sie im Code stehen.
+        - Jeder Test bekommt eine neue Instanz der Testklasse.
+      answer: [0, 1, 3]
+      explanation: |
+        Die Reihenfolge der Tests ist absichtlich nicht festgelegt. Weil jeder Test eine frische Instanz bekommt, darf sich kein Test auf einen anderen verlassen.
+
+- id: testing-aufbau-aaa
+  unit: testing/aufbau
+  main:
+    kind: template
+    prompt: Vervollständige den Test nach dem Muster Arrange – Act – Assert.
+    template: |
+      import org.junit.jupiter.api.{{Test}};
+
+      import static org.assertj.core.api.Assertions.assertThat;
+
+      class PriceCalculatorTest {
+
+          {{@Test}}
+          {{void}} verify_discount_is_applied_above_100_euro() {
+              // arrange
+              PriceCalculator calculator = {{new PriceCalculator()}};
+
+              // act
+              double price = {{calculator.finalPrice(120.0)}};
+
+              // assert
+              {{assertThat(price)}}.isEqualTo(108.0);
+          }
+      }
+    redHerrings:
+      - "@BeforeEach"
+      - public static void
+      - assertEquals(price)
+    explanation: |
+      Arrange baut den `PriceCalculator`, Act ruft **genau eine** Methode auf, Assert prüft das Ergebnis mit AssertJ: `assertThat(actual).isEqualTo(expected)`.
+  followUps:
+    - kind: single
+      prompt: Die Klasse liegt in `src/main/java/shop/PriceCalculator.java`. Wo liegt der Test?
+      options:
+        - "`src/main/java/shop/PriceCalculatorTest.java`"
+        - "`src/test/java/PriceCalculatorTest.java`"
+        - "`src/test/java/shop/PriceCalculatorTest.java`"
+        - "`src/test/java/test/shop/PriceCalculatorTest.java`"
+      answer: 2
+      explanation: |
+        Gleiches Package (`shop`), aber unter `src/test/java`. So kann der Test auch package-private Klassen und Methoden verwenden.
+
+- id: testing-aufbau-act
+  unit: testing/aufbau
+  main:
+    kind: single
+    prompt: Was ist an diesem Test problematisch?
+    code: |
+      @Test
+      void verify_cart() {
+          Cart cart = new Cart();
+          cart.add(new Item("Buch", 20.0));
+          assertThat(cart.total()).isEqualTo(20.0);
+          cart.add(new Item("Stift", 2.0));
+          assertThat(cart.total()).isEqualTo(22.0);
+          cart.clear();
+          assertThat(cart.total()).isZero();
+      }
+    options:
+      - Nichts – mehr Assertions machen einen Test besser.
+      - Der Test prüft mehrere Abläufe auf einmal. Schlägt er fehl, weiß man nicht sofort, welches Verhalten kaputt ist.
+      - "`isZero()` gibt es in AssertJ nicht."
+    answer: 1
+    explanation: |
+      Ein Test sollte **ein** Verhalten prüfen: ein *act*, dann die passenden Assertions. Besser wären drei Tests, z. B. `verify_total_of_one_item`, `verify_total_of_two_items` und `verify_clear_empties_cart`.
