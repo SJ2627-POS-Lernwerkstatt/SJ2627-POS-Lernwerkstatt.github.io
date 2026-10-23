@@ -1,0 +1,123 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Tokens taken from ParsonXam (Figma "Colors" collection), plus a dark theme. */
+:root {
+	color-scheme: light;
+	--bg: #f6f6f3;
+	--surface: #ffffff;
+	--surface-alt: #efefea;
+	--border: #e2e2db;
+	--border-strong: #c9c9bf;
+	--text: #1a1b1e;
+	--text-muted: #6b6d75;
+	--text-inverse: #ffffff;
+	--primary: #3d5afe;
+	--primary-soft: #e8ecff;
+	--primary-dark: #2a3fc2;
+	--success: #1f8a4c;
+	--success-soft: #e3f4ea;
+	--danger: #d13b3b;
+	--danger-soft: #fbe6e6;
+	--warn: #b7791f;
+	--warn-soft: #fff1d6;
+	--code-bg: #16181d;
+	--code-text: #e6e8ee;
+	--code-muted: #8a90a0;
+
+	--font-sans: 'Inter Variable', system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+	--radius: 8px;
+	--radius-lg: 12px;
+	--content-width: 72ch;
+}
+
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--bg: #121317;
+	--surface: #1b1d22;
+	--surface-alt: #23262c;
+	--border: #2e3138;
+	--border-strong: #444852;
+	--text: #e8e9ec;
+	--text-muted: #9a9ea8;
+	--text-inverse: #ffffff;
+	--primary: #7b8cff;
+	--primary-soft: #262c4d;
+	--primary-dark: #a6b1ff;
+	--success: #4cc27f;
+	--success-soft: #17301f;
+	--danger: #f07272;
+	--danger-soft: #3a1c1c;
+	--warn: #e0a84a;
+	--warn-soft: #3a2c12;
+	--code-bg: #0d0e11;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--bg: #121317;
+		--surface: #1b1d22;
+		--surface-alt: #23262c;
+		--border: #2e3138;
+		--border-strong: #444852;
+		--text: #e8e9ec;
+		--text-muted: #9a9ea8;
+		--text-inverse: #ffffff;
+		--primary: #7b8cff;
+		--primary-soft: #262c4d;
+		--primary-dark: #a6b1ff;
+		--success: #4cc27f;
+		--success-soft: #17301f;
+		--danger: #f07272;
+		--danger-soft: #3a1c1c;
+		--warn: #e0a84a;
+		--warn-soft: #3a2c12;
+		--code-bg: #0d0e11;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	/* JetBrains Mono would draw <= as ≤, != as ≠, -> as → ... Students must see the characters they type. */
+	font-variant-ligatures: none !important;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-sans);
+	font-size: 16px;
+	line-height: 1.6;
+}
+
+a {
+	color: var(--primary);
+}
+
+code,
+pre {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+button,
+input,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+}
