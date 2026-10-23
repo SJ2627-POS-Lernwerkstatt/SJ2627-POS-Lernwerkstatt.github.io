@@ -23,6 +23,7 @@
 		{@render children()}
 	</main>
 	<footer>
+		<a href={resolve('/fortschritt')}>Mein Fortschritt</a>
 		<a href={resolve('/datenschutz')}>Datenschutz</a>
 	</footer>
 </div>
