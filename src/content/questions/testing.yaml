@@ -558,3 +558,180 @@
       answer: [0, 1]
       explanation: |
         `@ValueSource` und `@CsvSource` enthalten nur Text und einfache Werte, die JUnit umwandelt. Beliebige Objekte kommen aus einer Methode oder einem statischen Feld.
+
+- id: testing-testdaten-grenzen
+  unit: testing/testdaten
+  main:
+    kind: multi
+    prompt: "Regel: *Ab 85 % Auslastung wird der volle Preis verrechnet, darunter der halbe.* Welche Testwerte prüfen die Grenze?"
+    options:
+      - 84.99 %
+      - 85 %
+      - 50 %
+      - 100 %
+    answer: [0, 1]
+    explanation: |
+      An der Grenze testest du **beide Seiten**: den Wert direkt darunter und den Wert genau auf der Grenze. 50 % und 100 % sind typische Werte ihrer Klasse – gut als zusätzliche Fälle, aber sie finden einen `>`-statt-`>=`-Fehler nicht.
+  followUps:
+    - kind: single
+      prompt: Ein Test prüft eine Funktion, die zwei Preise addieren soll, mit den Werten 10 und 10. Die Funktion verdoppelt aber fälschlich den ersten Preis. Was passiert?
+      options:
+        - Der Test ist rot.
+        - Der Test ist grün – der Fehler fällt mit diesen Werten nicht auf.
+        - Der Test bricht mit einer Exception ab.
+      answer: 1
+      explanation: |
+        10 + 10 und 2 × 10 ergeben beide 20. Wähle Testdaten mit **unterschiedlichen** Werten (z. B. 20 und 2), damit Verwechslungen auffallen.
+
+- id: testing-testdaten-fixtures
+  unit: testing/testdaten
+  main:
+    kind: single
+    prompt: Warum liefert `TestFixtures.book()` bei jedem Aufruf ein **neues** Objekt, statt ein statisches Feld `BOOK` zurückzugeben?
+    options:
+      - Weil statische Felder in Testklassen verboten sind.
+      - Damit kein Test die Daten eines anderen Tests verändern kann.
+      - Weil Records keine statischen Felder haben dürfen.
+    answer: 1
+    explanation: |
+      Ein gemeinsames, veränderliches Objekt verbindet Tests miteinander: Ändert einer es, hängt das Ergebnis des nächsten von der Reihenfolge ab. Frische Objekte halten jeden Test unabhängig. (Bei unveränderlichen Records wäre ein gemeinsames Objekt unproblematisch – bei Entities nicht.)
+  followUps:
+    - kind: single
+      prompt: Wo liegt die Klasse `TestFixtures`?
+      options:
+        - In `src/main/java`, damit auch der Service sie verwenden kann
+        - In `src/test/java`, im Package der Tests
+        - In `src/test/resources`
+      answer: 1
+      explanation: |
+        Testdaten gehören zum Testcode und landen nicht im fertigen Programm.
+
+- id: testing-mockito-setup
+  unit: testing/mockito-1
+  main:
+    kind: template
+    prompt: Teste `ShopService` mit gemocktem Repository und Notifier.
+    template: |
+      {{@ExtendWith(MockitoExtension.class)}}
+      class ShopServiceTest {
+
+          {{@Mock}}
+          private ItemRepository repository;
+
+          @Mock
+          private Notifier notifier;
+
+          {{@InjectMocks}}
+          private ShopService service;
+
+          @Test
+          void price_of_known_item() {
+              {{when}}(repository.findByName("Buch"))
+                      .{{thenReturn}}(Optional.of(new Item("Buch", 20.0)));
+
+              assertThat(service.priceOf("Buch")).isEqualTo(20.0);
+          }
+      }
+    redHerrings:
+      - "@MockitoBean"
+      - "@Autowired"
+      - verify
+      - thenAnswer
+    explanation: |
+      `MockitoExtension` erzeugt vor jedem Test die `@Mock`-Felder und baut mit `@InjectMocks` den Service, dem es die Mocks über den Konstruktor übergibt. `@MockitoBean` brauchst du nur in Spring-Tests wie `@WebMvcTest`.
+  followUps:
+    - kind: single
+      prompt: Was liefert ein Mock für `Optional<Item> findByName(String)`, wenn du kein `when(...)` dafür geschrieben hast?
+      options:
+        - "`null`"
+        - Ein leeres `Optional`
+        - Eine Exception
+      answer: 1
+      explanation: |
+        Mockito liefert „leere“ Standardwerte: leeres `Optional`, leere Liste, `0`, `false` und `null` für andere Objekte.
+
+- id: testing-mockito-strict
+  unit: testing/mockito-1
+  main:
+    kind: single
+    prompt: Warum schlägt dieser Test mit `UnnecessaryStubbingException` fehl?
+    code: |
+      @Test
+      void add_item() {
+          when(repository.findByName("Buch")).thenReturn(Optional.of(book));
+
+          service.addItem("Heft", 1.5);
+      }
+    options:
+      - "`addItem` ruft `findByName` nie auf – das `when` ist überflüssig."
+      - "`thenReturn` darf kein `Optional` zurückgeben."
+      - Es fehlt `verify`.
+    answer: 0
+    explanation: |
+      Die `MockitoExtension` meldet jedes Stubbing, das im Test nicht verwendet wurde. Lösch die Zeile – oder überleg, ob der Test eigentlich etwas anderes prüfen sollte.
+  followUps:
+    - kind: single
+      prompt: Wie ersetzt du das Service in einem `@WebMvcTest` (Aufgabe 3) durch einen Mock?
+      options:
+        - "`@Mock`"
+        - "`@MockitoBean`"
+        - "`@InjectMocks`"
+      answer: 1
+      explanation: |
+        In Spring-Tests muss der Mock als Bean im Kontext liegen, damit der Controller ihn bekommt – dafür gibt es `@MockitoBean`.
+
+- id: testing-mockito-verify
+  unit: testing/mockito-2
+  main:
+    kind: template
+    prompt: Prüfe, dass ein unbekannter Artikel weder gelöscht noch gemeldet wird.
+    template: |
+      @Test
+      void unknown_item_is_not_deleted() {
+          when(repository.findByName("Heft")).thenReturn(Optional.empty());
+
+          assertThatIllegalArgumentException().isThrownBy(() -> service.discontinue("Heft"));
+
+          {{verify(repository, never())}}.delete({{any()}});
+          {{verifyNoInteractions}}(notifier);
+      }
+    redHerrings:
+      - verify(repository)
+      - times(0)
+      - when
+    explanation: |
+      `verify(mock, never())` prüft, dass die Methode nie aufgerufen wurde; mit `any()` ist das Argument egal. `verifyNoInteractions` prüft, dass am Notifier gar nichts aufgerufen wurde. (`times(0)` würde auch funktionieren, ist aber schwerer zu lesen.)
+  followUps:
+    - kind: single
+      prompt: Welche Zeile ist **falsch**?
+      options:
+        - "`verify(notifier).send(\"einkauf@shop.at\", \"Buch ausgelistet\");`"
+        - "`verify(notifier).send(eq(\"einkauf@shop.at\"), anyString());`"
+        - "`verify(notifier).send(\"einkauf@shop.at\", anyString());`"
+        - "`verify(notifier).send(anyString(), contains(\"Buch\"));`"
+      answer: 2
+      explanation: |
+        Mit einem Matcher müssen **alle** Argumente Matcher sein. Den festen Wert verpackst du in `eq(...)` – sonst gibt es eine `InvalidUseOfMatchersException`.
+
+- id: testing-mockito-dothrow
+  unit: testing/mockito-2
+  main:
+    kind: single
+    prompt: "`Notifier.send(...)` ist eine `void`-Methode. Wie lässt du sie im Test eine Exception werfen?"
+    options:
+      - "`when(notifier.send(anyString(), anyString())).thenThrow(new IllegalStateException());`"
+      - "`doThrow(new IllegalStateException()).when(notifier).send(anyString(), anyString());`"
+      - "`verify(notifier).send(anyString(), anyString()).thenThrow(new IllegalStateException());`"
+    answer: 1
+    explanation: |
+      `when(...)` braucht einen Rückgabewert und kompiliert bei `void`-Methoden nicht. Die Form `doThrow(...).when(mock).methode(...)` funktioniert für alle Methoden.
+  followUps:
+    - kind: single
+      prompt: "Was bewirkt `when(repository.save(any(Item.class))).thenAnswer(returnsFirstArg());`?"
+      options:
+        - "`save` gibt immer `null` zurück."
+        - "`save` gibt das Objekt zurück, das übergeben wurde."
+        - "`save` speichert das Objekt wirklich in der Datenbank."
+      answer: 1
+      explanation: |
+        `returnsFirstArg()` aus `AdditionalAnswers` gibt das erste Argument zurück – wie ein echtes `save`, nur ohne Datenbank.
