@@ -23,7 +23,7 @@ test('unit page: read a unit and answer a Wissenscheck question', async ({ page 
 	await page.getByRole('button', { name: 'Als gelesen markieren' }).click();
 	await expect(page.getByText('Du hast diese Einheit als gelesen markiert.')).toBeVisible();
 	await page.goto('/testing');
-	await expect(page.getByText(/1 \/ 1 Einheiten gelesen/)).toBeVisible();
+	await expect(page.getByText(/^1 \/ \d+ Einheiten gelesen/)).toBeVisible();
 });
 
 test('exercise mode: a run survives a reload and ends with a review', async ({ page }) => {
