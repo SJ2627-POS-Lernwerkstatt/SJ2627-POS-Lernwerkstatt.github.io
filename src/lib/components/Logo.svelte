@@ -22,4 +22,10 @@
 		color: var(--on-primary);
 		font: 700 13px var(--font-mono);
 	}
+	/* Phones: the mark alone, so the header fits (the link keeps its aria-label). */
+	@media (max-width: 480px) {
+		.name {
+			display: none;
+		}
+	}
 </style>

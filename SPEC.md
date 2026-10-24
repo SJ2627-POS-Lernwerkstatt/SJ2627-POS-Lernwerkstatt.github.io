@@ -131,7 +131,7 @@ All mock exams are new (not past Matura tasks).
 ## Modes
 
 ### Study mode (Lernen)
-Module → unit list → unit page. Reading, diagrams, cheat sheet link. Wissenscheck at the end: each group is answered with **instant feedback** and explanation. Study-mode answers do not change the repetition boxes.
+Module → unit list → unit page. Reading, diagrams, cheat sheet link. A **side panel** on every page lists all modules with their units (read units ticked, the current one highlighted) and exercises. The ☰ button collapses it; the choice is kept in `localStorage` (`lernwerkstatt:sidebar`, outside the progress export). Below 960 px the panel is a drawer that closes after following a link. Wissenscheck at the end: each group is answered with **instant feedback** and explanation. Study-mode answers do not change the repetition boxes.
 
 ### Exercise mode (Üben), Führerschein style
 - **Scope**: one module, or all modules.

@@ -58,3 +58,22 @@ test('exercise page: self-rating and "abgegeben" are stored', async ({ page }) =
 	await expect(page.getByRole('radio', { name: 'Gut', exact: true })).toBeChecked();
 	await expect(page.getByLabel('Ich habe diese Aufgabe abgegeben')).toBeChecked();
 });
+
+test('side panel: shows the course, marks read units and stays collapsed after a reload', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	await page.goto('/testing/aufbau');
+	await hydrated(page);
+	const panel = page.getByRole('navigation', { name: 'Kursübersicht' });
+	await expect(panel.getByRole('link', { name: /Aufbau eines Tests/ })).toHaveAttribute('aria-current', 'page');
+
+	await page.getByRole('button', { name: 'Als gelesen markieren' }).click();
+	await expect(panel.getByRole('link', { name: /Aufbau eines Tests/ })).toContainText('✓');
+
+	const toggle = page.getByRole('button', { name: 'Kursübersicht', exact: true });
+	await toggle.click();
+	await expect(panel).toBeHidden();
+	await page.reload();
+	await expect(panel).toBeHidden();
+	await toggle.click();
+	await expect(panel).toBeVisible();
+});
