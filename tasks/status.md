@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-24 (end of session 2: Phases A and B, C1 and C2 complete). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-24 (session 3: C3 complete). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -23,18 +23,18 @@ Last updated: 2026-10-24 (end of session 2: Phases A and B, C1 and C2 complete).
 | B3 | Private repo `SJ2627-POS-Lernwerkstatt/loesungen` (local: `../POS_Lernwerkstatt_Loesungen`), CI runs `scripts/check.py` per exercise: solution full points, vorlage 0, mutants fail the listed tests |
 | C1 | Module testing: units 01–15 (13–15 Vertiefung), 30 question groups in `testing.yaml`, all `draft` |
 | C2 | Module streams: units 01–10 (10 Vertiefung), 30 question groups in `streams.yaml`, all `draft` |
+| C3 | Module jpa: units 01–10, 25 question groups in `jpa.yaml`, all `draft`. Running example: library (`Branch`, `Book`, `Address`, `Isbn`, `Genre`, `RoomName` from the exam) |
 
-Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/questions/testing.yaml`, JPA exercise 1 (site text `draft`; starter, solution and grading tests in `loesungen`, assignment registered but unlisted), all units and questions `draft`.
+Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercise 1 (site text `draft`; starter, solution and grading tests in `loesungen`, assignment registered but unlisted). All content `draft`.
 
 ## Next
 
-1. **C3** JPA units 1–10 (CURRICULUM.md). Started only as groundwork: a scratch project verified the mappings on Hibernate 7.4 / H2 (findings below). No unit written yet.
-2. **Update `vorlage-jpa-01-fahrradverleih`** with the H2 pin from `loesungen/seed` (rebuild with `assemble.py vorlage` and push). Not done yet.
-3. **C4** JPA exercise 2 in `loesungen/exercises/`, same steps as exercise 1 (bundle → classroom50, public `vorlage-…`, `gh teacher assignment add … --runtime`).
-4. **D2** accept links from the Classroom50 web UI into `classroomUrl`.
-5. CI chores: `actions/setup-java@v5`, newer `deploy-pages`.
+1. **Update `vorlage-jpa-01-fahrradverleih`** with the H2 pin: commit prepared in a local clone (only `gradle/libs.versions.toml` differs, template builds), push was blocked by the permission check and needs the user's approval. Redo: clone, `assemble.py vorlage`, copy, commit, push.
+2. **C4** JPA exercise 2 in `loesungen/exercises/`, same steps as exercise 1 (bundle → classroom50, public `vorlage-…`, `gh teacher assignment add … --runtime`).
+3. **D2** accept links from the Classroom50 web UI into `classroomUrl`.
+4. CI chores: `actions/setup-java@v5`, newer `deploy-pages`.
 
-### Verified facts for C3 (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
+### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
 - **H2 2.4.240 bug** (Boot's default): a string `CHECK (x in (...))` created over one connection fails with "Check constraint invalid" once that connection is closed. `@DataJpaTest` uses a non-pooled embedded DataSource, so every enum mapped with an `AttributeConverter` breaks on insert. Fixed in H2 2.5.252 (pinned in `loesungen/seed`). Workaround without the pin: `@AutoConfigureTestDatabase(replace = NONE)`. `length`/`columnDefinition` do not help. Decision: pin + warn in JPA unit 6.
 - Enum without annotation → `tinyint` ordinal with `check (x between 0 and n)`; `@Enumerated(STRING)` → native H2 `enum('A','B')` column; converter → `varchar(255)` + string check of the codes.
@@ -44,7 +44,14 @@ Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/ques
 - Default `@GeneratedValue` → sequence `<table>_seq` with increment 50. `AbstractPersistable.isNew()` is true before save.
 - Named constraints: `@UniqueConstraint(name = ...)` appears in the exception message; `@JoinColumn(foreignKey = @ForeignKey(name = ...))` creates the named FK.
 - Without `em.flush(); em.clear();` `findById` returns the same instance (first-level cache) → lifecycle tests should flush/clear.
-- Packages: `org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest`, `org.springframework.boot.jpa.test.autoconfigure.TestEntityManager`.
+- Packages: `org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest`, `org.springframework.boot.jpa.test.autoconfigure.TestEntityManager`, `org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase`.
+- **Bean Validation fires at flush, not at `save`, with sequence ids** (the default); with `IDENTITY` the insert and so the check happen at `save`. Probe at the right point: an earlier draft of unit 4 was wrong because the probe entity used `IDENTITY`.
+- `@NotNull`/`@Size` become `not null`/`varchar(n)`; inside an `@Embeddable` only with `@Valid` on the field, and even then `@NotNull` there stays nullable in DDL. Primitives are always `not null`, `BigDecimal` default `numeric(38,2)`.
+- Missing no-arg constructor: startup and save work, reading after `clear()` throws `InstantiationException`. Embeddable class without it: `Unable to locate constructor for embeddable`. Record as `@Entity`: `persist` fails (`Can not set final ... id`).
+- H2 reserved (fail as column names): year, month, day, hour, minute, second, from, to, order, group, user, value, key, end, row, limit. Allowed: name, type, date, time, number, status, level, until.
+- Two `@Embedded` of the same type without renaming: `MappingException: Column 'street' is duplicated`.
+- Unidirectional `@OneToMany` without `@JoinColumn` → join table `<owner table>_<field>`; with `@JoinColumn` → FK in child table. Setting only the inverse side leaves the FK `null`.
+- Transient parent in `@ManyToOne` → `TransientPropertyValueException` at flush; `cascade = PERSIST` fixes it. Converter to `Character` → `char(1)` with check.
 
 ## Decisions taken in session 1 (beyond SPEC.md)
 
@@ -69,7 +76,7 @@ Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/ques
 - Grading tests live in `<root package>.grading` (e.g. `ormapping.grading`), not `grading`, so `@DataJpaTest` finds the application class. Test names come from `@DisplayName` and are the keys in `weights.json`.
 - JPA exercise 1: 14 grading tests, 17 points (one exam task).
 
-## Content workflow (C1, C2)
+## Content workflow (C1–C3)
 
 - Every Java example is run first in a scratch Gradle project built from the seed (`Aufgabe2_BusinessService` for plain Java, `Aufgabe1_ORMapping` for JPA); claims like "this fails" are checked too. Two claims were wrong before checking (static `@Nested`, an AssertJ message) and were fixed.
 - One commit per batch of units with their questions, deployed per batch. Run the Playwright smoke test as its own command and check its exit code (a piped `tail` once hid a failure).
