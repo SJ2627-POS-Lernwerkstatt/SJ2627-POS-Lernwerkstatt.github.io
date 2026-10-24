@@ -34,7 +34,6 @@ Success looks like: a student opens the site, works through a unit in about 10 m
 | PlantUML | Rendered to inline SVG **at build time** (`plantuml.jar`, Java in CI). No request to plantuml.com |
 | Mermaid | `mermaid` npm package bundled and lazy-loaded on pages that contain a diagram. No CDN |
 | Parsons puzzles | Template mode ported from parsonxam (`template.ts` parser, `TemplatePuzzle.svelte`, scoring) |
-| TTS | Web Speech API (`speechSynthesis`), German voices only |
 | Fonts | Inter + JetBrains Mono via `@fontsource-variable`, self-hosted |
 | Tests | `vitest` (lib logic, content validation), `svelte-check`, one Playwright smoke test (unit page, check question, exercise run) |
 | Hosting | GitHub Pages via GitHub Action on push to `main` |
@@ -132,7 +131,7 @@ All mock exams are new (not past Matura tasks).
 ## Modes
 
 ### Study mode (Lernen)
-Module → unit list → unit page. Reading, TTS, diagrams, cheat sheet link. Wissenscheck at the end: each group is answered with **instant feedback** and explanation. Study-mode answers do not change the repetition boxes.
+Module → unit list → unit page. Reading, diagrams, cheat sheet link. Wissenscheck at the end: each group is answered with **instant feedback** and explanation. Study-mode answers do not change the repetition boxes.
 
 ### Exercise mode (Üben), Führerschein style
 - **Scope**: one module, or all modules.
@@ -158,7 +157,7 @@ Key `lernwerkstatt:v1`:
   runs: { scope: string, at: string, correct: number, total: number }[],   // last 50
   currentRun?: { ... },
   exercises: { [exerciseId]: { submittedAt?: string, selfRating?: 1|2|3|4 } },
-  settings: { theme?: 'light'|'dark'|'system', voice?: string, rate?: number }
+  settings: { theme?: 'light'|'dark'|'system' }
 }
 ```
 
@@ -166,7 +165,7 @@ Export downloads `lernwerkstatt-fortschritt-<date>.json`; import validates with 
 
 ## Features
 
-- **TTS**: a "Vorlesen" control per unit. Reads headings, paragraphs, lists and callouts; **skips code blocks and diagrams** (says "Codebeispiel" once instead); inline code is read as its text. Highlights the block being read. Voice picker (German voices only) and speed. If no German voice exists, the control explains that and hides.
+- **TTS**: removed on 2026-10-24 (A9 was built, but the Web Speech API did not work reliably enough).
 - **Cheat sheet**: hosted privately at `https://studious-system-8e43kky.pages.github.io/POS_Java_CheatSheet.pdf` (students are logged in to GitHub and have access). Units link to `…pdf#page=<n>`. The PDF is never copied into this repo or the site. A glossary-style "Spickzettel-Fehler" page lists `docs/cheat-sheet-errors.md`.
 - **Dark mode** (system default, toggle).
 - **Review support**: units with `status: draft` show an "Entwurf" badge. A hidden page `/review` lists all units, question counts and exercises with their status. Each unit has a "Fehler melden" link that opens a prefilled GitHub issue (unit id and title).
@@ -201,7 +200,6 @@ src/
     quiz/                     question kinds, scoring, run selection, Leitner
     puzzle/                   template.ts (from parsonxam), TemplatePuzzle.svelte
     progress/                 store, export/import, migration
-    tts/                      speech controller
     components/
   routes/
     +page.svelte              start
@@ -233,7 +231,6 @@ As in parsonxam's student app: Svelte 5 runes, logic in `lib/` as plain TS with 
 - `vitest`: run selection, Leitner updates, scoring incl. follow-up locking, template parser (ported tests), progress migration and import validation.
 - Content validation (fails `npm test` and the build): schemas, ids, unit references, template parsing, PlantUML rendering. Loading the content index throws on any problem; `content.test.ts` loads the real files.
 - Playwright smoke test: open a unit, answer a Wissenscheck question, complete a run of one scope.
-- Manual: TTS in Safari, Chrome and Edge on Windows/macOS (school laptops).
 
 ## Boundaries
 
@@ -245,7 +242,7 @@ As in parsonxam's student app: Svelte 5 runes, logic in `lib/` as plain TS with 
 
 | Date | Live |
 |---|---|
-| **2026-12-01** | Site incl. study mode, exercise mode, TTS, progress export, review page. Modules **testing** and **streams** complete. **jpa** core units 1–10 + 2 autograded exercises |
+| **2026-12-01** | Site incl. study mode, exercise mode, progress export, review page. Modules **testing** and **streams** complete. **jpa** core units 1–10 + 2 autograded exercises |
 | 2026-12-15 | **jpa** complete (+ Vertiefung), **service** module |
 | 2027-01-10 | **rest** module, Vertiefung (HATEOAS, pagination first, then `@JsonTest`) |
 | 2027-02-15 | Mock exams: 2 small, 2 medium |

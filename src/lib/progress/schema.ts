@@ -41,9 +41,7 @@ export const progressSchema = z.object({
 		.default({}),
 	settings: z
 		.object({
-			theme: z.enum(['light', 'dark', 'system']).optional(),
-			voice: z.string().optional(),
-			rate: z.number().min(0.5).max(2).optional()
+			theme: z.enum(['light', 'dark', 'system']).optional()
 		})
 		.default({})
 });

@@ -14,7 +14,7 @@ Last updated: 2026-10-24 (session 3: Phase C complete). Live: https://sj2627-pos
 | A6 | ParsonXam parser/scoring/board ported (`src/lib/puzzle/`), `Question.svelte` for single/multi/template |
 | A7 | Wissenscheck at the end of each unit (instant feedback, not stored) |
 | A8 | Exercise mode `/ueben`, `/ueben/[scope]`: Leitner selection, one group per page, follow-ups count only if main is right, review after the run |
-| A9 | Read aloud (`src/lib/tts/`, `ReadAloud.svelte`): German voices, code announced as "Codebeispiel", highlight. Tested in Chrome (macOS) only |
+| A9 | Read aloud – **removed** on 2026-10-24 at the user's request (did not work as expected). Old progress exports with `settings.voice`/`rate` still import (keys are stripped) |
 | A10 | Start page with "Weiter lernen"/"Hier beginnen" and per-module progress (`src/lib/progress/summary.ts`), progress line on module pages, hidden `/review` (noindex, not linked), theme toggle System → Hell → Dunkel in the header |
 | A11 | Exercise page `/[module]/uebungen/[slug]`: task Markdown, Classroom50 link or "folgt bald", rubric from frontmatter with self-rating, "abgegeben". Module pages list exercises. Sample: `jpa/exercises/01-fahrradverleih.md` (draft) |
 | A12 | Playwright smoke test (`e2e/smoke.test.ts`, `npm run test:e2e` after a build) runs in CI: unit page + Wissenscheck, exercise run with reload, exercise page |

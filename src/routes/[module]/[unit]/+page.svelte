@@ -4,7 +4,6 @@
 	import Badge from '#lib/components/Badge.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import CheckGroup from '#lib/components/quiz/CheckGroup.svelte';
-	import ReadAloud from '#lib/components/ReadAloud.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
 	import { renderMermaid } from '#lib/diagrams/mermaid.js';
 	import { progress } from '#lib/progress/store.svelte.js';
@@ -41,7 +40,6 @@
 			</a>
 		{/if}
 	</div>
-	<ReadAloud target={() => article} key={data.unit.id} />
 </header>
 
 <article class="prose" bind:this={article}>

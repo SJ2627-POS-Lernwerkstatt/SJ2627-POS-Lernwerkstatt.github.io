@@ -1,6 +1,6 @@
 # Plan: Release 1 (2026-12-01)
 
-Scope (SPEC → Milestones): site with study mode, exercise mode, TTS, progress export, review page; modules **testing** and **streams** complete; **jpa** units 1–10 with 2 autograded exercises.
+Scope (SPEC → Milestones): site with study mode, exercise mode, progress export, review page; modules **testing** and **streams** complete; **jpa** units 1–10 with 2 autograded exercises.
 
 Current state and next steps: `tasks/status.md`.
 
@@ -18,7 +18,7 @@ Order: platform first (weeks 1–2), content in parallel from week 2 so you can 
 | A6 ✓ | Question components: single, multi, template (port parsonxam `template.ts` + tests + `TemplatePuzzle.svelte`) | All three kinds answerable with keyboard and mouse |
 | A7 ✓ | Study mode Wissenscheck: groups for a unit, instant feedback, explanation | Answer shown after each question |
 | A8 ✓ | Exercise mode: scope picker, run selection (Leitner), main/follow-up locking, no feedback during the run, result and review, run survives reload | Unit tests for selection, scoring, locking, box updates |
-| A9 ✓ | TTS: German voice picker, reads prose only, highlights the current block, hides itself without a German voice | Manually tested in Chrome, Edge, Safari |
+| A9 ✗ | TTS (built, then removed on 2026-10-24 at the user's request) | — |
 | A10 ✓ | Start page and module overviews with progress; `/review` page; dark mode toggle | Review page lists every unit with status and question count |
 | A11 ✓ | Exercise page (task, Classroom50 link, rubric, "abgegeben") | Sample exercise renders |
 | A12 ✓ | Playwright smoke test in CI | Green on main |
@@ -51,5 +51,4 @@ Every unit follows the same pattern: draft → deploy → your review on the sit
 ## Risks
 
 - **Review bottleneck**: ~35 units + ~85 question groups in three weeks. Mitigation: content starts in week 2, in small batches (one module section at a time).
-- **TTS quality on Windows Chrome**: may only offer a poor or no German voice. Mitigation: recommend Edge in the help page.
 - **Gradle in autograding**: wrapper download and dependency resolution on every run may be slow. Mitigation: checked in B2; fallback is a custom container image with dependencies preloaded.
