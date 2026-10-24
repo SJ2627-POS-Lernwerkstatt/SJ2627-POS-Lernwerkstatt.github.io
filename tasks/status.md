@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-24 (session 3: C3 complete). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-24 (session 3: Phase C complete). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -24,15 +24,16 @@ Last updated: 2026-10-24 (session 3: C3 complete). Live: https://sj2627-pos-lern
 | C1 | Module testing: units 01–15 (13–15 Vertiefung), 30 question groups in `testing.yaml`, all `draft` |
 | C2 | Module streams: units 01–10 (10 Vertiefung), 30 question groups in `streams.yaml`, all `draft` |
 | C3 | Module jpa: units 01–10, 25 question groups in `jpa.yaml`, all `draft`. Running example: library (`Branch`, `Book`, `Address`, `Isbn`, `Genre`, `RoomName` from the exam) |
+| C4 | JPA exercise 2 `jpa-02-fahrradverleih-beziehungen` (site page `jpa/exercises/02-fahrradverleih-beziehungen.md`, draft): Address as Value Object with `@Valid`, `BikeType` with codes + `BikeTypeConverter`, rich type `InventoryNumber`, bidirectional Station–Bike (cascade PERSIST, no orphanRemoval, `fk_bike_station`). Starter = exercise 1 solution (user decision). 17 grading tests, 22 points; check.py: solution 22/22, vorlage 0, 11 mutants. Public template `vorlage-jpa-02-fahrradverleih-beziehungen`, bundle in `classroom50`, assignment registered (invite link only). Not spiked with a real student repo yet |
+| — | `vorlage-jpa-01-fahrradverleih` updated with the H2 pin |
 
-Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercise 1 (site text `draft`; starter, solution and grading tests in `loesungen`, assignment registered but unlisted). All content `draft`.
+Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercises 1 and 2 (site text `draft`; starter, solution and grading tests in `loesungen`, assignments registered but unlisted). All content `draft`.
 
 ## Next
 
-1. **Update `vorlage-jpa-01-fahrradverleih`** with the H2 pin: commit prepared in a local clone (only `gradle/libs.versions.toml` differs, template builds), push was blocked by the permission check and needs the user's approval. Redo: clone, `assemble.py vorlage`, copy, commit, push.
-2. **C4** JPA exercise 2 in `loesungen/exercises/`, same steps as exercise 1 (bundle → classroom50, public `vorlage-…`, `gh teacher assignment add … --runtime`).
-3. **D2** accept links from the Classroom50 web UI into `classroomUrl`.
-4. CI chores: `actions/setup-java@v5`, newer `deploy-pages`.
+1. **D2** accept links from the Classroom50 web UI into `classroomUrl` (both JPA exercises). Optionally spike exercise 2 with a real student repo, as in B2.
+2. CI chores: `actions/setup-java@v5`, newer `deploy-pages`.
+3. Phase D1/D3 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -75,6 +76,11 @@ Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA e
 - Seed master copy in `loesungen/seed`; template repos are public; `build/` folders stay inside the project.
 - Grading tests live in `<root package>.grading` (e.g. `ormapping.grading`), not `grading`, so `@DataJpaTest` finds the application class. Test names come from `@DisplayName` and are the keys in `weights.json`.
 - JPA exercise 1: 14 grading tests, 17 points (one exam task).
+
+## Decisions taken in session 3
+
+- JPA exercise 2 continues the Fahrradverleih (units 6–10); its public starter contains the exercise 1 solution.
+- Grading tests that use committing saves (`NOT_SUPPORTED`) leave rows behind for other classes; transactional grading classes clear the tables in `@BeforeEach`.
 
 ## Content workflow (C1–C3)
 
