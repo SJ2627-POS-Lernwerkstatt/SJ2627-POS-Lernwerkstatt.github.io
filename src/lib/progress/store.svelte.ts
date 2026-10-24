@@ -1,5 +1,6 @@
 import { browser } from '$app/env';
 import type { CurrentRun, GroupResult } from '#lib/quiz/run.js';
+import type { Theme } from '#lib/theme.js';
 import { updateGroupProgress } from '#lib/quiz/run.js';
 import { BROKEN_KEY, emptyProgress, MAX_RUNS, STORAGE_KEY, type Progress } from './schema.ts';
 import { loadProgress, serialize } from './storage.ts';
@@ -57,6 +58,11 @@ class ProgressStore {
 	setRead(unitId: string, read: boolean) {
 		if (read) this.data.units[unitId] = { readAt: new Date().toISOString() };
 		else delete this.data.units[unitId];
+		this.save();
+	}
+
+	setTheme(theme: Theme) {
+		this.data.settings.theme = theme;
 		this.save();
 	}
 

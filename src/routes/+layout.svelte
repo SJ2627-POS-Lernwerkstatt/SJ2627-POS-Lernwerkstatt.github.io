@@ -3,12 +3,19 @@
 	import { resolve } from '$app/paths';
 	import '../app.css';
 	import Logo from '#lib/components/Logo.svelte';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
+	import { applyTheme } from '#lib/theme.js';
 
 	let { children } = $props();
 
 	onMount(() => progress.init());
+
+	// Also covers an import or a change in another tab.
+	$effect(() => {
+		if (progress.loaded) applyTheme(progress.data.settings.theme);
+	});
 </script>
 
 <svelte:head>
@@ -22,6 +29,7 @@
 			<a href={resolve('/')}>Lernen</a>
 			<a href={resolve('/ueben')}>Üben</a>
 		</nav>
+		<ThemeToggle />
 	</header>
 	<main>
 		{@render children()}
@@ -54,6 +62,7 @@
 		display: flex;
 		gap: 20px;
 		margin-left: auto;
+		margin-right: 20px;
 	}
 	.main-nav a {
 		color: var(--text-muted);
