@@ -88,3 +88,233 @@
     answer: 1
     explanation: |
       Ein Test sollte **ein** Verhalten prüfen: ein *act*, dann die passenden Assertions. Besser wären drei Tests, z. B. `verify_total_of_one_item`, `verify_total_of_two_items` und `verify_clear_empties_cart`.
+
+- id: testing-lebenszyklus-order
+  unit: testing/lebenszyklus
+  main:
+    kind: single
+    prompt: Eine Testklasse hat `@BeforeAll`, `@BeforeEach`, `@AfterEach` und **zwei** Tests. Wie oft läuft die `@BeforeEach`-Methode?
+    options:
+      - Einmal
+      - Zweimal
+      - Dreimal
+      - Gar nicht, wenn es eine `@BeforeAll`-Methode gibt
+    answer: 1
+    explanation: |
+      `@BeforeEach` läuft vor **jedem** Test, also zweimal. `@BeforeAll` läuft einmal vor dem ersten Test.
+  followUps:
+    - kind: single
+      prompt: Warum muss eine `@BeforeAll`-Methode `static` sein?
+      options:
+        - Weil sie sonst zu langsam ist.
+        - Weil sie läuft, bevor es eine Instanz der Testklasse gibt.
+        - Weil JUnit nur statische Methoden aufrufen kann.
+      answer: 1
+      explanation: |
+        JUnit legt für jeden Test eine neue Instanz an. `@BeforeAll` läuft einmal für die ganze Klasse, also vor jeder Instanz – deshalb `static`.
+    - kind: multi
+      prompt: Welche Daten gehören in `@BeforeEach` statt in `@BeforeAll`?
+      options:
+        - Ein Warenkorb, den die Tests verändern
+        - Eine Liste, zu der ein Test Elemente hinzufügt
+        - Eine unveränderliche Konstante wie ein Steuersatz
+      answer: [0, 1]
+      explanation: |
+        Alles, was ein Test verändert, muss für jeden Test neu angelegt werden. Sonst sieht der nächste Test die Änderungen des vorigen. Unveränderliche Werte können als Konstante oder in `@BeforeAll` stehen.
+
+- id: testing-lebenszyklus-fixture
+  unit: testing/lebenszyklus
+  main:
+    kind: template
+    prompt: Vor jedem Test soll ein neuer Warenkorb mit einem Buch bereitstehen. Vervollständige die Testklasse.
+    template: |
+      class CartTest {
+
+          private Cart cart;
+
+          {{@BeforeEach}}
+          void setUp() {
+              cart = {{new Cart()}};
+              cart.add(new Item("Buch", 20.0));
+          }
+
+          @Test
+          void verify_total_of_one_item() {
+              assertThat({{cart.total()}}).isEqualTo(20.0);
+          }
+      }
+    redHerrings:
+      - "@BeforeAll"
+      - static Cart cart
+      - cart.items()
+    explanation: |
+      `@BeforeEach` baut die Ausgangslage vor **jedem** Test neu auf. Mit `@BeforeAll` müsste die Methode `static` sein, und alle Tests würden sich denselben Warenkorb teilen.
+
+- id: testing-lesbar-nested
+  unit: testing/lesbar
+  main:
+    kind: single
+    prompt: Warum laufen die Tests in `WithOneItem` nicht wie gedacht?
+    code: |
+      class CartTest {
+          private Cart cart;
+
+          @BeforeEach
+          void setUp() {
+              cart = new Cart();
+          }
+
+          @Nested
+          static class WithOneItem {
+              @Test
+              void total_is_price_of_item() { /* ... */ }
+          }
+      }
+    options:
+      - "`@Nested` gibt es nur in JUnit 4."
+      - Die innere Klasse ist `static`. Sie kann `cart` nicht verwenden, und das `@BeforeEach` der äußeren Klasse läuft für sie nicht.
+      - Innere Klassen brauchen ein `public`.
+    answer: 1
+    explanation: |
+      `@Nested`-Klassen sind **nicht-statische** innere Klassen. Nur dann teilen sie sich die Instanz und die Lifecycle-Methoden der äußeren Klasse.
+  followUps:
+    - kind: single
+      prompt: In welcher Reihenfolge laufen die Methoden für einen Test in einer `@Nested`-Klasse, wenn außen und innen je ein `@BeforeEach` steht?
+      options:
+        - Erst das innere, dann das äußere `@BeforeEach`, dann der Test
+        - Erst das äußere, dann das innere `@BeforeEach`, dann der Test
+        - Nur das innere `@BeforeEach`
+      answer: 1
+      explanation: |
+        Von außen nach innen: Das äußere `@BeforeEach` legt z. B. den leeren Warenkorb an, das innere fügt einen Artikel hinzu.
+
+- id: testing-lesbar-names
+  unit: testing/lesbar
+  main:
+    kind: multi
+    prompt: Welche Testnamen beschreiben Verhalten und Bedingung?
+    options:
+      - "`test1()`"
+      - "`verify_discount_is_applied_above_100_euro()`"
+      - "`finalPrice_below100_returnsSamePrice()`"
+      - "`testCart()`"
+    answer: [1, 2]
+    explanation: |
+      Ein guter Testname sagt, **was** passieren soll und **wann**. `test1` und `testCart` verraten nichts – man muss den Test lesen, um zu wissen, was er prüft.
+  followUps:
+    - kind: single
+      prompt: Was bewirkt `@DisplayName("Ab 100 Euro gibt es 10 % Rabatt")` an einer Testmethode?
+      options:
+        - Der Text erscheint im Testbericht statt des Methodennamens.
+        - Der Test läuft nur, wenn der Text im Code vorkommt.
+        - Der Text wird als Fehlermeldung verwendet, wenn eine Assertion fehlschlägt.
+      answer: 0
+      explanation: |
+        `@DisplayName` ändert nur die Anzeige in der IDE und im Testbericht. Für Fehlermeldungen gibt es in AssertJ `as(...)`.
+
+- id: testing-assertj-bigdecimal
+  unit: testing/assertj-grundlagen
+  main:
+    kind: single
+    prompt: Welche Assertion ist **grün**?
+    options:
+      - "`assertThat(new BigDecimal(\"2.50\")).isEqualTo(new BigDecimal(\"2.5\"));`"
+      - "`assertThat(new BigDecimal(\"2.50\")).isEqualByComparingTo(\"2.5\");`"
+      - "`assertThat(0.1 + 0.2).isEqualTo(0.3);`"
+    answer: 1
+    explanation: |
+      `BigDecimal.equals` vergleicht auch die Nachkommastellen (`2.50` ≠ `2.5`), `isEqualByComparingTo` nur den Zahlenwert. `0.1 + 0.2` ergibt bei `double` `0.30000000000000004` – dafür gibt es `isCloseTo(0.3, within(0.0001))`.
+  followUps:
+    - kind: template
+      prompt: Prüfe einen berechneten `double`-Wert mit einer Toleranz von 0,01.
+      template: |
+        assertThat({{average}}).{{isCloseTo}}(2.33, {{within(0.01)}});
+      redHerrings:
+        - isEqualTo
+        - isEqualByComparingTo
+        - offset
+      explanation: |
+        `isCloseTo(expected, within(tolerance))` – `within` wird statisch aus `org.assertj.core.api.Assertions` importiert.
+
+- id: testing-assertj-order
+  unit: testing/assertj-grundlagen
+  main:
+    kind: single
+    prompt: "`finalPrice(120.0)` liefert wegen eines Fehlers `100.0` statt `108.0`. Der Test meldet: *expected: 100.0 but was: 108.0*. Warum ist die Meldung verkehrt herum?"
+    code: |
+      double price = calculator.finalPrice(120.0);
+      assertEquals(price, 108.0);
+    options:
+      - JUnit vertauscht die Werte bei `double` immer.
+      - Die Argumente von `assertEquals` sind vertauscht – erst kommt der erwartete, dann der tatsächliche Wert.
+      - "`assertEquals` kann keine `double`-Werte vergleichen."
+    answer: 1
+    explanation: |
+      Bei JUnit ist die Reihenfolge `assertEquals(expected, actual)`. Hier steht der tatsächliche Wert zuerst, deshalb hält JUnit `100.0` für den erwarteten Wert. Mit AssertJ passiert das nicht: `assertThat(actual).isEqualTo(expected)`.
+  followUps:
+    - kind: single
+      prompt: Was ist der Unterschied zwischen `isEqualTo` und `isSameAs`?
+      options:
+        - Keiner, beide vergleichen mit `equals`.
+        - "`isEqualTo` vergleicht mit `equals` den Inhalt, `isSameAs` mit `==`, ob es dasselbe Objekt ist."
+        - "`isSameAs` ignoriert Groß- und Kleinschreibung."
+      answer: 1
+      explanation: |
+        Zwei gleiche Records sind `isEqualTo`, aber nur dann `isSameAs`, wenn es dieselbe Instanz ist.
+
+- id: testing-collections-exactly
+  unit: testing/assertj-collections
+  main:
+    kind: single
+    prompt: "`names` ist `[\"Ben\", \"Anna\", \"Cem\"]`. Welche Assertion schlägt fehl?"
+    options:
+      - "`assertThat(names).contains(\"Anna\", \"Ben\");`"
+      - "`assertThat(names).containsExactlyInAnyOrder(\"Anna\", \"Ben\", \"Cem\");`"
+      - "`assertThat(names).containsExactly(\"Anna\", \"Ben\", \"Cem\");`"
+      - "`assertThat(names).hasSize(3);`"
+    answer: 2
+    explanation: |
+      `containsExactly` verlangt alle Elemente **in dieser Reihenfolge**. `contains` verlangt nur, dass die genannten vorkommen; `containsExactlyInAnyOrder` alle, egal in welcher Reihenfolge.
+  followUps:
+    - kind: single
+      prompt: Ein Repository liefert alle Schüler einer Klasse, ohne `order by`. Welche Prüfung ist die richtige?
+      options:
+        - "`containsExactly(...)`"
+        - "`containsExactlyInAnyOrder(...)`"
+        - "`contains(...)`"
+      answer: 1
+      explanation: |
+        Ohne Sortierung ist die Reihenfolge der Zeilen nicht festgelegt. `containsExactlyInAnyOrder` prüft trotzdem, dass genau die richtigen Schüler kommen – nicht mehr und nicht weniger.
+
+- id: testing-collections-extracting
+  unit: testing/assertj-collections
+  main:
+    kind: template
+    prompt: Prüfe Name und Preis aller Artikel, ohne eigene `Item`-Objekte zu bauen.
+    template: |
+      assertThat(items)
+              .{{extracting}}(Item::name, {{Item::price}})
+              .{{containsExactly}}(
+                      {{tuple}}("Buch", 20.0),
+                      tuple("Stift", 2.0));
+    redHerrings:
+      - filteredOn
+      - Item::getPrice
+      - new Item
+    explanation: |
+      `extracting` mit mehreren Methodenreferenzen liefert pro Element ein Tupel; mit `tuple(...)` gibst du die erwarteten Werte an. Bei einem Record heißt der Getter `price()`, nicht `getPrice()`.
+  followUps:
+    - kind: single
+      prompt: Was prüft diese Assertion?
+      code: |
+        assertThat(items)
+                .filteredOn(item -> item.price() > 10)
+                .extracting(Item::name)
+                .containsExactly("Buch");
+      options:
+        - Dass alle Artikel teurer als 10 sind
+        - Dass genau ein Artikel teurer als 10 ist, und zwar „Buch“
+        - Dass „Buch“ in der Liste vorkommt
+      answer: 1
+      explanation: |
+        `filteredOn` lässt nur Artikel über 10 übrig; davon werden die Namen genommen, und es muss genau `["Buch"]` herauskommen.
