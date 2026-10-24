@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-23 (end of session 1). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-24 (end of session 2, Phase A complete). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -15,15 +15,17 @@ Last updated: 2026-10-23 (end of session 1). Live: https://sj2627-pos-lernwerkst
 | A7 | Wissenscheck at the end of each unit (instant feedback, not stored) |
 | A8 | Exercise mode `/ueben`, `/ueben/[scope]`: Leitner selection, one group per page, follow-ups count only if main is right, review after the run |
 | A9 | Read aloud (`src/lib/tts/`, `ReadAloud.svelte`): German voices, code announced as "Codebeispiel", highlight. Tested in Chrome (macOS) only |
+| A10 | Start page with "Weiter lernen"/"Hier beginnen" and per-module progress (`src/lib/progress/summary.ts`), progress line on module pages, hidden `/review` (noindex, not linked), theme toggle System → Hell → Dunkel in the header |
+| A11 | Exercise page `/[module]/uebungen/[slug]`: task Markdown, Classroom50 link or "folgt bald", rubric from frontmatter with self-rating, "abgegeben". Module pages list exercises. Sample: `jpa/exercises/01-fahrradverleih.md` (draft) |
+| A12 | Playwright smoke test (`e2e/smoke.test.ts`, `npm run test:e2e` after a build) runs in CI: unit page + Wissenscheck, exercise run with reload, exercise page |
 
-Content so far: unit `testing/01-aufbau` and 3 question groups in `src/content/questions/testing.yaml` (all `draft`).
+Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/questions/testing.yaml`, JPA exercise 1 (task text and rubric only), all `draft`.
 
 ## Next
 
-1. **A10** start page with progress per module, `/review` page (all units/exercises with status and question counts), dark mode toggle (store `settings.theme`; `app.html` already applies it before first paint).
-2. **A11** exercise page `/[module]/uebungen/[slug]` (task Markdown, Classroom50 link, four-tier rubric, "abgegeben" + self-rating stored in `progress.exercises`).
-3. **A12** Playwright smoke test in CI (unit page → Wissenscheck → one exercise run). Playwright's Chromium is installed locally; the npm package was removed again until this task.
-4. Then Phase B (autograding spike) and Phase C (content), see `plan.md`.
+1. **Phase B** (autograding): B1 Gradle seed from the 2026-09 Herbsttermin layout reduced to `Aufgabe1_ORMapping`, B2 Classroom50 spike, B3 private `loesungen` repo. See `plan.md`.
+2. **Phase C** (content), starting with module testing. JPA exercise 1 still needs starter template, grading tests and sample solution (C4); its task text fixes the names grading tests compile against (`ormapping.model.Station`/`Bike`, `ormapping.persistence.StationRepository`/`BikeRepository`).
+3. Small CI chores when convenient: `actions/setup-java@v5`, newer `deploy-pages` (Node 20 deprecation warnings).
 
 ## Decisions taken in session 1 (beyond SPEC.md)
 
@@ -34,10 +36,19 @@ Content so far: unit `testing/01-aufbau` and 3 question groups in `src/content/q
 - Cheat sheet PDF is never in the repo; link to the private URL (`src/lib/content/links.ts`). It was purged from git history.
 - Primary buttons use `--on-primary` (dark text on the light dark-mode primary) for contrast.
 
+## Decisions taken in session 2
+
+- Exercise rubric lives in frontmatter: `rubric: { erwartet, genuegend, befriedigend, gut, sehrGut }`, all required, Markdown subset.
+- `selfRating` is the Austrian grade: 1 = Sehr gut … 4 = Genügend; no rating = Nicht genügend / not rated. Schema unchanged.
+- "Weiter lernen" = first unread core unit in course order, then the first unread Vertiefung.
+- The theme toggle cycles System → Hell → Dunkel; `settings.theme` stores the choice.
+
 ## Gotchas
 
 - SvelteKit 3: `$app/env` (not `$app/environment`); config lives in `vite.config.ts`; `#lib/*` imports need a `.js` extension, files under `scripts/` are imported with `.ts`.
 - `vite preview` caches the file list at start: restart it after every `npm run build`.
 - Local dev needs `plantuml` on the PATH (Homebrew) or `PLANTUML_JAR`.
 - Progress store loads in the root layout's `onMount`, so prerendered markup hydrates with empty progress first. Never mutate `$state` during render (create run answers when navigating, see `prepare()` in the run page).
+- The Playwright smoke test uses real content (first group of `testing/aufbau` is a single question with a follow-up; `jpa/uebungen/fahrradverleih` exists). Adjust `e2e/smoke.test.ts` if that content changes.
+- Radios inside a card label need `aria-labelledby` on the tier name, otherwise their accessible name is the whole card.
 - Branch deletion and force pushes are blocked by the permission check unless the user approves them.

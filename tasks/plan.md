@@ -19,9 +19,9 @@ Order: platform first (weeks 1–2), content in parallel from week 2 so you can 
 | A7 ✓ | Study mode Wissenscheck: groups for a unit, instant feedback, explanation | Answer shown after each question |
 | A8 ✓ | Exercise mode: scope picker, run selection (Leitner), main/follow-up locking, no feedback during the run, result and review, run survives reload | Unit tests for selection, scoring, locking, box updates |
 | A9 ✓ | TTS: German voice picker, reads prose only, highlights the current block, hides itself without a German voice | Manually tested in Chrome, Edge, Safari |
-| A10 | Start page and module overviews with progress; `/review` page; dark mode toggle | Review page lists every unit with status and question count |
-| A11 | Exercise page (task, Classroom50 link, rubric, "abgegeben") | Sample exercise renders |
-| A12 | Playwright smoke test in CI | Green on main |
+| A10 ✓ | Start page and module overviews with progress; `/review` page; dark mode toggle | Review page lists every unit with status and question count |
+| A11 ✓ | Exercise page (task, Classroom50 link, rubric, "abgegeben") | Sample exercise renders |
+| A12 ✓ | Playwright smoke test in CI | Green on main |
 
 ## Phase B: Autograding (Nov 2 – Nov 15, parallel)
 
