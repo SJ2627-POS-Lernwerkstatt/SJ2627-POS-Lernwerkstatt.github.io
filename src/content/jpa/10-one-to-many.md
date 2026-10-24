@@ -7,6 +7,24 @@ status: draft
 
 In Einheit 9 kennt jedes Buch seine Filiale. Im Diagramm `Book "n" -- "1" Branch` fehlt aber die Pfeilspitze, und `Branch` hat ein Attribut `books : Book[*]`: Auch die Filiale kennt ihre Bücher. Die Beziehung ist **bidirektional**.
 
+```plantuml
+@startuml
+hide empty methods
+
+class Branch <<(E) Entity>> {
+  - name : String {nn}
+  - books : Book[*]
+}
+
+class Book <<(E) Entity>> {
+  - title : String {nn}
+  - branch : Branch {nn}
+}
+
+Book "n" -- "1" Branch
+@enduml
+```
+
 ## `mappedBy`: eine Beziehung, zwei Seiten
 
 ```java
@@ -103,6 +121,23 @@ void verify_branch_with_books() {
 Erst nach `flush` und `clear` zeigt der Test, dass beide Bücher wirklich mit der Filiale verbunden in der Datenbank stehen.
 
 ## Variante: unidirektional mit `@JoinColumn`
+
+```plantuml
+@startuml
+hide empty methods
+
+class Branch <<(E) Entity>> {
+  - name : String {nn}
+  - books : Book[*]
+}
+
+class Book <<(E) Entity>> {
+  - title : String {nn}
+}
+
+Branch --> "*" Book
+@enduml
+```
 
 Kennt laut Diagramm nur die Filiale ihre Bücher (`Branch --> "*" Book`), hat `Book` kein Feld `branch`. Dann setzt du `@JoinColumn` direkt an die Liste, und der Fremdschlüssel landet trotzdem in `books`:
 

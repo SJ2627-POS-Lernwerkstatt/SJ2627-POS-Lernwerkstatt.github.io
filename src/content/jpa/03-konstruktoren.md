@@ -1,11 +1,31 @@
 ---
 title: Entity-Klassen richtig bauen
-minutes: 9
+minutes: 13
 cheatsheet: 2
 status: draft
 ---
 
 `@Entity` und eine Id reichen, damit Hibernate eine Tabelle anlegt. Für die volle Punktzahl braucht ein Entity aber noch mehr: die richtigen Konstruktoren, Getter und gut gekapselte Listen.
+
+```plantuml
+@startuml
+hide empty methods
+
+class Branch <<(E) Entity>> {
+  - name : String {nn}
+  - books : Book[*]
+}
+
+class Book <<(E) Entity>> {
+  - isbn : String {nn}
+  - title : String {nn}
+  - price : BigDecimal
+  - publishedOn : Date
+}
+@enduml
+```
+
+Die Reihenfolge der Attribute im Diagramm ist die Reihenfolge der Parameter im fachlichen Konstruktor: `Book(isbn, title, price, publishedOn)`. Listen wie `books : Book[*]` kommen nicht in den Konstruktor.
 
 ## Zwei Konstruktoren
 
@@ -86,9 +106,72 @@ public void addBook(Book book) {
 - Der Getter liefert eine unveränderliche Sicht. `getBooks().add(...)` wirft eine `UnsupportedOperationException`.
 - Ändern geht nur über Methoden wie `addBook`. In Einheit 10 halten diese Methoden auch die Gegenseite einer Beziehung aktuell.
 
+## Abkürzung: Lombok
+
+Konstruktoren und Getter sind viel Tipparbeit. **Lombok** erzeugt sie beim Kompilieren aus Annotationen. Lombok ist im Prüfungsprojekt nicht eingebunden; du ergänzt es in `Aufgabe1_ORMapping/build.gradle.kts` (die Version kommt von Spring Boot):
+
+```kotlin
+dependencies {
+    // ... was schon da ist
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+}
+```
+
+Dann sieht `Book` so aus – mit denselben Konstruktoren und Gettern wie oben:
+
+```java
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "books")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+public class Book extends AbstractPersistable<Long> {
+
+    private String isbn;
+    private String title;
+    private BigDecimal price;
+    private LocalDate publishedOn;
+}
+```
+
+| Annotation | Erzeugt |
+|---|---|
+| `@Getter` | einen Getter pro Feld (`getTitle()`, bei `boolean` `isElectric()`) |
+| `@Setter` | einen Setter pro Feld – an der Klasse selten sinnvoll, besser einzeln an Feldern |
+| `@NoArgsConstructor(access = AccessLevel.PROTECTED)` | den `protected` Konstruktor ohne Parameter für JPA |
+| `@AllArgsConstructor` | einen `public` Konstruktor mit **allen** Feldern der Klasse, in der Reihenfolge im Code |
+
+Schreibst du eine Methode selbst, erzeugt Lombok sie nicht. So bleibt ein eigenes `getBooks()` mit `Collections.unmodifiableList` neben `@Getter` erhalten.
+
+:::achtung `@NoArgsConstructor` und `@AllArgsConstructor` brauchen eigene Felder
+`@AllArgsConstructor` nimmt nur die Felder der **eigenen** Klasse. Hat eine Klasse keine eigenen Felder, ist das ein Konstruktor ohne Parameter – genau wie der von `@NoArgsConstructor`. Das passiert bei Vererbung (Einheit 14), wenn ein Kind-Entity keine zusätzlichen Attribute hat:
+
+```java
+@Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+public class InUse extends Location {
+}
+```
+
+Der Code kompiliert nicht: `Konstruktor InUse() ist bereits in Klasse InUse definiert`. Lass in diesem Fall `@AllArgsConstructor` weg und schreib den Konstruktor selbst, der die Attribute an `super(...)` weitergibt. Dasselbe gilt für ein Kind-Entity **mit** eigenen Feldern: `@AllArgsConstructor` erzeugt dort nur `InUse(String exam)` – die Attribute der Elternklasse kannst du damit nicht setzen.
+:::
+
+Zwei weitere Fallen:
+
+- `@AllArgsConstructor` nimmt auch Listen in den Konstruktor auf (`Branch(String name, Address address, List<Book> books)`) und speichert die übergebene Liste direkt. Für Entities mit Listen schreibst du den fachlichen Konstruktor besser selbst.
+- **Kein `@Data` auf Entities.** `@Data` erzeugt einen `public` Konstruktor ohne Parameter, Setter für alle Felder und ein eigenes `equals`/`hashCode` über alle Felder, das das von `AbstractPersistable` ersetzt. Lombok warnt dabei: `Generating equals/hashCode implementation but without a call to superclass`.
+
 :::merke
 - `protected` Konstruktor ohne Parameter für JPA, `public` Konstruktor mit allen Attributen für dich.
 - Getter für alle Attribute, Setter nur, wenn nötig.
 - Ein Entity ist kein Record und nicht `final`.
 - Listen: beim Feld anlegen, unveränderlich herausgeben, über `add`-Methoden ändern.
+- Lombok: `@Getter`, `@NoArgsConstructor(access = AccessLevel.PROTECTED)`, `@AllArgsConstructor` – aber nicht beide Konstruktor-Annotationen ohne eigene Felder, und kein `@Data`.
 :::

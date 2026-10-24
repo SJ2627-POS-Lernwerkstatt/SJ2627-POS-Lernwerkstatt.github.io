@@ -38,6 +38,23 @@ Auf dem Cheat Sheet steht zu Enums: entweder `@Enumerated(EnumType.STRING)` „a
 
 ## Am besten: Codes mit `AttributeConverter`
 
+```plantuml
+@startuml
+hide empty methods
+
+enum Genre <<Enumeration>> {
+  FICTION("F")
+  NON_FICTION("N")
+  COMIC("C")
+}
+
+note right of Genre
+  In Klammern: der Code,
+  der in der Datenbank steht
+end note
+@enduml
+```
+
 Im Diagramm stehen oft Codes neben den Werten, z. B. `FICTION("F")`. Das Enum bekommt dafür ein Feld und eine Methode, die zu einem Code den Wert findet:
 
 ```java

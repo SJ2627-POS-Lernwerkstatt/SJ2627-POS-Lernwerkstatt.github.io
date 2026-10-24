@@ -7,6 +7,24 @@ status: draft
 
 Ein Entity ist eine ganz normale Java-Klasse, die JPA in eine Tabelle abbildet. Dafür braucht sie genau zwei Dinge: die Annotation `@Entity` und einen Primary Key.
 
+So sieht ein Entity im Diagramm aus:
+
+```plantuml
+@startuml
+hide empty methods
+
+class Book <<(E) Entity>> {
+  - title : String {nn}
+  - publishedOn : Date
+}
+
+note right of Book
+  Keine id im Diagramm –
+  die ergänzt du selbst.
+end note
+@enduml
+```
+
 ## Variante 1: die Id selbst schreiben
 
 ```java

@@ -7,6 +7,40 @@ status: draft
 
 Eine ISBN ist mehr als ein `String`: Sie hat genau 13 Ziffern. Ein Raumname wie `B307` besteht aus Gebäude, Stockwerk und Raumnummer, und für jeden Teil gibt es Regeln. Solche Werte mit eigenen Regeln heißen im Diagramm `«RichType»`. In Java sind sie ein eigener Typ, in der Datenbank **eine** Spalte.
 
+```plantuml
+@startuml
+hide empty methods
+
+class Book <<(E) Entity>> {
+  - isbn : Isbn {nn}
+  - title : String {nn}
+}
+
+class Isbn <<(R) RichType>> {
+  - value : String {nn}
+}
+
+class StorageRoom <<(E) Entity>> {
+  - roomName : RoomName {nn}
+  - description : String
+}
+
+class RoomName <<(R) RichType>> {
+  - building : String {nn}
+  - floor : String {nn}
+  - roomNumber : String {nn}
+
+  String shortName()
+  <<static>> RoomName fromShortName(String shortName)
+}
+
+Book --> "1" Isbn
+StorageRoom --> "1" RoomName
+@enduml
+```
+
+Auch wenn ein Rich Type wie `RoomName` mehrere Attribute hat: In der Datenbank ist er **eine** Spalte.
+
 ## Der Typ: ein Record mit Regeln
 
 ```java

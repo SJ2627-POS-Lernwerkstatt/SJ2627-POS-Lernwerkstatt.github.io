@@ -7,6 +7,25 @@ status: draft
 
 Eine Adresse besteht aus Straße, Postleitzahl und Ort. Sie hat keine eigene Identität: Zwei Adressen mit denselben Werten sind dieselbe Adresse. Im Diagramm ist sie ein `«ValueObject»`. In der Datenbank bekommt sie keine eigene Tabelle – ihre Werte landen als Spalten in der Tabelle des Entities, das sie besitzt.
 
+```plantuml
+@startuml
+hide empty methods
+
+class Branch <<(E) Entity>> {
+  - name : String {nn}
+  - address : Address {nn}
+}
+
+class Address <<(V) ValueObject>> {
+  - street : String {nn}
+  - zip : String {nn}
+  - city : String {nn}
+}
+
+Branch --> "1" Address
+@enduml
+```
+
 ## `@Embeddable` und `@Embedded`
 
 Am kürzesten schreibst du ein Value Object als Record:
@@ -72,6 +91,27 @@ Auch mit `@Valid` bleiben die Spalten eines Value Objects in der Tabelle nullabl
 :::
 
 ## Zwei Adressen in einem Entity
+
+```plantuml
+@startuml
+hide empty methods
+
+class Member <<(E) Entity>> {
+  - name : String {nn}
+  - homeAddress : Address {nn}
+  - billingAddress : Address
+}
+
+class Address <<(V) ValueObject>> {
+  - street : String {nn}
+  - zip : String {nn}
+  - city : String {nn}
+}
+
+Member --> "1" Address : homeAddress
+Member --> "0,1" Address : billingAddress
+@enduml
+```
 
 Ein Mitglied hat eine Wohnadresse und eine Rechnungsadresse. Bettest du beide einfach ein, gibt es die Spalte `street` zweimal, und Hibernate bricht beim Start ab:
 

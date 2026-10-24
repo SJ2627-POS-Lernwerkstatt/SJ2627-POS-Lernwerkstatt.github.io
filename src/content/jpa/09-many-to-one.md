@@ -7,6 +7,25 @@ status: draft
 
 Viele Bücher stehen in einer Filiale: `Book "n" -- "1" Branch`. In der Datenbank ist das eine Spalte `branch_id` in der Tabelle `books` – ein **Fremdschlüssel** auf `branches`. In Java ist es einfach ein Feld vom Typ `Branch`.
 
+```plantuml
+@startuml
+hide empty methods
+
+class Book <<(E) Entity>> {
+  - title : String {nn}
+  - branch : Branch {nn}
+}
+
+class Branch <<(E) Entity>> {
+  - name : String {nn}
+}
+
+Book "n" --> "1" Branch
+@enduml
+```
+
+Der Pfeil zeigt: Nur `Book` kennt `Branch`. Die Multiplizität `"1"` bei `Branch` heißt: Jedes Buch hat genau eine Filiale. Stünde dort `"0,1"`, dürfte sie fehlen.
+
 ## Die einfachste Form
 
 ```java

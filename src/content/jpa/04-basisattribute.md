@@ -7,6 +7,23 @@ status: draft
 
 Ohne weitere Angaben wird jeder `String` zu `varchar(255)` und jede Spalte darf `null` sein. Die Angabe verlangt aber meistens mehr: Pflichtfelder, Höchstlängen, eindeutige Werte, Geldbeträge mit zwei Nachkommastellen. Das legst du mit Annotationen am Feld fest.
 
+Die Regeln stehen in der Angabe an zwei Stellen: `{nn}` im Diagramm, Längen und Eindeutigkeit meist im Text darunter.
+
+```plantuml
+@startuml
+hide empty methods
+
+class Book <<(E) Entity>> {
+  - isbn : String {nn}
+  - title : String {nn}
+  - price : BigDecimal
+  - publishedOn : Date
+}
+@enduml
+```
+
+> `isbn` hat genau 13 Zeichen und ist eindeutig, `title` höchstens 120 Zeichen. `price` hat 6 Stellen, davon 2 Nachkommastellen.
+
 ## `@Column`
 
 ```java
