@@ -318,3 +318,243 @@
       answer: 1
       explanation: |
         `filteredOn` lässt nur Artikel über 10 übrig; davon werden die Namen genommen, und es muss genau `["Buch"]` herauskommen.
+
+- id: testing-verketten-optional
+  unit: testing/assertj-verketten
+  main:
+    kind: template
+    prompt: Prüfe, dass die gespeicherte Station gefunden wird und Name und Kapazität stimmen.
+    template: |
+      Station saved = repository.save(new Station("Westbahnhof", "Europaplatz 2", 24));
+
+      assertThat(repository.{{findById(saved.getId())}})
+              .{{hasValueSatisfying}}(found -> {
+                  assertThat({{found.getName()}}).isEqualTo("Westbahnhof");
+                  assertThat(found.getCapacity()).isEqualTo(24);
+              });
+    redHerrings:
+      - findById(saved.getId()).get()
+      - satisfiesExactly
+      - saved.getName()
+    explanation: |
+      `findById` liefert ein `Optional`. `hasValueSatisfying` prüft, dass ein Wert da ist, und gibt ihn an das Lambda weiter. Im Lambda prüfst du `found` – das aus der Datenbank gelesene Objekt, nicht `saved`.
+  followUps:
+    - kind: single
+      prompt: Was passiert bei `repository.findById(id).get()`, wenn es keinen Datensatz mit dieser Id gibt?
+      options:
+        - Es kommt `null` zurück.
+        - Es fliegt eine `NoSuchElementException`.
+        - Der Test wird übersprungen.
+      answer: 1
+      explanation: |
+        `Optional.get()` auf einem leeren `Optional` wirft `NoSuchElementException: No value present`. Mit `hasValueSatisfying` bekommst du stattdessen eine klare Meldung.
+
+- id: testing-verketten-lists
+  unit: testing/assertj-verketten
+  main:
+    kind: single
+    prompt: Eine Abfrage soll **genau einen** Artikel liefern, und zwar „Buch“. Welche Assertion prüft beides?
+    options:
+      - "`assertThat(result).first().returns(\"Buch\", Item::name);`"
+      - "`assertThat(result).singleElement().returns(\"Buch\", Item::name);`"
+      - "`assertThat(result).anySatisfy(i -> assertThat(i.name()).isEqualTo(\"Buch\"));`"
+    answer: 1
+    explanation: |
+      `singleElement()` schlägt fehl, wenn die Liste nicht genau ein Element hat. `first()` und `anySatisfy` wären auch bei mehreren Treffern grün.
+  followUps:
+    - kind: multi
+      prompt: "`items` ist `[Buch 20.0, Stift 2.0]`. Welche Assertions sind grün?"
+      options:
+        - "`assertThat(items).allSatisfy(i -> assertThat(i.price()).isPositive());`"
+        - "`assertThat(items).noneSatisfy(i -> assertThat(i.price()).isGreaterThan(10));`"
+        - "`assertThat(items).element(1).returns(\"Stift\", Item::name);`"
+        - "`assertThat(items).first().returns(20.0, Item::price);`"
+      answer: [0, 2, 3]
+      explanation: |
+        Das Buch kostet mehr als 10, also ist `noneSatisfy` rot. `element(1)` ist das **zweite** Element (Index ab 0), also der Stift.
+
+- id: testing-exceptions-lambda
+  unit: testing/exceptions
+  main:
+    kind: single
+    prompt: Der Code wirft richtig eine `IllegalArgumentException`. Trotzdem ist der Test rot. Warum?
+    code: |
+      @Test
+      void remove_unknown_item_fails() {
+          Cart cart = new Cart();
+          cart.remove("Heft");
+          assertThatThrownBy(() -> {})
+                  .isInstanceOf(IllegalArgumentException.class);
+      }
+    options:
+      - "`assertThatThrownBy` funktioniert nur mit eigenen Exceptions."
+      - Der Aufruf steht nicht im Lambda. Die Exception fliegt, bevor AssertJ sie fangen kann.
+      - Es fehlt `hasMessage(...)`.
+    answer: 1
+    explanation: |
+      Richtig ist `assertThatThrownBy(() -> cart.remove("Heft")).isInstanceOf(IllegalArgumentException.class);` – nur so kann AssertJ den Aufruf selbst ausführen und die Exception fangen.
+  followUps:
+    - kind: template
+      prompt: Prüfe Typ und Meldung der Exception.
+      template: |
+        {{assertThatThrownBy}}(() -> {{cart.remove("Heft")}})
+                .{{isInstanceOf}}(IllegalArgumentException.class)
+                .{{hasMessageContaining}}("Heft");
+      redHerrings:
+        - assertThat
+        - isThrownBy
+        - withMessage
+      explanation: |
+        `assertThatThrownBy(lambda)` führt den Aufruf aus; danach prüfst du mit `isInstanceOf` den Typ und mit `hasMessage`/`hasMessageContaining` die Meldung. `isThrownBy` und `withMessage` gehören zur anderen Form, `assertThatExceptionOfType(...)`.
+
+- id: testing-exceptions-forms
+  unit: testing/exceptions
+  main:
+    kind: multi
+    prompt: Mit welchen Zeilen prüfst du, dass `calculator.finalPrice(-1)` eine `IllegalArgumentException` wirft?
+    options:
+      - "`assertThatIllegalArgumentException().isThrownBy(() -> calculator.finalPrice(-1));`"
+      - "`assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> calculator.finalPrice(-1));`"
+      - "`assertThrows(IllegalArgumentException.class, () -> calculator.finalPrice(-1));`"
+      - "`assertThat(calculator.finalPrice(-1)).isInstanceOf(IllegalArgumentException.class);`"
+    answer: [0, 1, 2]
+    explanation: |
+      Die ersten drei sind gleichwertig. Die letzte ruft `finalPrice(-1)` direkt auf – die Exception fliegt, bevor `assertThat` überhaupt etwas bekommt.
+  followUps:
+    - kind: single
+      prompt: Wie prüfst du, dass ein gültiger Artikel **ohne** Exception hinzugefügt wird?
+      options:
+        - "`assertThatCode(() -> cart.add(item)).doesNotThrowAnyException();`"
+        - "`assertThatThrownBy(() -> cart.add(item)).isNull();`"
+        - "`assertThat(cart.add(item)).isNotNull();`"
+      answer: 0
+      explanation: |
+        `assertThatCode(...).doesNotThrowAnyException()` ist genau dafür da. `assertThatThrownBy` schlägt immer fehl, wenn nichts geworfen wird.
+
+- id: testing-param-csv
+  unit: testing/parametrisiert-1
+  main:
+    kind: template
+    prompt: Teste die Altersgrenze zwischen Jugend und Erwachsenen von beiden Seiten.
+    template: |
+      {{@ParameterizedTest}}
+      {{@CsvSource}}({
+              "17, YOUTH",
+              "18, ADULT"
+      })
+      void category_for_age({{int age, Ticket.Category expected}}) {
+          assertThat(Ticket.categoryFor(age)).isEqualTo({{expected}});
+      }
+    redHerrings:
+      - "@Test"
+      - "@ValueSource"
+      - String age, String expected
+    explanation: |
+      Pro Zeile von `@CsvSource` ein Durchlauf. JUnit wandelt `"17"` in `int` und `"YOUTH"` in das Enum um. Ein `@ParameterizedTest` braucht kein zusätzliches `@Test`.
+  followUps:
+    - kind: single
+      prompt: Ein Rabatt gilt **ab** 100 Euro. Welche Werte testen die Grenze am besten?
+      options:
+        - 50 und 150
+        - 99.99 und 100
+        - 100 und 1000
+      answer: 1
+      explanation: |
+        Fehler passieren an der Grenze (`>` statt `>=`). Deshalb testest du den Wert direkt an der Grenze und den direkt daneben.
+
+- id: testing-param-null
+  unit: testing/parametrisiert-1
+  main:
+    kind: single
+    prompt: Wie oft läuft dieser Test?
+    code: |
+      @ParameterizedTest
+      @NullAndEmptySource
+      @ValueSource(strings = {" ", "ABC1234"})
+      void invalid_codes(String code) {
+          assertThat(Ticket.isValidCode(code)).isFalse();
+      }
+    options:
+      - Zweimal
+      - Dreimal
+      - Viermal
+    answer: 2
+    explanation: |
+      `@NullAndEmptySource` liefert `null` und `""`, `@ValueSource` zwei weitere Werte – zusammen vier Durchläufe.
+  followUps:
+    - kind: single
+      prompt: "Welchen Wert bekommt `code` in der Zeile `\", false\"` einer `@CsvSource`?"
+      options:
+        - "`\"\"` (leerer String)"
+        - "`null`"
+        - "`\" \"` (ein Leerzeichen)"
+      answer: 1
+      explanation: |
+        Ein ganz leerer Wert wird zu `null`. Einen leeren String schreibst du als `''`.
+    - kind: single
+      prompt: Was macht `@EnumSource(Ticket.Category.class)`?
+      options:
+        - Der Test läuft einmal pro Wert des Enums.
+        - Der Test läuft nur für den ersten Enum-Wert.
+        - Der Test bekommt alle Enum-Werte als Array.
+      answer: 0
+      explanation: |
+        Ein Durchlauf pro Enum-Wert. Mit `names` und `mode = EXCLUDE` kannst du einzelne Werte ausnehmen.
+
+- id: testing-param-method
+  unit: testing/parametrisiert-2
+  main:
+    kind: template
+    prompt: Liefere die Testdaten für einen Test mit den Parametern `(List<Item> items, double expected)`.
+    template: |
+      static {{Stream<Arguments>}} carts() {
+          return Stream.of(
+                  {{arguments}}(List.of(), 0.0),
+                  arguments({{List.of(new Item("Buch", 20.0))}}, 20.0));
+      }
+
+      @ParameterizedTest
+      {{@MethodSource("carts")}}
+      void total_is_sum_of_prices(List<Item> items, double expected) {
+          // ...
+      }
+    redHerrings:
+      - List<Item>
+      - "@CsvSource(\"carts\")"
+      - "@ValueSource"
+    explanation: |
+      Die Quellmethode ist `static` und liefert einen `Stream<Arguments>`. Jedes `arguments(...)` ist ein Durchlauf; die Werte kommen in der Reihenfolge der Parameter.
+  followUps:
+    - kind: single
+      prompt: Was passiert, wenn die Quellmethode `carts()` nicht `static` ist?
+      options:
+        - Nichts, JUnit legt dafür eine Instanz an.
+        - JUnit bricht mit einer Fehlermeldung ab, bevor ein Durchlauf startet.
+        - Der Test läuft ohne Argumente.
+      answer: 1
+      explanation: |
+        Quellmethoden müssen `static` sein (außer mit `@TestInstance(Lifecycle.PER_CLASS)`). Sonst meldet JUnit „must be static“.
+
+- id: testing-param-names
+  unit: testing/parametrisiert-2
+  main:
+    kind: single
+    prompt: Du willst im Testbericht `[1] leerer Warenkorb` statt einer langen Liste von Objekten sehen. Was verwendest du in der Quellmethode?
+    options:
+      - "`arguments(\"leerer Warenkorb\", List.of(), 0.0)`"
+      - "`argumentSet(\"leerer Warenkorb\", List.of(), 0.0)`"
+      - "`@DisplayName(\"leerer Warenkorb\")`"
+    answer: 1
+    explanation: |
+      `argumentSet(name, ...)` gibt dem Fall einen Namen, der nicht als Argument übergeben wird. Bei `arguments(...)` wäre der Name einfach ein zusätzliches erstes Argument.
+  followUps:
+    - kind: multi
+      prompt: Welche Quellen liefern Objekte (nicht nur Zahlen und Strings) an einen parametrisierten Test?
+      options:
+        - "`@MethodSource`"
+        - "`@FieldSource`"
+        - "`@ValueSource`"
+        - "`@CsvSource`"
+      answer: [0, 1]
+      explanation: |
+        `@ValueSource` und `@CsvSource` enthalten nur Text und einfache Werte, die JUnit umwandelt. Beliebige Objekte kommen aus einer Methode oder einem statischen Feld.
