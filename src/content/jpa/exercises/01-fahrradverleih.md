@@ -55,8 +55,8 @@ class Bike <<(E) Entity>> {
 Lege beide Klassen im Package `ormapping.model` an und leite sie von `AbstractPersistable<Long>` ab. Jede Klasse bekommt
 
 - einen `protected` Konstruktor ohne Parameter (für JPA),
-- einen öffentlichen Konstruktor mit allen Attributen,
-- Getter für alle Attribute.
+- einen öffentlichen Konstruktor mit allen Attributen in der Reihenfolge des Diagramms,
+- Getter für alle Attribute (für `electric`: `isElectric()`).
 
 Für die Spalten gelten diese Regeln:
 
@@ -88,5 +88,7 @@ Schreibe für jedes Repository einen `@DataJpaTest`:
 3. Es über `findById` wieder lesen und die Attribute vergleichen.
 
 :::pruefung
-Die Bewertungstests verwenden genau die Namen aus dieser Angabe: Packages, Klassen, Konstruktoren und Repositories. Wenn ein Name abweicht, kompiliert der Bewertungstest nicht und die Abgabe bekommt 0 Punkte.
+Die Bewertungstests verwenden genau die Namen aus dieser Angabe: Packages, Klassen, Konstruktoren, Getter und Repositories. Wenn ein Name abweicht, kompiliert der Bewertungstest nicht und die Abgabe bekommt 0 Punkte. Dasselbe gilt, wenn einer deiner eigenen Tests nicht kompiliert.
+
+Das Package `ormapping.grading` ist für die Bewertungstests reserviert und wird bei jeder Abgabe ersetzt.
 :::
