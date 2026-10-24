@@ -95,10 +95,28 @@ describe('buildIndex', () => {
 	});
 
 	it('loads exercises', () => {
-		const ex = '---\ntitle: Schule\ngrading: auto\nminutes: 90\n---\n';
+		const ex = `---
+title: Schule
+grading: auto
+minutes: 90
+rubric:
+  erwartet: Alles
+  genuegend: Wenig
+  befriedigend: Etwas
+  gut: Viel
+  sehrGut: Alles und mehr
+---
+`;
 		const { index, errors } = build({ exercises: { 'jpa/exercises/01-schule.md': ex } });
 		expect(errors).toEqual([]);
 		expect(index.exercises[0]).toMatchObject({ id: 'jpa/uebungen/schule', grading: 'auto', status: 'draft' });
+	});
+
+	it('requires all four rubric tiers', () => {
+		const ex = '---\ntitle: Schule\ngrading: auto\nminutes: 90\nrubric:\n  erwartet: A\n  genuegend: B\n---\n';
+		const { errors } = build({ exercises: { 'jpa/exercises/01-schule.md': ex } });
+		expect(errors.some((e) => e.includes('rubric.befriedigend'))).toBe(true);
+		expect(errors.some((e) => e.includes('rubric.sehrGut'))).toBe(true);
 	});
 
 	it('reports template errors with question and line', () => {

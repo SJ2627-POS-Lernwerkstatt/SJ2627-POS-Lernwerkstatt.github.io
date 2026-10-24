@@ -16,6 +16,27 @@ export const unitFrontmatter = z.strictObject({
 });
 export type UnitFrontmatter = z.infer<typeof unitFrontmatter>;
 
+const tier = z.string().min(1);
+
+/** Four-tier grading guideline, as in the official Beurteilungskriterien. Markdown subset. */
+export const rubric = z.strictObject({
+	/** "Erwartete Ergebnisse": what full points require. */
+	erwartet: tier,
+	genuegend: tier,
+	befriedigend: tier,
+	gut: tier,
+	sehrGut: tier
+});
+export type Rubric = z.infer<typeof rubric>;
+
+/** Self-rating as an Austrian grade, stored in progress.exercises[id].selfRating. */
+export const GRADES = [
+	{ grade: 4, key: 'genuegend', label: 'Genügend' },
+	{ grade: 3, key: 'befriedigend', label: 'Befriedigend' },
+	{ grade: 2, key: 'gut', label: 'Gut' },
+	{ grade: 1, key: 'sehrGut', label: 'Sehr gut' }
+] as const satisfies readonly { grade: number; key: keyof Rubric; label: string }[];
+
 export const exerciseFrontmatter = z.strictObject({
 	title: z.string().min(1),
 	/** Classroom50 accept link; missing until the assignment exists. */
@@ -24,6 +45,7 @@ export const exerciseFrontmatter = z.strictObject({
 	minutes: z.int().min(10).max(300),
 	/** Only for mock exams. */
 	size: z.enum(['small', 'medium', 'full']).optional(),
+	rubric,
 	status
 });
 export type ExerciseFrontmatter = z.infer<typeof exerciseFrontmatter>;
