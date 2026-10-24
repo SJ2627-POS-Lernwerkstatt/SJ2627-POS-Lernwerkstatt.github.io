@@ -1,0 +1,378 @@
+- id: jpa-uml-stereotypes
+  unit: jpa/uml
+  main:
+    kind: single
+    prompt: Im Diagramm steht `class Address <<(V) ValueObject>>`. Wie wird `Address` umgesetzt?
+    options:
+      - Als `@Entity` mit eigener Tabelle und Repository
+      - Als `@Embeddable` ohne Id, die Spalten landen in der Tabelle des Besitzers
+      - Als `enum` mit einem Converter
+      - Gar nicht, Value Objects stehen nur zur Information im Diagramm
+    answer: 1
+    explanation: |
+      Ein Value Object hat keine Identität und keine eigene Tabelle. Es wird mit `@Embeddable` umgesetzt und mit `@Embedded` in das Entity eingebettet (Einheit 7).
+  followUps:
+    - kind: multi
+      prompt: Welche Klassen aus einem Matura-Diagramm bekommen ein eigenes Repository?
+      options:
+        - "`«Entity»`"
+        - "`«ValueObject»`"
+        - "`«RichType»`"
+        - "`«Enumeration»`"
+      answer: [0]
+      explanation: |
+        Nur Entities haben eine eigene Tabelle und eine Id, also auch ein Repository. Value Objects, Rich Types und Enums werden mit ihrem Entity gespeichert.
+    - kind: single
+      prompt: Ein `«RichType»` `Isbn` mit einem Attribut `value`. Wie viele Spalten bekommt das Feld `isbn` im Entity `Book`?
+      options:
+        - Eine
+        - Eine pro Attribut des Rich Types
+        - Keine, es bekommt eine eigene Tabelle
+      answer: 0
+      explanation: |
+        Ein Rich Type wird über einen `AttributeConverter` auf **eine** Spalte abgebildet (Einheit 8).
+
+- id: jpa-uml-attributes
+  unit: jpa/uml
+  main:
+    kind: single
+    prompt: "Was bedeutet `- logTimestamp : DateTime {nn}`?"
+    options:
+      - "Ein Feld `logTimestamp` vom Typ `LocalDateTime`, das nie `null` sein darf"
+      - "Ein Feld `logTimestamp` vom Typ `LocalDate`, das eindeutig sein muss"
+      - "Ein Feld `logTimestamp`, das nicht gespeichert wird"
+    answer: 0
+    explanation: |
+      `DateTime` wird in Java zu `LocalDateTime` (Datum **und** Uhrzeit), `{nn}` heißt *not null*. Eindeutigkeit steht, wenn gefordert, im Text der Angabe.
+  followUps:
+    - kind: single
+      prompt: Im Diagramm fehlt bei jedem Entity das Attribut `id`. Was tust du?
+      options:
+        - Nichts, ohne `id` im Diagramm braucht das Entity keinen Primary Key
+        - Ich ergänze selbst einen Primary Key, z. B. mit `AbstractPersistable<Long>`
+        - Ich nehme das erste Attribut als Primary Key
+      answer: 1
+      explanation: |
+        Technische Attribute wie die Id stehen nie im Diagramm. Jedes Entity braucht trotzdem einen Primary Key – die Beurteilung prüft, dass er „richtig definiert“ ist.
+
+- id: jpa-uml-lines
+  unit: jpa/uml
+  main:
+    kind: single
+    prompt: "Was bedeutet die Linie `Book \"n\" -- \"1\" Branch`?"
+    options:
+      - Ein Buch gehört zu vielen Filialen, beide Seiten kennen sich
+      - Viele Bücher gehören zu einer Filiale, beide Seiten kennen sich
+      - Viele Bücher gehören zu einer Filiale, nur `Book` kennt `Branch`
+    answer: 1
+    explanation: |
+      Die Multiplizität steht auf der Seite, die gezählt wird: `"n"` bei `Book`, `"1"` bei `Branch`. Ohne Pfeilspitze ist die Beziehung bidirektional – `Book` hat ein Feld `branch`, `Branch` eine Liste `books`.
+  followUps:
+    - kind: single
+      prompt: "Was ändert sich bei `DividerBoxAtStorage \"n\" --> \"0,1\" StorageRoom`?"
+      options:
+        - Nur `DividerBoxAtStorage` kennt den Raum, und der Raum darf fehlen
+        - Beide kennen sich, und der Raum ist Pflicht
+        - "`StorageRoom` hat eine Liste von `DividerBoxAtStorage`"
+      answer: 0
+      explanation: |
+        Der Pfeil zeigt, wer wen kennt: nur `DividerBoxAtStorage` hat ein Feld `storageRoom`. `"0,1"` heißt: höchstens ein Raum, darf aber `null` sein.
+
+- id: jpa-entity-minimum
+  unit: jpa/entity
+  main:
+    kind: multi
+    prompt: Was braucht eine Klasse **mindestens**, damit Hibernate sie als Entity abbildet?
+    options:
+      - "`@Entity`"
+      - "`@Table`"
+      - Ein Feld mit `@Id` (oder eine geerbte Id)
+      - "`@GeneratedValue`"
+      - Einen Konstruktor mit allen Attributen
+    answer: [0, 2]
+    explanation: |
+      Pflicht sind `@Entity` und eine Id. `@Table` ist empfohlen, `@GeneratedValue` lässt die Id automatisch vergeben, und der fachliche Konstruktor ist für dich, nicht für JPA.
+  followUps:
+    - kind: template
+      prompt: Mach `Book` zu einem Entity in der Tabelle `books`, mit einer Id von Spring Data.
+      template: |
+        @{{Entity}}
+        @Table(name = "{{books}}")
+        public class Book extends {{AbstractPersistable<Long>}} {
+
+            private String title;
+        }
+      redHerrings:
+        - Embeddable
+        - AbstractPersistable<long>
+        - Book
+      explanation: |
+        `@Entity` plus `extends AbstractPersistable<Long>` – der Typ der Id muss ein Objekttyp sein, deshalb `Long`, nicht `long`. Der Tabellenname kommt aus der Angabe, hier `books`.
+
+- id: jpa-entity-naming
+  unit: jpa/entity
+  main:
+    kind: single
+    prompt: Wie heißt die Spalte für dieses Feld in der Datenbank?
+    code: |
+      @Entity
+      public class Book extends AbstractPersistable<Long> {
+          private LocalDate publishedOn;
+      }
+    options:
+      - "`publishedOn`"
+      - "`published_on`"
+      - "`PUBLISHEDON`"
+      - "`book_published_on`"
+    answer: 1
+    explanation: |
+      Spring Boot wandelt camelCase in Namen mit Unterstrich um: `publishedOn` → `published_on`. Die Tabelle heißt ohne `@Table` entsprechend `book`.
+  followUps:
+    - kind: single
+      prompt: "`Book` erweitert `AbstractPersistable<Long>`. Was liefert `book.getId()` für ein neues Buch, das noch nicht gespeichert wurde?"
+      options:
+        - "`0`"
+        - "`null`"
+        - Eine zufällige Id
+        - Eine `IllegalStateException`
+      answer: 1
+      explanation: |
+        Die Id vergibt erst Hibernate beim Speichern. Vorher ist sie `null`, und `isNew()` liefert `true`.
+
+- id: jpa-entity-equals
+  unit: jpa/entity
+  main:
+    kind: single
+    prompt: "`Book` hat eine eigene Id (`@Id @GeneratedValue private Long id;`) und **kein** `equals`. Was liefert `reread.equals(saved)`?"
+    code: |
+      Book saved = bookRepository.save(book);
+      entityManager.flush();
+      entityManager.clear();
+      Book reread = bookRepository.findById(saved.getId()).orElseThrow();
+    options:
+      - "`true`, die Id ist gleich"
+      - "`false`, es sind zwei verschiedene Objekte und `equals` vergleicht nur die Referenz"
+      - Der Code kompiliert nicht
+    answer: 1
+    explanation: |
+      Ohne eigenes `equals` gilt das `equals` von `Object`: gleich nur bei derselben Referenz. Nach `clear()` liest Hibernate ein neues Objekt. Mit `AbstractPersistable` wäre das Ergebnis `true`, weil dort Klasse und Id verglichen werden.
+  followUps:
+    - kind: single
+      prompt: Zwei **neue**, noch nicht gespeicherte Bücher mit gleichem Titel, beide `extends AbstractPersistable<Long>`. Sind sie `equals`?
+      options:
+        - Ja, alle Attribute sind gleich
+        - Nein, ohne Id ist ein Entity nur gleich zu sich selbst
+        - Ja, beide haben die Id `null`
+      answer: 1
+      explanation: |
+        `AbstractPersistable.equals` vergleicht die Id. Ist sie `null`, ist das Objekt nur zu sich selbst gleich – sonst wären alle neuen Bücher gleich.
+
+- id: jpa-constructors-noargs
+  unit: jpa/konstruktoren
+  main:
+    kind: single
+    prompt: Welcher Konstruktor gehört für JPA in jedes Entity?
+    options:
+      - "`public Book() {}`, damit jeder Code leere Bücher erzeugen kann"
+      - "`protected Book() {}`, für JPA, aber nicht für deinen eigenen Code"
+      - "`private Book() {}`, damit niemand ihn verwendet"
+      - Keiner, Hibernate braucht keinen Konstruktor
+    answer: 1
+    explanation: |
+      Hibernate erzeugt beim Lesen erst ein leeres Objekt und füllt dann die Felder. Dafür braucht es einen Konstruktor ohne Parameter, `public` oder `protected`. `protected` verhindert, dass dein Code halbfertige Objekte baut.
+  followUps:
+    - kind: single
+      prompt: Der Konstruktor ohne Parameter fehlt. Wann fällt das auf?
+      options:
+        - Beim Kompilieren
+        - Beim Start der Anwendung
+        - Beim Speichern mit `save`
+        - Erst, wenn das Entity aus der Datenbank gelesen wird
+      answer: 3
+      explanation: |
+        Hibernate startet und speichert ohne Probleme. Erst beim Lesen fliegt `InstantiationException: No default constructor for entity`. Ein Test ohne `flush`/`clear` liest aus dem Speicher und bemerkt den Fehler nicht.
+
+- id: jpa-constructors-lists
+  unit: jpa/konstruktoren
+  main:
+    kind: template
+    prompt: Kapsle die Liste der Bücher einer Filiale.
+    template: |
+      private List<Book> books = {{new ArrayList<>()}};
+
+      public List<Book> getBooks() {
+          return {{Collections.unmodifiableList(books)}};
+      }
+
+      public void {{addBook}}(Book book) {
+          books.add(book);
+      }
+    redHerrings:
+      - "null"
+      - books
+      - setBooks
+    explanation: |
+      Die Liste wird beim Feld angelegt (nie `null`), nach außen nur unveränderlich herausgegeben und über eine eigene Methode geändert. Gibt der Getter `books` direkt zurück, kann jeder die Liste an der Filiale vorbei ändern.
+  followUps:
+    - kind: single
+      prompt: Kann ein Entity ein Record sein, z. B. `@Entity public record Book(@Id @GeneratedValue Long id, String title) {}`?
+      options:
+        - Ja, Records sind die kürzeste Schreibweise für Entities
+        - Nein, Hibernate kann die Felder eines Records nicht setzen – `persist` scheitert an der `final` Id
+        - Nur mit `AbstractPersistable`
+      answer: 1
+      explanation: |
+        Die Felder eines Records sind `final`. Beim Speichern will Hibernate die erzeugte Id setzen und scheitert mit `Can not set final java.lang.Long field`. Records eignen sich für Value Objects und Rich Types.
+
+- id: jpa-column-attributes
+  unit: jpa/basisattribute
+  main:
+    kind: template
+    prompt: "`title` hat höchstens 120 Zeichen und ist Pflicht, `price` hat 6 Stellen, davon 2 Nachkommastellen."
+    template: |
+      @Column({{length}} = 120, {{nullable}} = false)
+      private String title;
+
+      @Column({{precision}} = 6, {{scale}} = 2)
+      private BigDecimal price;
+    redHerrings:
+      - size
+      - "unique"
+      - max
+    explanation: |
+      `length` gilt für Strings, `nullable = false` macht die Spalte `not null`. Bei `BigDecimal` ist `precision` die Gesamtzahl der Stellen und `scale` die Zahl der Nachkommastellen: höchstens `9999.99`.
+  followUps:
+    - kind: single
+      prompt: Welche Spalte legt Hibernate für dieses Feld an?
+      code: |
+        @NotNull
+        @Size(max = 30)
+        private String nickName;
+      options:
+        - "`nick_name varchar(255)`"
+        - "`nick_name varchar(30) not null`"
+        - "`nick_name varchar(30)`, `@NotNull` wirkt nur in Java"
+      answer: 1
+      explanation: |
+        Hibernate übernimmt die Bean-Validation-Annotationen in die Tabelle: `@NotNull` wird zu `not null`, `@Size(max = 30)` zu `varchar(30)`.
+
+- id: jpa-column-when
+  unit: jpa/basisattribute
+  main:
+    kind: single
+    prompt: "`isbn` ist mit `@Column(unique = true)` markiert. Was passiert in einem `@DataJpaTest`?"
+    code: |
+      bookRepository.save(book("9783161484100"));
+      bookRepository.save(book("9783161484100"));
+    options:
+      - Der zweite `save` wirft eine `DataIntegrityViolationException`
+      - Beide `save` laufen durch, der Fehler kommt erst beim Flush
+      - Beide Bücher werden gespeichert, `unique` wirkt nur in Java
+    answer: 1
+    explanation: |
+      Mit der Standard-Id-Vergabe (Sequence) fügt Hibernate erst beim Flush in die Tabelle ein. Erst dann prüft die Datenbank `unique`. Im Test verwendest du deshalb `saveAndFlush`.
+  followUps:
+    - kind: single
+      prompt: Und wenn stattdessen `@NotNull` verletzt ist – `save(new Book(null, ...))`?
+      options:
+        - "`save` wirft sofort eine `jakarta.validation.ConstraintViolationException`"
+        - Der Fehler kommt erst beim Flush als `DataIntegrityViolationException`
+        - Das Buch wird mit `null` gespeichert
+      answer: 0
+      explanation: |
+        Bean Validation prüft in Java, bevor Hibernate das Objekt übernimmt – also schon bei `save`. Die Datenbank sieht den Wert nie.
+
+- id: jpa-column-reserved
+  unit: jpa/basisattribute
+  main:
+    kind: single
+    prompt: Was passiert mit diesem Feld, wenn der erste Test startet?
+    code: |
+      @NotNull
+      private Integer year;
+    options:
+      - Nichts, die Spalte heißt `year`
+      - Das Anlegen der Tabelle scheitert mit einem Syntaxfehler, weil `year` ein reserviertes Wort ist
+      - Hibernate nennt die Spalte automatisch `year_`
+    answer: 1
+    explanation: |
+      `year` ist in H2 ein Schlüsselwort. Hibernate schreibt den Namen ungeschützt ins `create table`, und die Tests scheitern schon beim Start. Abhilfe: `@Column(name = "build_year")`.
+  followUps:
+    - kind: multi
+      prompt: Welche Feldnamen brauchen in H2 einen eigenen Spaltennamen?
+      options:
+        - "`from`"
+        - "`until`"
+        - "`order`"
+        - "`name`"
+        - "`value`"
+      answer: [0, 2, 4]
+      explanation: |
+        `from`, `order` und `value` sind reserviert. `until` und `name` sind in H2 erlaubt.
+
+- id: jpa-repo-interface
+  unit: jpa/repositories
+  main:
+    kind: template
+    prompt: Lege das Repository für `Book` an (Id vom Typ `Long`).
+    template: |
+      public {{interface}} BookRepository extends {{JpaRepository}}<{{Book}}, {{Long}}> {
+      }
+    redHerrings:
+      - class
+      - Repository
+      - long
+      - BookRepositoryImpl
+    explanation: |
+      Ein Repository ist ein Interface. Die Typargumente sind das Entity und der Typ seiner Id. Die Implementierung erzeugt Spring beim Start.
+  followUps:
+    - kind: single
+      prompt: Was liefert `findAll()` bei einem Repository, das nur `CrudRepository<Book, Long>` erweitert?
+      options:
+        - "`List<Book>`"
+        - "`Iterable<Book>`"
+        - "`Stream<Book>`"
+        - "`Optional<Book>`"
+      answer: 1
+      explanation: |
+        `CrudRepository.findAll()` liefert ein `Iterable`. `ListCrudRepository` und `JpaRepository` liefern eine `List`.
+
+- id: jpa-repo-lifecycle
+  unit: jpa/repositories
+  main:
+    kind: single
+    prompt: Dieser Test ist grün, obwohl `title` mit `@Transient` markiert ist und gar nicht gespeichert wird. Warum?
+    code: |
+      Book saved = bookRepository.save(book);
+      Book reread = bookRepository.findById(saved.getId()).orElseThrow();
+      assertThat(reread.getTitle()).isEqualTo("Der Process");
+    options:
+      - "`findById` liefert dasselbe Objekt aus dem Persistence Context, die Datenbank wird nicht gefragt"
+      - "`@DataJpaTest` rollt den Test zurück, bevor `findById` läuft"
+      - "`save` speichert in einem `@DataJpaTest` nie wirklich"
+    answer: 0
+    explanation: |
+      Hibernate merkt sich gespeicherte Objekte. Ohne `entityManager.flush()` und `entityManager.clear()` bekommt `findById` das Objekt aus dem Speicher – der Test vergleicht es mit sich selbst.
+  followUps:
+    - kind: template
+      prompt: Ergänze die Zeilen, damit `findById` wirklich aus der Datenbank liest.
+      template: |
+        Book saved = bookRepository.save(book);
+        entityManager.{{flush()}};
+        entityManager.{{clear()}};
+        Book reread = bookRepository.findById(saved.getId()).orElseThrow();
+      redHerrings:
+        - "close()"
+        - "refresh()"
+        - "commit()"
+      explanation: |
+        `flush()` schreibt die ausstehenden Änderungen in die Datenbank, `clear()` leert den Persistence Context. Die Reihenfolge ist wichtig: Nach `clear()` ohne `flush()` gingen die Änderungen verloren.
+    - kind: single
+      prompt: Ein Test speichert drei Bücher. Wie viele Bücher findet der nächste Test in derselben Klasse?
+      options:
+        - Drei
+        - Keines, jeder Test in `@DataJpaTest` wird zurückgerollt
+        - Das hängt von der Reihenfolge der Tests ab
+      answer: 1
+      explanation: |
+        `@DataJpaTest` führt jeden Test in einer Transaktion aus und rollt sie am Ende zurück. Jeder Test beginnt mit leeren Tabellen.
