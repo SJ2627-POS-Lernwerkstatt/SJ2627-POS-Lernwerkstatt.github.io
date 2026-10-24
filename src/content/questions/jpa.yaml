@@ -273,14 +273,15 @@
       Mit der Standard-Id-Vergabe (Sequence) fügt Hibernate erst beim Flush in die Tabelle ein. Erst dann prüft die Datenbank `unique`. Im Test verwendest du deshalb `saveAndFlush`.
   followUps:
     - kind: single
-      prompt: Und wenn stattdessen `@NotNull` verletzt ist – `save(new Book(null, ...))`?
+      prompt: "`title` ist mit `@NotNull` markiert. Welche Exception wirft `bookRepository.saveAndFlush(book)` für ein Buch ohne Titel?"
       options:
-        - "`save` wirft sofort eine `jakarta.validation.ConstraintViolationException`"
-        - Der Fehler kommt erst beim Flush als `DataIntegrityViolationException`
-        - Das Buch wird mit `null` gespeichert
+        - "`jakarta.validation.ConstraintViolationException`"
+        - "`DataIntegrityViolationException`"
+        - "`NullPointerException`"
+        - Keine, das Buch wird mit `null` gespeichert
       answer: 0
       explanation: |
-        Bean Validation prüft in Java, bevor Hibernate das Objekt übernimmt – also schon bei `save`. Die Datenbank sieht den Wert nie.
+        Bean Validation prüft das Objekt in Java, bevor Hibernate das `insert` abschickt. Die Datenbank sieht den Wert nie. Eine `DataIntegrityViolationException` käme von der Datenbank, z. B. bei `@Column(nullable = false)` ohne `@NotNull`.
 
 - id: jpa-column-reserved
   unit: jpa/basisattribute
@@ -376,3 +377,347 @@
       answer: 1
       explanation: |
         `@DataJpaTest` führt jeden Test in einer Transaktion aus und rollt sie am Ende zurück. Jeder Test beginnt mit leeren Tabellen.
+
+- id: jpa-enums-ordinal
+  unit: jpa/enums
+  main:
+    kind: single
+    prompt: "`private Genre genre;` ohne Annotation, `enum Genre { FICTION, NON_FICTION, COMIC }`. Was steht für `COMIC` in der Datenbank?"
+    options:
+      - "`'COMIC'`"
+      - "`2`"
+      - "`'C'`"
+      - "`3`"
+    answer: 1
+    explanation: |
+      Ohne Annotation speichert JPA das Ordinal, also die Position ab 0: `FICTION` = 0, `NON_FICTION` = 1, `COMIC` = 2.
+  followUps:
+    - kind: single
+      prompt: Jemand fügt `BIOGRAPHY` als ersten Wert in das Enum ein. Was passiert mit den gespeicherten Comics?
+      options:
+        - Nichts, Hibernate passt die Daten an
+        - Sie werden beim Lesen zu `NON_FICTION`, weil `2` jetzt `NON_FICTION` ist
+        - Das Lesen wirft eine Exception
+      answer: 1
+      explanation: |
+        In der Datenbank steht weiterhin `2`. Nach dem Einfügen ist `2` aber `NON_FICTION`. Genau deshalb ist das Ordinal für die Prüfung „faulty“ und braucht eine Behandlung.
+
+- id: jpa-enums-converter
+  unit: jpa/enums
+  main:
+    kind: template
+    prompt: Vervollständige den null-sicheren Converter, der `Genre` als Code speichert.
+    template: |
+      @Converter({{autoApply = true}})
+      public class GenreConverter implements {{AttributeConverter<Genre, String>}} {
+
+          @Override
+          public String convertToDatabaseColumn(Genre genre) {
+              return genre == null ? null : {{genre.getCode()}};
+          }
+
+          @Override
+          public Genre convertToEntityAttribute(String code) {
+              return code == null ? null : {{Genre.fromCode(code)}};
+          }
+      }
+    redHerrings:
+      - autoapply = true
+      - AttributeConverter<String, Genre>
+      - genre.ordinal()
+      - Genre.valueOf(code)
+    explanation: |
+      Das erste Typargument ist der Java-Typ, das zweite der Datenbanktyp. `autoApply` schreibt sich mit großem `A` (im Cheat Sheet steht es falsch). `Genre.valueOf` würde den Namen erwarten (`"COMIC"`), nicht den Code (`"C"`).
+  followUps:
+    - kind: single
+      prompt: Warum braucht der Converter die `null`-Prüfung?
+      options:
+        - Gar nicht, Hibernate ruft Converter nie mit `null` auf
+        - Hibernate ruft den Converter auch für leere Werte mit `null` auf, in beide Richtungen
+        - Nur, damit der Code kompiliert
+      answer: 1
+      explanation: |
+        Für ein Buch ohne Genre ruft Hibernate `convertToDatabaseColumn(null)` auf, und beim Lesen einer leeren Spalte `convertToEntityAttribute(null)`. Ohne Prüfung fliegt eine Exception.
+    - kind: single
+      prompt: Was bewirkt `autoApply = true`?
+      options:
+        - Der Converter gilt für jedes Feld vom Typ `Genre`, ohne Annotation am Feld
+        - Der Converter wird beim Start automatisch getestet
+        - Hibernate erzeugt die Methode `fromCode` automatisch
+      answer: 0
+      explanation: |
+        Mit `autoApply = true` reicht `private Genre genre;`. Ohne `autoApply` brauchst du am Feld `@Convert(converter = GenreConverter.class)`.
+
+- id: jpa-enums-string
+  unit: jpa/enums
+  main:
+    kind: single
+    prompt: Was ist der Nachteil von `@Enumerated(EnumType.STRING)` gegenüber einem Converter mit Codes?
+    options:
+      - Es funktioniert nur mit H2
+      - Laut Cheat Sheet kostet es Punkte, und Umbenennen eines Werts bricht die gespeicherten Daten
+      - Es speichert weiterhin das Ordinal
+    answer: 1
+    explanation: |
+      `STRING` speichert den Namen (`'COMIC'`). Die Reihenfolge ist dann egal, aber ein umbenannter Wert passt nicht mehr zu den Daten. Das Cheat Sheet sagt dazu „lose some points“ und empfiehlt einen null-sicheren Converter.
+  followUps:
+    - kind: single
+      prompt: "Im `@DataJpaTest` scheitert jedes Einfügen eines Buchs mit „Check constraint invalid“, obwohl der Genre-Code stimmt. Was hilft, wenn du die H2-Version nicht ändern kannst?"
+      options:
+        - "`@Enumerated(EnumType.ORDINAL)`"
+        - "`@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` an der Testklasse"
+        - "`@Column(length = 1)` am Feld"
+      answer: 1
+      explanation: |
+        Das ist ein Fehler in H2 2.4.240 bei `check (... in (...))`-Constraints. Mit `replace = NONE` verwendet der Test die normale H2-Konfiguration von Spring Boot, und der Fehler tritt nicht auf. `length` hilft nicht.
+
+- id: jpa-embedded-basics
+  unit: jpa/value-objects
+  main:
+    kind: single
+    prompt: "`Branch` hat ein Feld `@Embedded private Address address;`, `Address` ist ein `@Embeddable` Record mit `street`, `zip`, `city`. Welche Tabellen gibt es?"
+    options:
+      - "`branches` und `address`"
+      - "Nur `branches`, mit den Spalten `street`, `zip` und `city`"
+      - "`branches` und eine Zwischentabelle `branches_address`"
+    answer: 1
+    explanation: |
+      Ein eingebettetes Value Object hat keine eigene Tabelle. Seine Attribute werden zu Spalten in der Tabelle des Entities.
+  followUps:
+    - kind: single
+      prompt: Im Record steht `@Size(max = 64) String street`, die Spalte ist aber `varchar(255)`. Was fehlt?
+      options:
+        - "`@Valid` am Feld `address` im Entity"
+        - "`@Column(length = 64)` am Record"
+        - "`@Entity` am Record"
+      answer: 0
+      explanation: |
+        Ohne `@Valid` schaut Hibernate nicht in das Value Object hinein – weder für die Spaltenlänge noch für die Prüfung beim Speichern.
+
+- id: jpa-embedded-twice
+  unit: jpa/value-objects
+  main:
+    kind: single
+    prompt: Ein Entity hat `@Embedded Address homeAddress;` und `@Embedded Address billingAddress;`, sonst nichts. Was passiert?
+    options:
+      - Hibernate nennt die Spalten automatisch `home_address_street` usw.
+      - Der Start scheitert mit `Column 'street' is duplicated`
+      - Die zweite Adresse überschreibt die erste
+    answer: 1
+    explanation: |
+      Beide Adressen wollen die Spalten `street`, `zip` und `city`. Du musst sie umbenennen: mit `@EmbeddedColumnNaming` oder `@AttributeOverrides`.
+  followUps:
+    - kind: template
+      prompt: Gib allen Spalten der Wohnadresse das Präfix `home_`.
+      template: |
+        @{{Embedded}}
+        @{{EmbeddedColumnNaming}}("{{home_%s}}")
+        private Address homeAddress;
+      redHerrings:
+        - home_
+        - "%s_home"
+        - Embeddable
+      explanation: |
+        Der Wert ist ein Format-Muster, `%s` steht für den ursprünglichen Spaltennamen: `home_street`, `home_zip`, `home_city`. Im Cheat Sheet fehlt das `%s`.
+    - kind: template
+      prompt: Benenne die Spalte `street` der Rechnungsadresse in `billing_street` um.
+      template: |
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride({{name}} = "street", {{column}} = @Column(name = "billing_street"))
+        })
+        private Address billingAddress;
+      redHerrings:
+        - field
+        - value
+      explanation: |
+        `name` ist das Attribut im Value Object, `column` die neue Spalte. Für `zip` und `city` brauchst du je einen weiteren `@AttributeOverride`.
+
+- id: jpa-embedded-record
+  unit: jpa/value-objects
+  main:
+    kind: multi
+    prompt: Was stimmt für ein Value Object als `@Embeddable` Record?
+    options:
+      - Es braucht keine Id
+      - Es braucht keinen Konstruktor ohne Parameter
+      - "`equals` und `hashCode` vergleichen alle Werte"
+      - Es braucht ein eigenes Repository
+    answer: [0, 1, 2]
+    explanation: |
+      Value Objects haben keine Identität und kein Repository. Records erzeugen `equals` und `hashCode` über alle Attribute, und Hibernate kann sie über den kanonischen Konstruktor erzeugen. Eine **Klasse** als `@Embeddable` bräuchte einen Konstruktor ohne Parameter.
+
+- id: jpa-richtype-converter
+  unit: jpa/rich-types
+  main:
+    kind: single
+    prompt: Ein `«RichType»` `RoomName` hat die Teile `building`, `floor` und `roomNumber`. Wie bildest du ihn auf **eine** Spalte ab?
+    options:
+      - "`@Embeddable` und `@Embedded`"
+      - Ein `AttributeConverter<RoomName, String>`, der `shortName()` speichert und mit `fromShortName(...)` liest
+      - Drei Felder im Entity
+    answer: 1
+    explanation: |
+      Mit `@Embeddable` gäbe es drei Spalten – das wäre ein Value Object. Der Converter setzt die Teile zu einem String zusammen (`B307`) und zerlegt ihn beim Lesen wieder.
+  followUps:
+    - kind: template
+      prompt: Vervollständige den Converter für `RoomName`.
+      template: |
+        @Converter(autoApply = true)
+        public class RoomNameConverter implements AttributeConverter<RoomName, String> {
+
+            @Override
+            public String {{convertToDatabaseColumn}}(RoomName roomName) {
+                return roomName == null ? null : {{roomName.shortName()}};
+            }
+
+            @Override
+            public RoomName {{convertToEntityAttribute}}(String shortName) {
+                return shortName == null ? null : {{RoomName.fromShortName(shortName)}};
+            }
+        }
+      redHerrings:
+        - roomName.toString()
+        - new RoomName(shortName)
+      explanation: |
+        `convertToDatabaseColumn` geht von Java in die Datenbank, `convertToEntityAttribute` zurück. `toString()` eines Records liefert `RoomName[building=B, ...]`, nicht `B307`.
+
+- id: jpa-richtype-validation
+  unit: jpa/rich-types
+  main:
+    kind: single
+    prompt: Wo prüfst du die Regeln eines Rich Types, z. B. „die ISBN hat genau 13 Ziffern“?
+    options:
+      - Im kompakten Konstruktor des Records – dann kann es keine ungültige ISBN geben
+      - Im Converter, nur beim Speichern
+      - Im Repository-Test
+    answer: 0
+    explanation: |
+      Der kompakte Konstruktor läuft bei jedem `new Isbn(...)`, auch beim Lesen über den Converter. Ein ungültiger Wert wirft sofort eine `IllegalArgumentException`.
+  followUps:
+    - kind: multi
+      prompt: "Regeln: `building` ∈ {A, B, C, D}, `floor` ∈ {E, H, 1–5}, `roomNumber` zwei Ziffern. Welche Aufrufe von `RoomName.fromShortName` müssen eine Exception werfen?"
+      options:
+        - "`\"B307\"`"
+        - "`\"E307\"`"
+        - "`\"B607\"`"
+        - "`\"AE01\"`"
+        - "`\"B37\"`"
+      answer: [1, 2, 4]
+      explanation: |
+        `E` ist kein Gebäude, `6` kein Stockwerk, und `B37` hat nur eine Ziffer als Raumnummer. `B307` und `AE01` sind gültig.
+
+- id: jpa-manytoone-column
+  unit: jpa/many-to-one
+  main:
+    kind: single
+    prompt: Welche Spalte legt Hibernate in `books` an?
+    code: |
+      @Entity
+      @Table(name = "books")
+      public class Book extends AbstractPersistable<Long> {
+          @ManyToOne
+          private Branch branch;
+      }
+    options:
+      - "`branch varchar(255)`"
+      - "`branch_id bigint` mit einem Fremdschlüssel auf `branches`"
+      - Keine, Hibernate legt eine Zwischentabelle an
+    answer: 1
+    explanation: |
+      Ein `@ManyToOne` wird zu einer Fremdschlüssel-Spalte `<feld>_id`. Den Namen des Constraints erzeugt Hibernate selbst, z. B. `FKkbcx...`.
+  followUps:
+    - kind: template
+      prompt: "Jedes Buch **muss** eine Filiale haben, und der Fremdschlüssel soll `fk_books_branch` heißen."
+      template: |
+        @ManyToOne
+        @{{JoinColumn}}(name = "branch_id", {{nullable = false}},
+                foreignKey = @{{ForeignKey}}(name = "fk_books_branch"))
+        private Branch branch;
+      redHerrings:
+        - Column
+        - optional = true
+        - UniqueConstraint
+      explanation: |
+        `@JoinColumn` beschreibt die Fremdschlüssel-Spalte, `nullable = false` macht sie zur Pflicht, `@ForeignKey` benennt den Constraint. Sprechende Namen statt generierter sind ein Kriterium für „Sehr gut“.
+
+- id: jpa-manytoone-transient
+  unit: jpa/many-to-one
+  main:
+    kind: single
+    prompt: Was passiert beim Flush?
+    code: |
+      Branch branch = new Branch("Hauptbücherei", address);
+      bookRepository.save(new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn, branch));
+      entityManager.flush();
+    options:
+      - Buch und Filiale werden gespeichert
+      - "`TransientPropertyValueException`: Das Buch verweist auf eine noch nicht gespeicherte Filiale"
+      - Das Buch wird ohne Filiale gespeichert
+    answer: 1
+    explanation: |
+      Die Filiale ist neu (*transient*). Ohne Cascade speichert Hibernate sie nicht mit und weigert sich, einen Fremdschlüssel auf etwas Ungespeichertes zu schreiben.
+  followUps:
+    - kind: multi
+      prompt: Wie behebst du das?
+      options:
+        - Die Filiale zuerst mit `branchRepository.save(branch)` speichern
+        - "`@ManyToOne(cascade = CascadeType.PERSIST)` am Feld `branch`"
+        - "`@ManyToOne(fetch = FetchType.LAZY)` am Feld `branch`"
+        - "`entityManager.clear()` vor dem Flush"
+      answer: [0, 1]
+      explanation: |
+        Entweder speicherst du die Filiale selbst zuerst, oder Cascade `PERSIST` gibt das Speichern vom Buch an die Filiale weiter. `LAZY` betrifft nur das Laden, `clear()` würde das Buch verwerfen.
+
+- id: jpa-onetomany-mappedby
+  unit: jpa/one-to-many
+  main:
+    kind: single
+    prompt: "`Book` hat `@ManyToOne private Branch branch;`. Was bewirkt `mappedBy` in `Branch`?"
+    code: |
+      @OneToMany(mappedBy = "branch")
+      private List<Book> books = new ArrayList<>();
+    options:
+      - Die Liste ist dieselbe Beziehung wie `Book.branch`, der Fremdschlüssel bleibt `branch_id` in `books`
+      - Hibernate legt eine Zwischentabelle `branches_books` an
+      - Die Liste wird in einer Spalte `books` in `branches` gespeichert
+    answer: 0
+    explanation: |
+      `mappedBy` verweist auf das Feld der besitzenden Seite. Ohne `mappedBy` entstünde eine zweite, unabhängige Beziehung mit Zwischentabelle `branches_books`.
+  followUps:
+    - kind: single
+      prompt: "Du rufst nur `books.add(book)` auf (ohne `book.setBranch(...)`) und speicherst die Filiale mit Cascade. `branch_id` darf `null` sein. Was steht danach in `books.branch_id`?"
+      options:
+        - Die Id der Filiale
+        - "`null`"
+        - Hibernate wirft eine Exception, weil die Liste nicht passt
+      answer: 1
+      explanation: |
+        Hibernate speichert nur, was auf der besitzenden Seite (`Book.branch`) steht. Die Liste mit `mappedBy` ist die Gegenseite und wird beim Speichern ignoriert.
+
+- id: jpa-onetomany-helpers
+  unit: jpa/one-to-many
+  main:
+    kind: template
+    prompt: Die Hilfsmethode soll beide Seiten der Beziehung setzen.
+    template: |
+      public void addBook(Book book) {
+          {{books.add(book)}};
+          {{book.setBranch(this)}};
+      }
+    redHerrings:
+      - book.setBranch(null)
+      - books.remove(book)
+      - this.branch = book
+    explanation: |
+      `books.add(book)` hält die Gegenseite in Java aktuell, `book.setBranch(this)` setzt die besitzende Seite, die Hibernate speichert. Fehlt eine der beiden Zeilen, passen Java-Objekte und Datenbank nicht zusammen.
+  followUps:
+    - kind: single
+      prompt: Was bewirkt `orphanRemoval = true` an `@OneToMany(mappedBy = "branch", ...)`?
+      options:
+        - Ein Buch, das mit `removeBook` aus der Liste entfernt wird, wird gelöscht
+        - Eine Filiale ohne Bücher wird gelöscht
+        - Bücher ohne Filiale dürfen nicht gespeichert werden
+      answer: 0
+      explanation: |
+        Ein „Waise“ ist ein Kind, das seinen Elternteil verloren hat. Mit `orphanRemoval` löscht Hibernate es beim nächsten Flush.

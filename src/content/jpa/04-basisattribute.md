@@ -32,7 +32,7 @@ Ohne `precision` wird ein `BigDecimal` zu `numeric(38,2)`.
 
 ## Bean Validation: `@NotNull`, `@NotBlank`, `@Size`
 
-Die Annotationen aus `jakarta.validation.constraints` prüfen den Wert in Java, **bevor** Hibernate etwas in die Datenbank schreibt. Hibernate übernimmt sie auch in die Tabelle:
+Die Annotationen aus `jakarta.validation.constraints` prüfen den Wert in Java, bevor Hibernate ihn an die Datenbank schickt. Hibernate übernimmt sie auch in die Tabelle:
 
 ```java
 @NotNull
@@ -57,14 +57,14 @@ Für `{nn}` im Diagramm schreibst du `@NotNull`. So machen es auch die Musterlö
 
 ## Wann der Fehler auftritt
 
-Die beiden Wege melden einen Verstoß zu verschiedenen Zeitpunkten und mit verschiedenen Exceptions:
+Beide Wege melden einen Verstoß mit verschiedenen Exceptions:
 
-| Verstoß gegen | Wann | Exception |
+| Verstoß gegen | Wer meldet ihn | Exception |
 |---|---|---|
-| `@NotNull`, `@NotBlank`, `@Size` | sofort bei `save` | `jakarta.validation.ConstraintViolationException` |
-| `nullable`, `length`, `unique` | erst wenn die Datenbank einfügt, also beim Flush | `org.springframework.dao.DataIntegrityViolationException` |
+| `@NotNull`, `@NotBlank`, `@Size` | Bean Validation, bevor das SQL abgeschickt wird | `jakarta.validation.ConstraintViolationException` |
+| `nullable`, `length`, `unique` | die Datenbank beim Einfügen | `org.springframework.dao.DataIntegrityViolationException` |
 
-Weil Hibernate neue Objekte erst beim Flush einfügt (Einheit 2), siehst du einen Datenbankfehler nach `save` noch nicht. Verwende im Test `saveAndFlush`:
+Beides passiert aber erst, wenn Hibernate das Objekt wirklich einfügt – und das ist mit der Standard-Id-Vergabe erst beim **Flush** (Einheit 2), nicht schon bei `save`. Ein Test, der nur `save` aufruft, sieht deshalb gar keinen Fehler. Verwende im Test `saveAndFlush`:
 
 ```java
 @Test
@@ -109,6 +109,6 @@ Ein Feld mit `@Transient` bekommt keine Spalte, z. B. ein Wert, der jedes Mal ne
 :::merke
 - `@Column(length, nullable, unique, precision, scale, name)` legt die Spalte fest.
 - `@NotNull`, `@NotBlank`, `@Size` prüfen schon in Java und wirken auch auf die Tabelle.
-- Bean Validation schlägt bei `save` an, Datenbank-Constraints erst beim Flush → im Test `saveAndFlush`.
+- Verstöße fallen erst beim Flush auf, nicht bei `save` → im Test `saveAndFlush`.
 - Reservierte Wörter wie `year` oder `from`: `@Column(name = "...")`.
 :::
