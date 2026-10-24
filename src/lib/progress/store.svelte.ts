@@ -2,6 +2,7 @@ import { browser } from '$app/env';
 import type { CurrentRun, GroupResult } from '#lib/quiz/run.js';
 import type { Theme } from '#lib/theme.js';
 import { updateGroupProgress } from '#lib/quiz/run.js';
+import { updateExercise } from './exercises.ts';
 import { BROKEN_KEY, emptyProgress, MAX_RUNS, STORAGE_KEY, type Progress } from './schema.ts';
 import { loadProgress, serialize } from './storage.ts';
 
@@ -58,6 +59,14 @@ class ProgressStore {
 	setRead(unitId: string, read: boolean) {
 		if (read) this.data.units[unitId] = { readAt: new Date().toISOString() };
 		else delete this.data.units[unitId];
+		this.save();
+	}
+
+	/** "abgegeben" and the self-rating (Austrian grade, 1 = Sehr gut … 4 = Genügend; null clears it). */
+	updateExercise(exerciseId: string, change: Parameters<typeof updateExercise>[1]) {
+		const entry = updateExercise(this.data.exercises[exerciseId], change);
+		if (entry) this.data.exercises[exerciseId] = entry;
+		else delete this.data.exercises[exerciseId];
 		this.save();
 	}
 
