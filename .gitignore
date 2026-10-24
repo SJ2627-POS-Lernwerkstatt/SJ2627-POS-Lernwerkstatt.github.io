@@ -6,3 +6,7 @@ node_modules
 
 # Cheat sheet is hosted privately, never in this repo
 docs/POS_Java_CheatSheet.pdf
+
+# Playwright
+/test-results
+/playwright-report

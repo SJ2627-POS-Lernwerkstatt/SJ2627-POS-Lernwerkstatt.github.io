@@ -1,0 +1,60 @@
+import { expect, test, type Page } from '@playwright/test';
+
+/** The page hydrates with empty progress first; wait until the stored progress is loaded. */
+async function hydrated(page: Page) {
+	await expect(page.getByRole('button', { name: /Farbschema/ })).toBeVisible();
+}
+
+test('unit page: read a unit and answer a Wissenscheck question', async ({ page }) => {
+	await page.goto('/');
+	await hydrated(page);
+	await page.getByRole('link', { name: 'Aufbau eines Tests' }).first().click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+
+	const first = page.getByRole('region', { name: 'Frage 1' });
+	const check = first.getByRole('button', { name: 'Antwort prüfen' });
+	await expect(check).toBeDisabled();
+	await first.getByRole('radio').first().check();
+	await check.click();
+	// Feedback right away: the correct answer is marked and the Vertiefungsfrage opens.
+	await expect(first.getByLabel('richtige Antwort')).toBeVisible();
+	await expect(first.getByText('Vertiefung 1.1')).toBeVisible();
+
+	await page.getByRole('button', { name: 'Als gelesen markieren' }).click();
+	await expect(page.getByText('Du hast diese Einheit als gelesen markiert.')).toBeVisible();
+	await page.goto('/testing');
+	await expect(page.getByText(/1 \/ 1 Einheiten gelesen/)).toBeVisible();
+});
+
+test('exercise mode: a run survives a reload and ends with a review', async ({ page }) => {
+	await page.goto('/ueben/testing');
+	await page.getByRole('button', { name: 'Runde starten' }).click();
+	await expect(page.getByText(/Fragengruppe 1 von \d+/)).toBeVisible();
+
+	await page.getByRole('button', { name: 'Weiter' }).click();
+	await expect(page.getByText(/Fragengruppe 2 von \d+/)).toBeVisible();
+	await page.reload();
+	await expect(page.getByText(/Fragengruppe 2 von \d+/)).toBeVisible();
+
+	// Answer nothing more: unanswered questions count as wrong.
+	const next = page.getByRole('button', { name: 'Weiter' });
+	while (await next.isVisible()) await next.click();
+	await page.getByRole('button', { name: 'Runde abgeben' }).click();
+
+	await expect(page.getByRole('heading', { name: 'Auswertung' })).toBeVisible();
+	await expect(page.getByText(/\d+ von \d+ Fragen richtig\./)).toBeVisible();
+
+	await page.goto('/ueben');
+	await expect(page.getByRole('heading', { name: 'Letzte Runden' })).toBeVisible();
+});
+
+test('exercise page: self-rating and "abgegeben" are stored', async ({ page }) => {
+	await page.goto('/jpa/uebungen/fahrradverleih');
+	await hydrated(page);
+	await page.getByRole('radio', { name: 'Gut', exact: true }).check();
+	await page.getByLabel('Ich habe diese Aufgabe abgegeben').check();
+	await page.reload();
+	await hydrated(page);
+	await expect(page.getByRole('radio', { name: 'Gut', exact: true })).toBeChecked();
+	await expect(page.getByLabel('Ich habe diese Aufgabe abgegeben')).toBeChecked();
+});
