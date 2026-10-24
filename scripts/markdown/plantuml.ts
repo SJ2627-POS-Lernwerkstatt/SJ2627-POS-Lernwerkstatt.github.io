@@ -32,11 +32,15 @@ export function wrapSource(source: string): string {
 	return trimmed.startsWith('@start') ? trimmed + '\n' : `@startuml\n${trimmed}\n@enduml\n`;
 }
 
-/** Turns PlantUML's error output ("ERROR\n<line>\n<message>", on stdout or stderr) into a readable message. */
+/**
+ * Turns PlantUML's error output ("ERROR\n<line>\n<message>", on stdout or stderr) into a readable message.
+ * Java may log other lines first (e.g. "Created user preferences directory" on a fresh CI runner).
+ */
 export function errorMessage(stdout: string, stderr: string): string {
 	for (const out of [stderr, stdout]) {
-		const lines = out.trim().split(/\r?\n/);
-		if (lines[0]?.trim() === 'ERROR') return `line ${lines[1]?.trim()}: ${lines[2]?.trim()}`;
+		const lines = out.split(/\r?\n/).map((l) => l.trim());
+		const i = lines.indexOf('ERROR');
+		if (i >= 0) return `line ${lines[i + 1]}: ${lines[i + 2]}`;
 	}
 	return (stderr || stdout).trim().split('\n').slice(0, 3).join(' ') || 'unknown PlantUML error';
 }

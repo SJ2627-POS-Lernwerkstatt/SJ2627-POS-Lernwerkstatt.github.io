@@ -14,6 +14,11 @@ describe('errorMessage', () => {
 	it('reads the line and message from PlantUML output', () => {
 		expect(errorMessage('ERROR\n3\nSyntax Error?\n<svg', '')).toBe('line 3: Syntax Error?');
 	});
+
+	it('skips log lines before ERROR', () => {
+		const stderr = 'Oct 24, 2026 8:55:02 AM java.util.prefs.FileSystemPreferences$1 run\nINFO: Created user preferences directory.\nERROR\n2\nSyntax Error?';
+		expect(errorMessage('', stderr)).toBe('line 2: Syntax Error?');
+	});
 });
 
 // Needs plantuml (local) or PLANTUML_JAR (CI).
