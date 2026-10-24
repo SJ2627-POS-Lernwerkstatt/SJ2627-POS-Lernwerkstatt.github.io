@@ -175,15 +175,17 @@ Export downloads `lernwerkstatt-fortschritt-<date>.json`; import validates with 
 ## Exercise Repos (Classroom50)
 
 - Template repos in the org: `vorlage-<module>-<nn>-<slug>`, `vorlage-pruefung-<nn>`.
-- Layout copied from the 2026-09 Herbsttermin seed: Gradle Kotlin DSL, `buildSrc` conventions, subprojects `Aufgabe1_ORMapping`, `Aufgabe2_BusinessService`, `Aufgabe3_RestfulApi` (exercises keep only the relevant subproject), `readme.adoc`, `YOUR-CLASS_YOUR-NAME.txt`.
+- Layout copied from the 2026-09 Herbsttermin seed: Gradle Kotlin DSL, `buildSrc` conventions, subprojects `Aufgabe1_ORMapping`, `Aufgabe2_BusinessService`, `Aufgabe3_RestfulApi` (exercises keep only the relevant subproject), `readme.adoc`, `YOUR-CLASS_YOUR-NAME.txt`. Changes to the seed: Java 25 toolchain (the seed had 26), `build/` folders stay inside the project (the seed moved them to `/tmp/scratch`), no theory-question files.
+- The master copy lives in the private `loesungen` repo: `seed/`, and per exercise `exercises/<id>/` with `starter/`, `solution/`, `grading/` and `mutants.json`. `scripts/assemble.py` builds the template repo content, the solution project and the Classroom50 bundle from it. Template repos are **public** (no solutions in them).
 - **JPA tasks are autograded** ([Classroom50 autograding](https://github.com/foundation50/classroom50/wiki/Autograding-Basics)):
   - The task fixes package, entity, repository, query-method and projection names, so grading tests compile against the student's code.
-  - Grading tests (JUnit, package `grading`) live in `CLASSROOM/autograders/ASSIGNMENT/` of the Classroom50 repo. Students cannot change them; they can read them (public Pages bundle).
+  - Grading tests (JUnit, package `<root package>.grading`, e.g. `ormapping.grading`, so `@DataJpaTest` finds the application class) live in `CLASSROOM/autograders/ASSIGNMENT/` of the Classroom50 repo. Students cannot change them; they can read them (public Pages bundle).
   - Assignment `runtime`: `{ "java": "25" }` on `ubuntu-latest`.
-  - A shared `autograder.py` copies the grading tests from `CLASSROOM50_BUNDLE_DIR` into `Aufgabe1_ORMapping/src/test/java/grading/`, runs `./gradlew :Aufgabe1_ORMapping:test --tests 'grading.*'`, reads the JUnit XML reports and writes `result.json` with one entry per test (points per test from a weights file next to the tests). A compile error scores 0 with the compiler output in the release notes.
+  - A shared `autograder.py` replaces `Aufgabe1_ORMapping/src/test/java/ormapping/grading/` with the bundled tests, deletes old build output, runs `./gradlew :Aufgabe1_ORMapping:test --tests 'ormapping.grading.*'`, reads the JUnit XML reports and writes `result.json` with one entry per test (test name = `@DisplayName`, points from `grading/weights.json`) plus a German `release-body.md` with a hint per failed test. A compile error (also in the student's own tests) scores 0 with the first compiler errors in the release notes.
+  - One grading run takes about 2.5–3 minutes (Gradle and dependencies are downloaded every time); the Classroom50 job limit is 15 minutes.
   - Students see the result as a Release with a per-test PASS/FAIL table on every submission.
 - **Service and REST tasks are graded by the teacher** (feedback in the repo, e.g. a review PR). A zero-point `run` test `./gradlew test` shows whether the student's own tests pass.
-- Each exercise in `loesungen` has a sample solution; CI in `loesungen` runs the grading tests against it.
+- Each exercise in `loesungen` has a sample solution; CI in `loesungen` (`scripts/check.py`) checks that the solution scores full points, the template scores 0, and every mutant in `mutants.json` (the solution with one deliberate mistake) fails exactly the listed grading tests.
 
 ## Project Structure
 
@@ -251,4 +253,4 @@ As in parsonxam's student app: Svelte 5 runes, logic in `lib/` as plain TS with 
 
 ## Open Questions
 
-1. **Autograding spike** (before the first JPA exercise): confirm Java 25 via `runtime`, Gradle wrapper download time per run, and that `autograder.py` can return per-test points from JUnit XML.
+1. ~~Autograding spike~~ Done 2026-10-24 with `jpa-01-fahrradverleih`: Java 25 via `runtime` works (Temurin 25.0.4), a run takes ~3 minutes, per-test points and the compile-error case show up correctly in the Release.
