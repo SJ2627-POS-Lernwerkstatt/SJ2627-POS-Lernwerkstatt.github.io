@@ -37,8 +37,8 @@ Every unit follows the same pattern: draft → deploy → your review on the sit
 
 | # | Task | Size |
 |---|---|---|
-| C1 | Module testing: units 1–12 + V 13–15, ~30 question groups | 15 units |
-| C2 | Module streams: units 1–9 + V 10, ~30 question groups | 10 units |
+| C1 ✓ | Module testing: units 1–12 + V 13–15, ~30 question groups | 15 units |
+| C2 ✓ | Module streams: units 1–9 + V 10, ~30 question groups | 10 units |
 | C3 | Module jpa: units 1–10, ~25 question groups | 10 units |
 | C4 | JPA exercises 1–2 (task, starter template, grading tests, sample solution) | 2 exercises |
 
