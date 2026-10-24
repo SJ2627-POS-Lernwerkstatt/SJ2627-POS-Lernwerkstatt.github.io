@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { MODULES } from '#lib/content/modules.js';
-import { exercisesOf, unitsOf } from '#lib/server/content/index.js';
+import { exercisesOf, groupsOf, unitsOf } from '#lib/server/content/index.js';
 import type { EntryGenerator, PageServerLoad } from './$types';
 
 export const entries: EntryGenerator = () => MODULES.map((m) => ({ module: m.slug }));
@@ -24,5 +24,6 @@ export const load: PageServerLoad = ({ params }) => {
 		grading,
 		status
 	}));
-	return { module, units, exercises };
+	const groupIds = groupsOf(module.slug).map((g) => g.id);
+	return { module, units, exercises, groupIds };
 };

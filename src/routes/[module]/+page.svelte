@@ -2,11 +2,13 @@
 	import { resolve } from '$app/paths';
 	import Badge from '#lib/components/Badge.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
+	import { moduleSummary } from '#lib/progress/summary.js';
 
 	let { data } = $props();
 
 	const core = $derived(data.units.filter((u) => u.core));
 	const extra = $derived(data.units.filter((u) => !u.core));
+	const summary = $derived(moduleSummary(data.units, data.groupIds, progress.data));
 </script>
 
 <svelte:head>
@@ -34,6 +36,11 @@
 {#if data.units.length === 0}
 	<p class="empty">Die Einheiten zu diesem Modul erscheinen bald.</p>
 {:else}
+	{#if progress.loaded}
+		<p class="summary">
+			{summary.unitsRead} / {summary.units} Einheiten gelesen{summary.groups ? ` · ${summary.groupsKnown} / ${summary.groups} Fragengruppen gekonnt` : ''}
+		</p>
+	{/if}
 	<h2>Einheiten</h2>
 	{@render list(core)}
 	{#if extra.length}
@@ -58,6 +65,10 @@
 	h2 {
 		margin: 32px 0 12px;
 		font-size: 20px;
+	}
+	.summary {
+		margin: -16px 0 0;
+		color: var(--text-muted);
 	}
 	.hint,
 	.empty {
