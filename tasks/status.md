@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-24 (end of session 2, Phase A complete). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-24 (end of session 2, Phases A and B complete). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -18,14 +18,18 @@ Last updated: 2026-10-24 (end of session 2, Phase A complete). Live: https://sj2
 | A10 | Start page with "Weiter lernen"/"Hier beginnen" and per-module progress (`src/lib/progress/summary.ts`), progress line on module pages, hidden `/review` (noindex, not linked), theme toggle System → Hell → Dunkel in the header |
 | A11 | Exercise page `/[module]/uebungen/[slug]`: task Markdown, Classroom50 link or "folgt bald", rubric from frontmatter with self-rating, "abgegeben". Module pages list exercises. Sample: `jpa/exercises/01-fahrradverleih.md` (draft) |
 | A12 | Playwright smoke test (`e2e/smoke.test.ts`, `npm run test:e2e` after a build) runs in CI: unit page + Wissenscheck, exercise run with reload, exercise page |
+| B1 | Seed in `loesungen/seed`: Herbsttermin 2026-09 on Java 25, `build/` inside the project. `scripts/assemble.py` reduces it to the subprojects an exercise needs |
+| B2 | `loesungen/autograder/autograder.py` + Classroom50 assignment `jpa-01-fahrradverleih` (runtime `java: 25`, template `vorlage-jpa-01-fahrradverleih`, public). Spike in test repo `lernwerkstatt-jpa-01-fahrradverleih-mfreimueller`: 15/17, 17/17 and the compile-error case all correct in the Release, ~3 min per run |
+| B3 | Private repo `SJ2627-POS-Lernwerkstatt/loesungen` (local: `../POS_Lernwerkstatt_Loesungen`), CI runs `scripts/check.py` per exercise: solution full points, vorlage 0, mutants fail the listed tests |
 
-Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/questions/testing.yaml`, JPA exercise 1 (task text and rubric only), all `draft`.
+Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/questions/testing.yaml`, JPA exercise 1 (site text `draft`; starter, solution and grading tests in `loesungen`, assignment registered but unlisted), all units and questions `draft`.
 
 ## Next
 
-1. **Phase B** (autograding): B1 Gradle seed from the 2026-09 Herbsttermin layout reduced to `Aufgabe1_ORMapping`, B2 Classroom50 spike, B3 private `loesungen` repo. See `plan.md`.
-2. **Phase C** (content), starting with module testing. JPA exercise 1 still needs starter template, grading tests and sample solution (C4); its task text fixes the names grading tests compile against (`ormapping.model.Station`/`Bike`, `ormapping.persistence.StationRepository`/`BikeRepository`).
-3. Small CI chores when convenient: `actions/setup-java@v5`, newer `deploy-pages` (Node 20 deprecation warnings).
+1. **Phase C** (content), starting with module testing (C1), then streams (C2), JPA units (C3).
+2. **C4** JPA exercise 2 in `loesungen/exercises/` (exercise 1 is complete there: starter, solution, grading tests, mutants). Per new autograded exercise: build the bundle with `scripts/assemble.py bundle`, copy it to `classroom50/lernwerkstatt/autograders/<slug>/`, create the public `vorlage-…` repo from `assemble.py vorlage`, register with `gh teacher assignment add … --runtime` (`{"runs-on": "ubuntu-latest", "java": "25"}`).
+3. **D2** accept links: copy from the Classroom50 web UI (Share → Copy accept link) into `classroomUrl`. Assignments stay unlisted until `--available-from` is set.
+4. Small CI chores when convenient: `actions/setup-java@v5`, newer `deploy-pages` (Node 20 deprecation warnings).
 
 ## Decisions taken in session 1 (beyond SPEC.md)
 
@@ -43,6 +47,13 @@ Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/ques
 - "Weiter lernen" = first unread core unit in course order, then the first unread Vertiefung.
 - The theme toggle cycles System → Hell → Dunkel; `settings.theme` stores the choice.
 
+## Decisions taken in session 2 (Phase B)
+
+- Java 25 everywhere (the seed's 26 was changed), Spring Boot 4.1.1 and Gradle 9.7.1 as in the seed.
+- Seed master copy in `loesungen/seed`; template repos are public; `build/` folders stay inside the project.
+- Grading tests live in `<root package>.grading` (e.g. `ormapping.grading`), not `grading`, so `@DataJpaTest` finds the application class. Test names come from `@DisplayName` and are the keys in `weights.json`.
+- JPA exercise 1: 14 grading tests, 17 points (one exam task).
+
 ## Gotchas
 
 - SvelteKit 3: `$app/env` (not `$app/environment`); config lives in `vite.config.ts`; `#lib/*` imports need a `.js` extension, files under `scripts/` are imported with `.ts`.
@@ -51,4 +62,7 @@ Content so far: unit `testing/01-aufbau`, 3 question groups in `src/content/ques
 - Progress store loads in the root layout's `onMount`, so prerendered markup hydrates with empty progress first. Never mutate `$state` during render (create run answers when navigating, see `prepare()` in the run page).
 - The Playwright smoke test uses real content (first group of `testing/aufbau` is a single question with a follow-up; `jpa/uebungen/fahrradverleih` exists). Adjust `e2e/smoke.test.ts` if that content changes.
 - Radios inside a card label need `aria-labelledby` on the tier name, otherwise their accessible name is the whole card.
+- Grading tests run with `@Transactional(propagation = NOT_SUPPORTED)` and `deleteAll()` in `@BeforeEach`: each save is its own transaction, so a rejected save does not break the next check.
+- Classroom50: `gh teacher` needs scopes `admin:org` etc. (`gh teacher login`, interactive). Student repos must stay private, public ones are not autograded.
+- Students need a local JDK 25; the seed has no toolchain auto-download (open question for the user: add the foojay resolver?).
 - Branch deletion and force pushes are blocked by the permission check unless the user approves them.

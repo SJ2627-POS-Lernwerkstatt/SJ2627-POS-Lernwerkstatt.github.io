@@ -27,9 +27,9 @@ Order: platform first (weeks 1–2), content in parallel from week 2 so you can 
 
 | # | Task | Done when |
 |---|---|---|
-| B1 | Gradle seed for exercises from the 2026-09 Herbsttermin layout, reduced to one subproject | `./gradlew test` green on a fresh clone |
-| B2 | Spike: Classroom50 assignment with `runtime.java = 25`, `autograder.py` copying grading tests and converting JUnit XML to `result.json` | A test assignment in the org shows per-test points in the Release |
-| B3 | Private `loesungen` repo with CI running grading tests against sample solutions | CI green |
+| B1 ✓ | Gradle seed for exercises from the 2026-09 Herbsttermin layout, reduced to one subproject | `./gradlew test` green on a fresh clone |
+| B2 ✓ | Spike: Classroom50 assignment with `runtime.java = 25`, `autograder.py` copying grading tests and converting JUnit XML to `result.json` | A test assignment in the org shows per-test points in the Release |
+| B3 ✓ | Private `loesungen` repo with CI running grading tests against sample solutions | CI green |
 
 ## Phase C: Content (Nov 9 – Nov 29)
 
