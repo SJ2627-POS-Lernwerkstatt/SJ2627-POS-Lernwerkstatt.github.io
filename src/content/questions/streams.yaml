@@ -1,0 +1,631 @@
+- id: streams-lambdas-types
+  unit: streams/lambdas
+  main:
+    kind: single
+    prompt: Welcher Funktionstyp passt zu `s -> s.age() >= 18`?
+    options:
+      - "`Function<Student, Integer>`"
+      - "`Predicate<Student>`"
+      - "`Consumer<Student>`"
+      - "`Supplier<Boolean>`"
+    answer: 1
+    explanation: |
+      Das Lambda bekommt einen `Student` und liefert ein `boolean` – das ist ein `Predicate<Student>`. Genau das erwartet `filter`.
+  followUps:
+    - kind: multi
+      prompt: Welche Paare aus Lambda und Methodenreferenz sind gleichwertig?
+      options:
+        - "`s -> s.name()` und `Student::name`"
+        - "`text -> System.out.println(text)` und `System.out::println`"
+        - "`() -> new ArrayList<>()` und `ArrayList::new`"
+        - "`s -> s.name()` und `Student::getName`"
+      answer: [0, 1, 2]
+      explanation: |
+        Bei einem Record heißt die Zugriffsmethode `name()`, deshalb `Student::name`. `Student::getName` gäbe es nur bei einer normalen Klasse mit Getter.
+
+- id: streams-lambdas-supplier
+  unit: streams/lambdas
+  main:
+    kind: single
+    prompt: "Was ist ein `Supplier<T>`?"
+    options:
+      - Eine Funktion, die nichts bekommt und einen Wert liefert
+      - Eine Funktion, die einen Wert bekommt und nichts liefert
+      - Eine Funktion, die zwei Werte zu einem kombiniert
+    answer: 0
+    explanation: |
+      `Supplier<T>.get()` liefert einen Wert ohne Eingabe, z. B. `() -> new ArrayList<>()`. Einen Wert annehmen und nichts liefern macht ein `Consumer`, zwei Werte kombinieren ein `BinaryOperator`.
+  followUps:
+    - kind: template
+      prompt: Kombiniere die beiden Bedingungen zu „volljährig **und** in der 5AHIF“.
+      template: |
+        Predicate<Student> isAdult = {{s -> s.age() >= 18}};
+        Predicate<Student> in5A = s -> s.schoolClass().equals("5AHIF");
+
+        Predicate<Student> adultIn5A = isAdult.{{and}}(in5A);
+      redHerrings:
+        - or
+        - s.age() >= 18
+        - negate
+      explanation: |
+        Ein Lambda braucht Parameter und Pfeil: `s -> ...`. `and` verknüpft zwei Predicates, `or` wäre das logische Oder, `negate` die Verneinung.
+
+- id: streams-lambdas-methodref
+  unit: streams/lambdas
+  main:
+    kind: single
+    prompt: Welche Methodenreferenz ersetzt `text -> Integer.parseInt(text)`?
+    options:
+      - "`Integer::parseInt`"
+      - "`Integer.parseInt()`"
+      - "`text::parseInt`"
+    answer: 0
+    explanation: |
+      Eine Methodenreferenz schreibt man `Klasse::methode` – ohne Klammern und ohne Argumente. `Integer.parseInt()` wäre ein Aufruf, kein Verweis.
+
+- id: streams-basics-pipeline
+  unit: streams/filter-map
+  main:
+    kind: template
+    prompt: Liefere die Namen aller Schüler der 5AHIF als Liste.
+    template: |
+      List<String> names = students.{{stream()}}
+              .{{filter}}(s -> s.schoolClass().equals("5AHIF"))
+              .{{map}}(Student::name)
+              .{{toList()}};
+    redHerrings:
+      - forEach
+      - collect
+      - "sorted()"
+    explanation: |
+      Quelle `stream()`, dann `filter` (behält Elemente) und `map` (wandelt um), am Ende die Endoperation `toList()`. Erst filtern, dann umwandeln – nach `map` gibt es keine Klasse mehr, nach der man filtern könnte.
+  followUps:
+    - kind: single
+      prompt: Was gibt dieser Code aus?
+      code: |
+        Stream<String> names = students.stream().map(Student::name);
+        System.out.println(names.toList().size());
+        System.out.println(names.toList().size());
+      options:
+        - Zweimal `5`
+        - "`5` und dann `0`"
+        - "`5`, dann eine `IllegalStateException`"
+      answer: 2
+      explanation: |
+        Ein Stream kann nur einmal verwendet werden. Der zweite `toList()`-Aufruf wirft `IllegalStateException: stream has already been operated upon or closed`.
+
+- id: streams-basics-tolist
+  unit: streams/filter-map
+  main:
+    kind: single
+    prompt: Was passiert bei `names.add("Fritz")`?
+    code: |
+      List<String> names = students.stream()
+              .map(Student::name)
+              .toList();
+      names.add("Fritz");
+    options:
+      - "\"Fritz\" wird angehängt."
+      - Es fliegt eine `UnsupportedOperationException`.
+      - Der Code kompiliert nicht.
+    answer: 1
+    explanation: |
+      `toList()` liefert eine **unveränderliche** Liste. Brauchst du eine veränderbare, verwende `collect(Collectors.toCollection(ArrayList::new))`.
+  followUps:
+    - kind: single
+      prompt: Was macht dieser Code?
+      code: |
+        students.stream().filter(s -> s.age() > 18);
+      options:
+        - Er entfernt alle Schüler bis 18 aus `students`.
+        - Nichts – es fehlt eine Endoperation, und `students` wird ohnehin nie verändert.
+        - Er gibt die gefilterten Schüler aus.
+      answer: 1
+      explanation: |
+        Zwischenschritte sind lazy und laufen erst bei einer Endoperation. Und ein Stream verändert seine Quelle nie – er liefert ein neues Ergebnis.
+
+- id: streams-basics-range
+  unit: streams/filter-map
+  main:
+    kind: single
+    prompt: Welche Zahlen liefert `IntStream.range(1, 5)`?
+    options:
+      - 1, 2, 3, 4, 5
+      - 1, 2, 3, 4
+      - 0, 1, 2, 3, 4
+    answer: 1
+    explanation: |
+      `range` schließt das Ende aus, `rangeClosed(1, 5)` schließt es ein.
+
+- id: streams-sort-thencomparing
+  unit: streams/sortieren
+  main:
+    kind: template
+    prompt: Sortiere nach Alter und bei gleichem Alter nach Name.
+    template: |
+      students.stream()
+              .{{sorted}}({{Comparator.comparing(Student::age)}}
+                      .{{thenComparing}}(Student::name))
+              .toList();
+    redHerrings:
+      - sort
+      - Comparator.comparing(Student::getAge)
+      - andThen
+    explanation: |
+      `sorted` mit `Comparator.comparing(...)` für das erste Kriterium und `thenComparing(...)` für das zweite. Bei Records heißt der Zugriff `age`, nicht `getAge`.
+  followUps:
+    - kind: single
+      prompt: Die Ältesten sollen zuerst kommen, bei gleichem Alter der Name **aufsteigend**. Welcher Comparator stimmt?
+      options:
+        - "`Comparator.comparing(Student::age).thenComparing(Student::name).reversed()`"
+        - "`Comparator.comparing(Student::age).reversed().thenComparing(Student::name)`"
+        - "`Comparator.comparing(Student::age).thenComparing(Student::name, Comparator.reverseOrder())`"
+      answer: 1
+      explanation: |
+        `reversed()` dreht alles davor um. Am Ende der Kette würde es auch den Namen umdrehen. Direkt nach dem Alter dreht es nur das Alter um.
+
+- id: streams-sort-natural
+  unit: streams/sortieren
+  main:
+    kind: single
+    prompt: Wie sortierst du eine `List<String>` **absteigend**?
+    options:
+      - "`names.stream().sorted().reversed().toList()`"
+      - "`names.stream().sorted(Comparator.reverseOrder()).toList()`"
+      - "`names.stream().sorted(String::reversed).toList()`"
+    answer: 1
+    explanation: |
+      `Comparator.reverseOrder()` dreht die natürliche Ordnung um. Ein `Stream` hat keine Methode `reversed()`.
+  followUps:
+    - kind: single
+      prompt: "Wie sortiert `Comparator.comparing(Student::schoolClass, Comparator.reverseOrder()).thenComparing(Student::name)`?"
+      options:
+        - Klasse absteigend, innerhalb der Klasse Name aufsteigend
+        - Klasse und Name absteigend
+        - Klasse aufsteigend, Name absteigend
+      answer: 0
+      explanation: |
+        Das zweite Argument von `comparing` legt nur die Richtung dieses einen Kriteriums fest.
+
+- id: streams-sort-stable
+  unit: streams/sortieren
+  main:
+    kind: single
+    prompt: "Anna und Cem sind beide 18 und stehen in dieser Reihenfolge in der Liste. In welcher Reihenfolge stehen sie nach `sorted(Comparator.comparing(Student::age))`?"
+    options:
+      - Anna vor Cem – bei gleichem Wert bleibt die ursprüngliche Reihenfolge
+      - Cem vor Anna
+      - Zufällig
+    answer: 0
+    explanation: |
+      Die Sortierung ist *stabil*. Willst du dich aber nicht auf die Reihenfolge der Quelle verlassen, gib mit `thenComparing` ein zweites Kriterium an.
+
+- id: streams-limit-order
+  unit: streams/distinct-limit
+  main:
+    kind: single
+    prompt: Welcher Code liefert die **zwei ältesten** Schüler?
+    options:
+      - "`students.stream().limit(2).sorted(Comparator.comparing(Student::age).reversed()).toList()`"
+      - "`students.stream().sorted(Comparator.comparing(Student::age).reversed()).limit(2).toList()`"
+      - "`students.stream().sorted(Comparator.comparing(Student::age)).skip(2).toList()`"
+    answer: 1
+    explanation: |
+      Erst sortieren, dann `limit`. Umgekehrt nimmst du zwei beliebige Schüler und sortierst nur diese beiden.
+  followUps:
+    - kind: single
+      prompt: "Die sortierten Namen sind `[Anna, Ben, Cem, Dora, Emil]`. Was liefert `.skip(2).limit(2)`?"
+      options:
+        - "`[Anna, Ben]`"
+        - "`[Cem, Dora]`"
+        - "`[Dora, Emil]`"
+      answer: 1
+      explanation: |
+        `skip(2)` überspringt Anna und Ben, `limit(2)` nimmt die nächsten zwei.
+
+- id: streams-distinct-equals
+  unit: streams/distinct-limit
+  main:
+    kind: single
+    prompt: Wonach entscheidet `distinct()`, ob zwei Elemente gleich sind?
+    options:
+      - Nach `==`, also ob es dasselbe Objekt ist
+      - Nach `equals` (und `hashCode`)
+      - Nach `toString()`
+    answer: 1
+    explanation: |
+      Records und Strings bringen ein passendes `equals` mit. Eine eigene Klasse ohne `equals` wird nur als gleich erkannt, wenn es dasselbe Objekt ist.
+
+- id: streams-peek
+  unit: streams/distinct-limit
+  main:
+    kind: single
+    prompt: Was gibt dieser Code aus?
+    code: |
+      long n = Stream.of("a", "b", "c")
+              .peek(System.out::println)
+              .count();
+    options:
+      - a, b, c
+      - Nichts
+      - Nur a
+    answer: 1
+    explanation: |
+      `count()` kennt die Anzahl schon aus der Quelle und spart sich die Pipeline – `peek` läuft gar nicht. Deshalb: `peek` nur zum Debuggen, nie für echte Arbeit.
+
+- id: streams-find-optional
+  unit: streams/finden
+  main:
+    kind: template
+    prompt: Suche den Schüler mit dem Namen `name`. Gibt es ihn nicht, wirf eine `IllegalArgumentException`.
+    template: |
+      Student student = students.stream()
+              .filter(s -> s.name().equals(name))
+              .{{findFirst()}}
+              .{{orElseThrow}}(() -> new IllegalArgumentException("unknown: " + name));
+    redHerrings:
+      - get()
+      - orElse
+      - "toList()"
+    explanation: |
+      `findFirst()` liefert ein `Optional<Student>`, `orElseThrow(supplier)` holt den Wert heraus oder wirft deine Exception. `get()` würde bei leerem `Optional` eine nichtssagende `NoSuchElementException` werfen.
+  followUps:
+    - kind: single
+      prompt: Was liefert `students.stream().filter(s -> s.age() > 30).findFirst().map(Student::name).orElse("niemand")`, wenn niemand über 30 ist?
+      options:
+        - "`null`"
+        - "`\"niemand\"`"
+        - Eine `NoSuchElementException`
+      answer: 1
+      explanation: |
+        `map` auf einem leeren `Optional` bleibt leer, `orElse` liefert dann den Ersatzwert.
+
+- id: streams-find-match
+  unit: streams/finden
+  main:
+    kind: single
+    prompt: "`List<Student> empty = List.of();` – was liefert `empty.stream().allMatch(s -> s.age() > 100)`?"
+    options:
+      - "`true`"
+      - "`false`"
+      - Eine Exception
+    answer: 0
+    explanation: |
+      Für eine leere Liste ist `allMatch` immer `true` (es gibt kein Gegenbeispiel), `anyMatch` immer `false`.
+  followUps:
+    - kind: multi
+      prompt: Welche Ausdrücke liefern ein `Optional`?
+      options:
+        - "`students.stream().findFirst()`"
+        - "`students.stream().max(Comparator.comparing(Student::age))`"
+        - "`students.stream().anyMatch(s -> s.age() > 18)`"
+        - "`students.stream().count()`"
+      answer: [0, 1]
+      explanation: |
+        `findFirst`, `min` und `max` finden vielleicht nichts – deshalb `Optional`. `anyMatch` liefert `boolean`, `count` ein `long`.
+
+- id: streams-find-orelseget
+  unit: streams/finden
+  main:
+    kind: single
+    prompt: "`Optional.of(\"x\").orElse(loadDefault())` – wird `loadDefault()` aufgerufen?"
+    options:
+      - Nein, weil ein Wert vorhanden ist
+      - Ja, das Argument von `orElse` wird immer ausgewertet
+      - Nur, wenn `loadDefault()` statisch ist
+    answer: 1
+    explanation: |
+      Java wertet Argumente vor dem Aufruf aus. Mit `orElseGet(() -> loadDefault())` läuft `loadDefault()` nur, wenn das `Optional` leer ist.
+
+- id: streams-numbers-average
+  unit: streams/zahlen
+  main:
+    kind: template
+    prompt: Berechne die Durchschnittsnote in POS; ohne Noten soll 0.0 herauskommen.
+    template: |
+      double avgPos = students.stream()
+              .{{flatMap}}(s -> s.grades().stream())
+              .filter(g -> g.subject().equals("POS"))
+              .{{mapToInt}}(Grade::value)
+              .{{average()}}
+              .{{orElse(0.0)}};
+    redHerrings:
+      - map
+      - "sum()"
+      - "get()"
+    explanation: |
+      `mapToInt` macht einen `IntStream`, der rechnen kann. `average()` liefert ein `OptionalDouble`, weil ein leerer Stream keinen Durchschnitt hat – `orElse(0.0)` legt den Wert für diesen Fall fest.
+  followUps:
+    - kind: single
+      prompt: "`int sum = 5; int count = 2;` – was ergibt `sum / count`?"
+      options:
+        - "`2.5`"
+        - "`2`"
+        - "`3`"
+      answer: 1
+      explanation: |
+        Ganzzahl-Division schneidet ab. Erst `(double) sum / count` ergibt `2.5`.
+
+- id: streams-numbers-reduce
+  unit: streams/zahlen
+  main:
+    kind: single
+    prompt: Was ergibt `Stream.of(1, 2, 3, 4).reduce(1, (a, b) -> a * b)`?
+    options:
+      - "`10`"
+      - "`24`"
+      - "`25`"
+    answer: 1
+    explanation: |
+      Startwert 1, dann 1·1·2·3·4 = 24. Für ein Produkt ist der Startwert 1, für eine Summe 0.
+  followUps:
+    - kind: single
+      prompt: Wie addierst du die `BigDecimal`-Beträge aller Rechnungen?
+      options:
+        - "`invoices.stream().map(Invoice::amount).sum()`"
+        - "`invoices.stream().map(Invoice::amount).reduce(BigDecimal.ZERO, BigDecimal::add)`"
+        - "`invoices.stream().mapToInt(Invoice::amount).sum()`"
+      answer: 1
+      explanation: |
+        `BigDecimal` ist kein primitiver Typ, es gibt kein `mapToBigDecimal`. `reduce` mit `BigDecimal.ZERO` als Startwert und `BigDecimal::add` addiert exakt.
+
+- id: streams-numbers-empty
+  unit: streams/zahlen
+  main:
+    kind: multi
+    prompt: Was liefern diese Operationen für einen **leeren** `IntStream`?
+    options:
+      - "`sum()` liefert `0`."
+      - "`average()` liefert ein leeres `OptionalDouble`."
+      - "`max()` liefert `0`."
+      - "`count()` liefert `0`."
+    answer: [0, 1, 3]
+    explanation: |
+      Eine Summe aus nichts ist 0, eine Anzahl auch. Durchschnitt und Maximum gibt es nicht – deshalb liefern `average()` und `max()` ein leeres Optional.
+
+- id: streams-flatmap-basics
+  unit: streams/flatmap
+  main:
+    kind: single
+    prompt: "Was ist der Typ von `students.stream().map(Student::grades).toList()`?"
+    options:
+      - "`List<Grade>`"
+      - "`List<List<Grade>>`"
+      - "`Stream<Grade>`"
+    answer: 1
+    explanation: |
+      `map` macht aus jedem Schüler genau ein Element – hier seine Notenliste. Für eine flache `List<Grade>` brauchst du `flatMap(s -> s.grades().stream())`.
+  followUps:
+    - kind: template
+      prompt: Liefere alle Fächer, in denen es Noten gibt, ohne Duplikate.
+      template: |
+        students.stream()
+                .{{flatMap}}(s -> {{s.grades().stream()}})
+                .map(Grade::subject)
+                .{{distinct()}}
+                .toList();
+      redHerrings:
+        - s.grades()
+        - "sorted()"
+        - mapMulti
+      explanation: |
+        Das Lambda von `flatMap` muss einen **Stream** liefern – deshalb `s.grades().stream()`, nicht die Liste selbst.
+
+- id: streams-flatmap-keep-outer
+  unit: streams/flatmap
+  main:
+    kind: single
+    prompt: "Wie entsteht `[\"Anna: POS 1\", \"Anna: DBI 2\", \"Ben: POS 3\", ...]`?"
+    options:
+      - "`students.stream().flatMap(s -> s.grades().stream()).map(g -> s.name() + \": \" + g.subject() + \" \" + g.value())`"
+      - "`students.stream().flatMap(s -> s.grades().stream().map(g -> s.name() + \": \" + g.subject() + \" \" + g.value()))`"
+      - "`students.stream().map(s -> s.name() + \": \" + s.grades())`"
+    answer: 1
+    explanation: |
+      Nach dem `flatMap` ist der Schüler nicht mehr bekannt – `s` gibt es in Variante 1 im zweiten Lambda gar nicht. Deshalb kombinierst du Schüler und Note **innerhalb** des `flatMap`-Lambdas.
+
+- id: streams-flatmap-count
+  unit: streams/flatmap
+  main:
+    kind: single
+    prompt: Die Schüler haben 2, 2, 2, 1 und 0 Noten. Wie viele Elemente liefert `flatMap(s -> s.grades().stream())`?
+    options:
+      - "5"
+      - "7"
+      - "4"
+    answer: 1
+    explanation: |
+      `flatMap` hängt alle Noten aneinander: 2 + 2 + 2 + 1 + 0 = 7. Ein Schüler ohne Noten trägt nichts bei.
+
+- id: streams-collectors-grouping
+  unit: streams/collectors
+  main:
+    kind: template
+    prompt: Zähle die Schüler pro Klasse.
+    template: |
+      Map<String, {{Long}}> countPerClass = students.stream()
+              .{{collect}}({{groupingBy}}(Student::schoolClass, {{counting()}}));
+    redHerrings:
+      - Integer
+      - toMap
+      - "count()"
+    explanation: |
+      `groupingBy(schlüssel, counting())` liefert pro Schlüssel die Anzahl – als `Long`. `count()` ist die Endoperation eines Streams, kein Collector.
+  followUps:
+    - kind: single
+      prompt: In welcher Reihenfolge stehen die Schlüssel in der Map von `groupingBy(Student::schoolClass)`?
+      options:
+        - Alphabetisch
+        - In der Reihenfolge, in der sie zuerst vorkommen
+        - In keiner festen Reihenfolge – es ist eine `HashMap`
+      answer: 2
+      explanation: |
+        Für sortierte Schlüssel: `groupingBy(Student::schoolClass, TreeMap::new, counting())`.
+
+- id: streams-collectors-tomap
+  unit: streams/collectors
+  main:
+    kind: single
+    prompt: Was passiert hier, wenn zwei Schüler in der 5AHIF sind?
+    code: |
+      Map<String, String> nameByClass = students.stream()
+              .collect(toMap(Student::schoolClass, Student::name));
+    options:
+      - Der zweite Name überschreibt den ersten.
+      - Es fliegt eine `IllegalStateException` (Duplicate key 5AHIF).
+      - Beide Namen landen in einer Liste.
+    answer: 1
+    explanation: |
+      `toMap` verlangt eindeutige Schlüssel. Sollen mehrere Werte pro Schlüssel gesammelt werden, ist `groupingBy` gemeint – oder du gibst eine Merge-Funktion als drittes Argument an.
+  followUps:
+    - kind: single
+      prompt: Was liefert `partitioningBy(s -> s.age() > 100)`, wenn niemand über 100 ist?
+      options:
+        - "Eine Map nur mit dem Schlüssel `false`"
+        - "Eine Map mit `true` → leere Liste und `false` → alle Schüler"
+        - Eine leere Map
+      answer: 1
+      explanation: |
+        `partitioningBy` liefert immer beide Schlüssel, `true` und `false`, auch wenn eine Gruppe leer ist.
+
+- id: streams-collectors-mapping
+  unit: streams/collectors
+  main:
+    kind: single
+    prompt: Du willst pro Klasse die **Namen** der Schüler, nicht die Schüler-Objekte. Welcher Collector?
+    options:
+      - "`groupingBy(Student::schoolClass)`"
+      - "`groupingBy(Student::schoolClass, mapping(Student::name, toList()))`"
+      - "`toMap(Student::schoolClass, Student::name)`"
+    answer: 1
+    explanation: |
+      `mapping(f, toList())` wandelt die Elemente jeder Gruppe um, bevor sie gesammelt werden. `toMap` würde bei mehreren Schülern pro Klasse fehlschlagen.
+
+- id: streams-records-basics
+  unit: streams/datenklassen
+  main:
+    kind: multi
+    prompt: Was erzeugt Java für `record Grade(String subject, int value)` automatisch?
+    options:
+      - "Zugriffsmethoden `subject()` und `value()`"
+      - "`equals` und `hashCode` über alle Felder"
+      - "Setter `setValue(int)`"
+      - "Einen Konstruktor ohne Parameter"
+    answer: [0, 1]
+    explanation: |
+      Records sind unveränderlich: keine Setter. Der automatische Konstruktor hat alle Felder als Parameter.
+  followUps:
+    - kind: template
+      prompt: Lass nur Noten von 1 bis 5 zu.
+      template: |
+        public record Grade(String subject, int value) {
+            {{public Grade}} {
+                if ({{value < 1 || value > 5}}) {
+                    throw new {{IllegalArgumentException}}("grade must be 1..5: " + value);
+                }
+            }
+        }
+      redHerrings:
+        - public Grade(String subject, int value)
+        - this.value = value;
+        - value < 1 && value > 5
+      explanation: |
+        Der kompakte Konstruktor hat keine Parameterliste und keine Zuweisungen – die macht Java selbst. Eine Note ist ungültig, wenn sie kleiner als 1 **oder** größer als 5 ist.
+
+- id: streams-records-copy
+  unit: streams/datenklassen
+  main:
+    kind: single
+    prompt: Warum steht im kompakten Konstruktor von `Student` die Zeile `grades = List.copyOf(grades);`?
+    options:
+      - Damit spätere Änderungen an der übergebenen Liste den Student nicht verändern und `grades()` unveränderlich ist
+      - Weil Records keine Listen als Felder haben dürfen
+      - Damit `equals` funktioniert
+    answer: 0
+    explanation: |
+      Ein Record ist nur so unveränderlich wie seine Felder. `List.copyOf` macht eine unveränderliche Kopie.
+  followUps:
+    - kind: single
+      prompt: Wie bekommst du einen Student mit um eins höherem Alter?
+      options:
+        - "`s.setAge(s.age() + 1);`"
+        - "`new Student(s.name(), s.schoolClass(), s.age() + 1, s.grades())`"
+        - "`s.age()++;`"
+      answer: 1
+      explanation: |
+        Records kann man nicht ändern – man legt ein neues Objekt mit den geänderten Werten an.
+
+- id: streams-records-class
+  unit: streams/datenklassen
+  main:
+    kind: single
+    prompt: Eine Entity-Klasse hat ein Feld `private final List<String> students = new ArrayList<>();`. Wie sollte `getStudents()` aussehen?
+    options:
+      - "`return students;`"
+      - "`return List.copyOf(students);`"
+      - "`return new ArrayList<>();`"
+    answer: 1
+    explanation: |
+      Mit `return students;` kann jeder von außen Elemente hinzufügen und die Regeln der Klasse umgehen. Eine unveränderliche Kopie (oder `Collections.unmodifiableList`) verhindert das; Änderungen laufen über eigene Methoden wie `enroll`.
+
+- id: streams-sealed-switch
+  unit: streams/sealed
+  main:
+    kind: single
+    prompt: Warum braucht dieser `switch` kein `default`?
+    code: |
+      sealed interface Shape permits Circle, Rectangle, Square { }
+
+      double area(Shape shape) {
+          return switch (shape) {
+              case Circle c -> Math.PI * c.radius() * c.radius();
+              case Rectangle(double w, double h) -> w * h;
+              case Square s -> s.side() * s.side();
+          };
+      }
+    options:
+      - Weil `switch`-Ausdrücke nie ein `default` brauchen
+      - Weil `Shape` sealed ist und alle erlaubten Typen abgedeckt sind
+      - Weil Records nie `null` sein können
+    answer: 1
+    explanation: |
+      Der Compiler kennt alle Varianten aus `permits`. Kommt eine neue dazu, meldet er jeden `switch`, der sie nicht behandelt – ein `default` würde das verstecken.
+  followUps:
+    - kind: single
+      prompt: "Was bedeutet `case Rectangle(double w, double h) -> w * h`?"
+      options:
+        - Ein Record-Muster, das das Rechteck in Breite und Höhe zerlegt
+        - Ein Konstruktoraufruf
+        - Ein Lambda mit zwei Parametern
+      answer: 0
+      explanation: |
+        Record-Muster prüfen den Typ und holen die Komponenten gleich in Variablen.
+
+- id: streams-sealed-when
+  unit: streams/sealed
+  main:
+    kind: single
+    prompt: In welcher Reihenfolge müssen diese beiden Fälle stehen?
+    code: |
+      case Square s when s.side() == 0 -> 0;
+      case Square s -> s.side() * s.side();
+    options:
+      - Egal
+      - Der speziellere Fall (mit `when`) zuerst – sonst kompiliert es nicht
+      - Der allgemeine Fall zuerst
+    answer: 1
+    explanation: |
+      Stünde `case Square s` zuerst, würde der Fall mit `when` nie erreicht. Der Compiler meldet das als Fehler („dominated“).
+
+- id: streams-sealed-instanceof
+  unit: streams/sealed
+  main:
+    kind: single
+    prompt: "Was macht `if (o instanceof Circle(double r) && r > 10)`?"
+    options:
+      - Es prüft, ob `o` ein Kreis ist, und holt den Radius in `r` – kein Cast nötig.
+      - Es legt einen neuen Kreis mit Radius `r` an.
+      - Es kompiliert nicht, weil `instanceof` keine Muster kennt.
+    answer: 0
+    explanation: |
+      Pattern Matching mit `instanceof` prüft den Typ und bindet die Komponenten in einem Schritt.
