@@ -33,9 +33,9 @@
 	</ol>
 {/snippet}
 
-{#if data.units.length === 0}
+{#if data.units.length === 0 && data.exercises.length === 0}
 	<p class="empty">Die Einheiten zu diesem Modul erscheinen bald.</p>
-{:else}
+{:else if data.units.length}
 	{#if progress.loaded}
 		<p class="summary">
 			{summary.unitsRead} / {summary.units} Einheiten gelesen{summary.groups ? ` · ${summary.groupsKnown} / ${summary.groups} Fragengruppen gekonnt` : ''}
@@ -48,6 +48,23 @@
 		<p class="hint">Optional – für alle, die mehr wissen wollen.</p>
 		{@render list(extra)}
 	{/if}
+{/if}
+
+{#if data.exercises.length}
+	<h2>Programmieraufgaben</h2>
+	<ol class="units">
+		{#each data.exercises as x (x.id)}
+			{@const done = Boolean(progress.data.exercises[x.id]?.submittedAt)}
+			<li class:read={done}>
+				<span class="check" aria-label={done ? 'abgegeben' : 'noch nicht abgegeben'}></span>
+				<a href={resolve('/[module]/uebungen/[slug]', { module: data.module.slug, slug: x.slug })}>{x.title}</a>
+				<span class="meta">
+					{#if x.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
+					{x.minutes} min
+				</span>
+			</li>
+		{/each}
+	</ol>
 {/if}
 
 <style>

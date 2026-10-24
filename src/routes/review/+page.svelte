@@ -76,7 +76,7 @@
 					{#each m.exercises as x (x.id)}
 						<tr>
 							<td>
-								{x.title}
+								<a href={resolve('/[module]/uebungen/[slug]', { module: m.slug, slug: x.slug })}>{x.title}</a>
 								<span class="id">{x.id} · {x.minutes} min</span>
 							</td>
 							<td>{@render status(x.status)}</td>
