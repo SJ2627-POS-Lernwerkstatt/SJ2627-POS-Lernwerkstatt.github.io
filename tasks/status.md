@@ -36,8 +36,13 @@ Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA e
 
 ## Next
 
-1. Optionally spike exercise 2 with a real student repo, as in B2.
-2. Phase D1/D3 after the review.
+Session 5 (2026-10-25, cut off by usage limit): Vertiefung units dropped; JPA units 11–18 + 16 question groups committed (not pushed).
+Exercise 3 `jpa-03-paketdienst` in `loesungen` (committed locally, not pushed): solution, sample tests, grading tests (28 points), check --quick passes. Lab project with verified facts: scratchpad only.
+
+1. Exercise 3: `mutants.json`, full `check.py`, site page `jpa/exercises/03-paketdienst.md`, template repo, classroom50 bundle + `gh teacher assignment add`, `classroomUrl`.
+2. Exercise 4 (exam-sized, like PLÜ 2025-12-03 task 1): planned domain "Konferenz": Person + abstract PersonRole → Speaker/Attendee (rich-type codes), Session (format enum with codes, embedded Room, speakers m:n), TimeSlot composition with attendees m:n; queries: findByLastNameIgnoreCase, projection with concatenated room number + seats, sessions by floor, attendee count per session.
+3. Push both repos, deploy, update this file.
+4. Optionally spike exercise 2 with a real student repo. Phase D1/D3 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
