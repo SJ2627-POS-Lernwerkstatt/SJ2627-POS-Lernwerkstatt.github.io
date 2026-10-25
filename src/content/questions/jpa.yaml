@@ -721,3 +721,442 @@
       answer: 0
       explanation: |
         Ein „Waise“ ist ein Kind, das seinen Elternteil verloren hat. Mit `orphanRemoval` löscht Hibernate es beim nächsten Flush.
+
+- id: jpa-manytomany-jointable
+  unit: jpa/many-to-many
+  main:
+    kind: single
+    prompt: "`Book \"n\" -- \"n\" Author`: Wo speichert die Datenbank, welche Autoren ein Buch hat?"
+    options:
+      - In einer Spalte `author_id` in `books`
+      - In einer Spalte `book_id` in `authors`
+      - In einer Zwischentabelle mit den Spalten `book_id` und `author_id`
+      - In einer Textspalte mit allen Ids, getrennt durch Kommas
+    answer: 2
+    explanation: |
+      Eine Fremdschlüssel-Spalte kann nur auf **eine** Zeile zeigen. Für n:m braucht es eine Zwischentabelle mit zwei Fremdschlüsseln. Mit `@JoinTable(name = "book_authors", joinColumns = …, inverseJoinColumns = …)` legst du ihre Namen fest.
+  followUps:
+    - kind: single
+      prompt: "In `@JoinTable(name = \"book_authors\", joinColumns = @JoinColumn(name = \"book_id\"), inverseJoinColumns = @JoinColumn(name = \"author_id\"))` an `Book.authors`: Worauf zeigt `book_id`?"
+      options:
+        - Auf `books`, die Klasse mit dem Feld
+        - Auf `authors`, die Klasse in der Menge
+        - Auf die Zwischentabelle selbst
+      answer: 0
+      explanation: |
+        `joinColumns` zeigt auf die **eigene** Klasse (die mit `@JoinTable`), `inverseJoinColumns` auf die andere Seite.
+    - kind: single
+      prompt: "`authors` ist ein `Set<Author>`. Was ist der Primary Key von `book_authors`?"
+      options:
+        - Es gibt keinen
+        - Das Paar `(author_id, book_id)`
+        - Eine eigene Spalte `id`
+      answer: 1
+      explanation: |
+        Bei einem `Set` macht Hibernate das Paar zum Primary Key – dieselbe Verbindung kann es nur einmal geben. Bei einer `List` gibt es keinen Primary Key.
+
+- id: jpa-manytomany-owning
+  unit: jpa/many-to-many
+  main:
+    kind: single
+    prompt: "`Book.authors` hat `@JoinTable`, `Author.books` hat `@ManyToMany(mappedBy = \"authors\")`. Eine Methode in `Author` fügt das Buch nur in `this.books` ein, `book.authors` bleibt unverändert. Was steht nach dem Speichern in `book_authors`?"
+    options:
+      - Eine neue Zeile für Buch und Autorin
+      - Nichts – Hibernate speichert nur die besitzende Seite `Book.authors`
+      - Hibernate wirft eine Exception, weil die Seiten nicht übereinstimmen
+    answer: 1
+    explanation: |
+      Die Seite mit `mappedBy` ist die Gegenseite. Was nur dort steht, ignoriert Hibernate beim Speichern. Deshalb ändert man die Beziehung über Hilfsmethoden wie `book.addAuthor(author)`, die beide Seiten setzen.
+  followUps:
+    - kind: multi
+      prompt: Was spricht bei `@ManyToMany` für `Set` statt `List`?
+      options:
+        - Die Zwischentabelle bekommt einen Primary Key
+        - Beim Entfernen eines Elements löscht Hibernate genau eine Zeile statt alle
+        - Die Reihenfolge bleibt beim Lesen erhalten
+        - Man braucht keine Hilfsmethoden mehr
+      answer: [0, 1]
+      explanation: |
+        Mit `List` löscht Hibernate beim Entfernen alle Zeilen des Besitzers und schreibt die übrigen neu, und doppelte Verbindungen sind möglich. Die Reihenfolge bleibt bei beiden nicht erhalten, und Hilfsmethoden brauchst du immer.
+    - kind: single
+      prompt: Warum ist `cascade = CascadeType.REMOVE` an `Book.authors` gefährlich?
+      options:
+        - Weil Hibernate es bei `@ManyToMany` nicht unterstützt
+        - Weil das Löschen eines Buchs dann Autoren löscht, die auch andere Bücher geschrieben haben
+        - Weil dann die Zwischentabelle nicht mehr angelegt wird
+      answer: 1
+      explanation: |
+        Bei n:m gehört die andere Seite nicht einem einzelnen Objekt. Cascade REMOVE würde geteilte Autoren mitlöschen.
+
+- id: jpa-onetoone-unique
+  unit: jpa/one-to-one
+  main:
+    kind: single
+    prompt: "`Member` hat `@OneToOne @JoinColumn(name = \"card_id\") private LibraryCard card;`. Was unterscheidet die Spalte `card_id` von einer `@ManyToOne`-Spalte?"
+    options:
+      - Sie ist `unique`
+      - Sie ist automatisch `not null`
+      - Sie liegt in der Tabelle `library_cards`
+      - Nichts
+    answer: 0
+    explanation: |
+      `@OneToOne` erzeugt denselben Fremdschlüssel wie `@ManyToOne`, aber mit `unique`. Zwei Mitglieder mit demselben Ausweis lehnt die Datenbank ab.
+  followUps:
+    - kind: single
+      prompt: "`Member --> \"1\" Address`, und `Address` ist ein `«ValueObject»`. Welche Umsetzung ist richtig?"
+      options:
+        - "`@OneToOne` mit einer Tabelle `addresses`"
+        - "`@Embedded` mit den Spalten in `members`"
+        - "`@ManyToOne` mit `unique = true`"
+      answer: 1
+      explanation: |
+        Ein Value Object hat keine Id und keine Tabelle – auch bei Multiplizität 1 ist es `@Embedded`. `@OneToOne` verbindet zwei Entities.
+
+- id: jpa-onetoone-mappedby
+  unit: jpa/one-to-one
+  main:
+    kind: single
+    prompt: "Der Ausweis soll sein Mitglied kennen. Welche Annotation bekommt `LibraryCard.member`?"
+    options:
+      - "`@OneToOne(mappedBy = \"card\")`"
+      - "`@OneToOne @JoinColumn(name = \"member_id\")`"
+      - "`@ManyToOne(mappedBy = \"card\")`"
+    answer: 0
+    explanation: |
+      Der Fremdschlüssel liegt schon in `members.card_id`. Die Gegenseite verweist mit `mappedBy` auf das Feld `card`. Ein zweites `@JoinColumn` würde eine zweite, unabhängige Beziehung anlegen.
+  followUps:
+    - kind: single
+      prompt: "Welche Hilfsmethode hält beide Seiten synchron?"
+      code: |
+        // A
+        public void setCard(LibraryCard card) {
+            this.card = card;
+        }
+
+        // B
+        public void setCard(LibraryCard card) {
+            this.card = card;
+            card.setMember(this);
+        }
+      options:
+        - A
+        - B
+      answer: 1
+      explanation: |
+        Wie bei `@OneToMany`: Die Hilfsmethode setzt die besitzende Seite (`card`) **und** die Gegenseite (`member`).
+
+- id: jpa-elementcollection-basics
+  unit: jpa/element-collection
+  main:
+    kind: single
+    prompt: "`Book` hat `keywords : Set<String>`. Wie setzt du das um?"
+    options:
+      - "`@OneToMany` auf ein neues Entity `Keyword`"
+      - "`@ElementCollection` mit `@CollectionTable(name = \"book_keywords\", …)`"
+      - "`@Embedded`"
+      - Gar nicht, Mengen von Strings lassen sich nicht speichern
+    answer: 1
+    explanation: |
+      Eine Menge einfacher Werte ist eine Element Collection. Sie bekommt eine eigene Tabelle mit Fremdschlüssel auf `books`, aber kein Entity und kein Repository.
+  followUps:
+    - kind: multi
+      prompt: Was stimmt für Elemente einer `@ElementCollection`?
+      options:
+        - Sie haben keine eigene Id
+        - Sie werden immer mit dem Entity gespeichert und gelöscht
+        - Sie brauchen ein eigenes Repository
+        - Sie können `@Embeddable`s sein
+      answer: [0, 1, 3]
+      explanation: |
+        Elemente gehören ganz zum Entity: keine Id, kein Repository, Speichern und Löschen gehen immer mit. Erlaubt sind einfache Typen und `@Embeddable`s.
+
+- id: jpa-elementcollection-list
+  unit: jpa/element-collection
+  main:
+    kind: single
+    prompt: "Eine Filiale hat 7 Öffnungszeiten in einer `List<OpeningHours>` (`@ElementCollection`). Du entfernst eine. Welche SQL-Befehle schickt Hibernate?"
+    options:
+      - "Ein `delete` für genau diese Zeile"
+      - "Ein `delete` aller 7 Zeilen der Filiale und 6 `insert`s"
+      - "Ein `update`, das die Zeile auf `null` setzt"
+    answer: 1
+    explanation: |
+      Die Elemente haben keine Id, an der Hibernate die eine Zeile erkennen könnte. Bei einer `List` schreibt es die ganze Sammlung neu.
+  followUps:
+    - kind: single
+      prompt: "Warum heißt das Feld in `OpeningHours` `weekday` und nicht `day`?"
+      options:
+        - "`day` ist in H2 ein reserviertes Wort, die Tabelle ließe sich nicht anlegen"
+        - "`day` ist in Java ein Schlüsselwort"
+        - Nur aus Geschmack
+      answer: 0
+      explanation: |
+        `create table opening_hours (… day tinyint …)` scheitert in H2 mit einem Syntaxfehler. Weitere reservierte Wörter: `year`, `month`, `from`, `to`, `order`, `user`, `value`, `key` (Einheit 4).
+
+- id: jpa-inheritance-singletable
+  unit: jpa/vererbung
+  main:
+    kind: single
+    prompt: "`Reading` und `Workshop` erben von `@Entity abstract class LibraryEvent`, ohne `@Inheritance`. Welche Tabellen entstehen?"
+    options:
+      - Eine Tabelle für alle drei Klassen, mit einer Spalte `dtype`
+      - Je eine Tabelle für `Reading` und `Workshop`
+      - Drei Tabellen, verbunden über die Id
+    answer: 0
+    explanation: |
+      Der Default ist `SINGLE_TABLE`: alle Felder aller Unterklassen in einer Tabelle. Die Spalte `dtype` sagt, welche Klasse eine Zeile ist.
+  followUps:
+    - kind: single
+      prompt: "`Reading.authorName` hat `@Column(nullable = false)`. Was passiert beim Speichern eines `Workshop`?"
+      options:
+        - Nichts Besonderes
+        - "Die Datenbank lehnt ihn ab, weil `author_name` `not null` ist"
+        - Hibernate setzt `author_name` auf einen leeren String
+      answer: 1
+      explanation: |
+        Bei `SINGLE_TABLE` teilen sich alle Unterklassen die Spalten. Ein `not null` für eine Unterklasse gilt für alle. Nimm `@NotNull` (Bean Validation) statt `nullable = false`.
+    - kind: single
+      prompt: "`libraryEventRepository.findAll()` nach dem Speichern einer Lesung und eines Workshops liefert …"
+      options:
+        - zwei Objekte vom Typ `LibraryEvent`
+        - ein `Reading` und ein `Workshop`
+        - nichts, weil `LibraryEvent` abstrakt ist
+      answer: 1
+      explanation: |
+        Abfragen über die Oberklasse sind polymorph: Hibernate liest `dtype` und erzeugt jeweils die richtige Unterklasse.
+
+- id: jpa-inheritance-strategies
+  unit: jpa/vererbung
+  main:
+    kind: single
+    prompt: Bei welcher Strategie hat jede Klasse der Hierarchie eine eigene Tabelle, und die Unterklassen verweisen über ihre Id auf die Oberklasse?
+    options:
+      - "`SINGLE_TABLE`"
+      - "`JOINED`"
+      - "`TABLE_PER_CLASS`"
+    answer: 1
+    explanation: |
+      `JOINED`: eine Tabelle pro Klasse, beim Lesen werden sie über die Id gejoint. `TABLE_PER_CLASS` hat nur Tabellen für konkrete Klassen, jeweils mit allen geerbten Spalten.
+  followUps:
+    - kind: single
+      prompt: "Wofür ist `@MappedSuperclass`?"
+      options:
+        - Für eine Oberklasse mit gemeinsamen Feldern, die selbst kein Entity ist und keine Tabelle hat
+        - Für die Oberklasse bei `SINGLE_TABLE`
+        - Für Value Objects mit Vererbung
+      answer: 0
+      explanation: |
+        Die Felder landen in den Tabellen der Unterklassen. Über eine `@MappedSuperclass` kann man nicht abfragen. `AbstractPersistable` ist genau so eine Klasse.
+
+- id: jpa-graph-flush-clear
+  unit: jpa/objektgraphen-testen
+  main:
+    kind: single
+    prompt: Ein Test speichert eine Filiale mit zwei Büchern und liest sie sofort mit `findById` – **ohne** `flush`/`clear`. Warum beweist das wenig?
+    options:
+      - "`findById` liefert dasselbe Objekt aus dem First-Level-Cache, die Datenbank wird gar nicht gelesen"
+      - "`findById` findet ohne `flush` nichts"
+      - Weil `save` ohne `flush` eine Exception wirft
+    answer: 0
+    explanation: |
+      Ohne `clear` gibt Hibernate das Objekt aus dem Speicher zurück – samt der Liste, die du selbst befüllt hast. Erst nach `flush` und `clear` wird wirklich aus der Datenbank gelesen.
+  followUps:
+    - kind: single
+      prompt: "Was macht `entityManager.persistFlushFind(author)`?"
+      options:
+        - Speichern, in die Datenbank schreiben, Cache leeren und neu lesen
+        - Nur speichern
+        - Den Autor suchen und, wenn er fehlt, speichern
+      answer: 0
+      explanation: |
+        Die drei Schritte in einem Aufruf – praktisch für Testdaten und schnelle Lifecycle-Tests.
+
+- id: jpa-graph-lazy
+  unit: jpa/objektgraphen-testen
+  main:
+    kind: single
+    prompt: "Ein Test läuft mit `@Transactional(propagation = NOT_SUPPORTED)`. Nach `branchRepository.findById(id)` ruft er `branch.getBooks().size()` auf. Was passiert?"
+    options:
+      - Die Bücher werden nachgeladen
+      - "`LazyInitializationException`, weil keine Session mehr offen ist"
+      - Die Liste ist leer
+    answer: 1
+    explanation: |
+      `@OneToMany` lädt lazy. Ohne Transaktion ist die Session nach `findById` geschlossen. Im normalen `@DataJpaTest` läuft jeder Test in einer Transaktion, dann klappt es. Sonst hilft eine Abfrage mit `join fetch`.
+  followUps:
+    - kind: multi
+      prompt: Was gehört zu einem vollständigen Testsatz für die Angabe?
+      options:
+        - Speichern und Lesen jedes Entities
+        - Je ein Test für jede Beziehung, in jede Richtung des Modells
+        - Ein Test, dass ungültige Daten abgelehnt werden
+        - Tests für jede Getter-Methode
+      answer: [0, 1, 2]
+      explanation: |
+        Entities, Beziehungen und Constraints müssen getestet sein – ungetestete Klassen zählen nicht. Getter einzeln zu testen bringt nichts, sie werden in den anderen Tests mitbenutzt.
+
+- id: jpa-derived-keywords
+  unit: jpa/abgeleitete-queries
+  main:
+    kind: single
+    prompt: "„Alle Personen mit Nachname ‚Schmidt‘, unabhängig von der Groß-/Kleinschreibung.“ Welche Methode im `PersonRepository`?"
+    options:
+      - "`List<Person> findByLastNameIgnoreCase(String lastName);`"
+      - "`List<Person> findByLastNameContaining(String lastName);`"
+      - "`List<Person> findByLast_NameIgnoreCase(String lastName);`"
+      - "`List<Person> findAllSchmidt();`"
+    answer: 0
+    explanation: |
+      `IgnoreCase` vergleicht mit `upper(last_name) = upper(?)`. Der Name verwendet das Java-Feld `lastName`, nicht die Spalte `last_name`. `Containing` würde auch „Schmidtbauer“ finden.
+  followUps:
+    - kind: single
+      prompt: "Welche Methode findet alle Bücher einer Filiale in einer bestimmten Stadt? (`Book.branch` → `Branch.address` → `Address.city`)"
+      options:
+        - "`findByCity(String city)`"
+        - "`findByBranchAddressCity(String city)`"
+        - "`findByBranch_City(String city)`"
+      answer: 1
+      explanation: |
+        Der Name folgt dem Pfad über die Beziehung und das Value Object: `branch.address.city`. Spring Data erzeugt den Join selbst.
+    - kind: single
+      prompt: "`Optional<Book> findByPriceLessThan(BigDecimal max)` findet zwei Bücher. Was passiert?"
+      options:
+        - Es liefert das erste
+        - Es liefert `Optional.empty()`
+        - "`IncorrectResultSizeDataAccessException`"
+      answer: 2
+      explanation: |
+        `Optional` heißt „höchstens ein Treffer“. Bei mehreren wirft Spring Data eine Exception. Für mehrere nimm `List<Book>`, für den ersten `findFirstBy…`.
+
+- id: jpa-derived-errors
+  unit: jpa/abgeleitete-queries
+  main:
+    kind: single
+    prompt: "Im Repository steht `List<Book> findByTitel(String t);`. Was passiert?"
+    options:
+      - Die Methode liefert immer eine leere Liste
+      - Der Spring-Kontext startet nicht – jeder Test scheitert mit `No property 'titel' found for type 'Book'`
+      - Nur Tests, die die Methode aufrufen, scheitern
+    answer: 1
+    explanation: |
+      Spring Data prüft alle Methodennamen beim Start. Ein Tippfehler bricht den Start ab – die Meldung schlägt sogar `title` vor.
+  followUps:
+    - kind: single
+      prompt: "Ein Test für `findByTitleContainingIgnoreCase(\"MOHN\")` speichert nur das Buch „Mohn und Gedächtnis“. Was fehlt?"
+      options:
+        - Nichts
+        - Ein Buch, das **nicht** gefunden werden darf
+        - Ein Test mit `null`
+      answer: 1
+      explanation: |
+        Mit nur einem passenden Buch würde auch eine Methode bestehen, die alles liefert. Testdaten müssen Treffer auch ausschließen.
+
+- id: jpa-jpql-basics
+  unit: jpa/jpql
+  main:
+    kind: single
+    prompt: Welche `@Query` ist gültiges JPQL für „Bücher einer Autorin“?
+    options:
+      - "`select * from books b join book_authors ba on ba.book_id = b.id where ba.author_name = :name`"
+      - "`select b from Book b join b.authors a where a.name = :name`"
+      - "`select b from books b where b.authors.name = :name`"
+    answer: 1
+    explanation: |
+      JPQL arbeitet mit Entities (`Book`) und Feldern (`b.authors`), nicht mit Tabellen. Der Join folgt dem Feld der Beziehung. `select *` gibt es in JPQL nicht.
+  followUps:
+    - kind: single
+      prompt: "Was passiert bei `@Query(\"select b from books b\")`?"
+      options:
+        - Die Abfrage liefert alle Bücher
+        - "Der Kontext startet nicht: `Could not resolve root entity 'books'`"
+        - Erst der Aufruf scheitert
+      answer: 1
+      explanation: |
+        JPQL-Abfragen werden beim Start geprüft. `books` ist der Tabellenname, das Entity heißt `Book`.
+    - kind: single
+      prompt: "Wodurch unterscheidet sich `nativeQuery = true`?"
+      options:
+        - Es ist echtes SQL mit Tabellen- und Spaltennamen und wird nicht beim Start geprüft
+        - Es ist schneller und deshalb immer vorzuziehen
+        - Es erlaubt Parameter, JPQL nicht
+      answer: 0
+      explanation: |
+        Native Queries hängen an der Datenbank und fallen erst beim Aufruf auf. Nimm sie nur, wenn JPQL nicht reicht.
+
+- id: jpa-jpql-fetch
+  unit: jpa/jpql
+  main:
+    kind: single
+    prompt: "Wozu dient `select b from Book b left join fetch b.authors where b.isbn = :isbn`?"
+    options:
+      - Es lädt das Buch und seine Autoren in einer Abfrage
+      - Es lädt nur Bücher, die Autoren haben
+      - Es speichert die Autoren mit
+    answer: 0
+    explanation: |
+      `fetch` füllt die Lazy-Liste gleich mit. `left` behält auch Bücher ohne Autoren.
+  followUps:
+    - kind: single
+      prompt: "`@Query(\"select b from Book b where b.price <= :max\") List<Book> cheap(BigDecimal max);` – woher weiß Spring, dass `:max` der Parameter `max` ist?"
+      options:
+        - Über den Parameternamen; das Gradle-Plugin kompiliert mit `-parameters`. Sicher geht es mit `@Param("max")`
+        - Über die Position, der erste Parameter ist immer `:max`
+        - Gar nicht, man muss `?1` schreiben
+      answer: 0
+      explanation: |
+        Ohne `-parameters` sind die Namen zur Laufzeit unbekannt. `@Param` macht die Zuordnung unabhängig davon.
+
+- id: jpa-projection-constructor
+  unit: jpa/projektionen
+  main:
+    kind: single
+    prompt: "`record BookOverview(String title, String branchName, BigDecimal price)` liegt in `ormapping.persistence`. Welche Abfrage füllt ihn?"
+    options:
+      - "`select new BookOverview(b.title, b.branch.name, b.price) from Book b`"
+      - "`select new ormapping.persistence.BookOverview(b.title, b.branch.name, b.price) from Book b`"
+      - "`select BookOverview(b) from Book b`"
+    answer: 1
+    explanation: |
+      Der Konstruktor-Ausdruck braucht den Klassennamen mit Package. Ohne Package scheitert der Start mit `Could not resolve class 'BookOverview' named for instantiation`.
+  followUps:
+    - kind: single
+      prompt: "Raumnummer aus `building`, `level` und `roomNo` als **ein** Attribut, z. B. `\"C.3.07\"`. Welcher Ausdruck?"
+      options:
+        - "`concat(r.building, '.', r.level, '.', r.roomNo)`"
+        - "`r.building + '.' + r.level + '.' + r.roomNo`"
+        - "`format(r.building, r.level, r.roomNo)`"
+      answer: 0
+      explanation: |
+        `concat` nimmt beliebig viele Argumente. `||` geht auch, `+` verbindet in JPQL keine Texte.
+
+- id: jpa-projection-aggregate
+  unit: jpa/projektionen
+  main:
+    kind: single
+    prompt: "`select br.name, count(b), sum(b.price) from Branch br left join br.books b group by br.name` – was liefert eine Filiale ohne Bücher?"
+    options:
+      - "Sie fehlt im Ergebnis"
+      - "`count` = 0 und `sum` = `null`"
+      - "`count` = 0 und `sum` = 0"
+    answer: 1
+    explanation: |
+      `left join` behält die Filiale. `count` zählt keine Bücher (0), `sum` über nichts ist in SQL `null`. Mit `coalesce(sum(b.price), 0)` wird daraus 0.
+  followUps:
+    - kind: single
+      prompt: "Welchen Java-Typ liefert `count(…)`?"
+      options:
+        - "`Integer`"
+        - "`Long`"
+        - "`BigDecimal`"
+      answer: 1
+      explanation: |
+        `count` liefert immer `Long`. Im Record kannst du `long` oder `Long` verwenden. `sum` über `Integer` liefert ebenfalls `Long`, `avg` liefert `Double`.
+    - kind: single
+      prompt: "Ein Test erwartet `new BranchStock(\"HB\", 2, new BigDecimal(\"40.4\"))`, die Abfrage liefert `totalValue = 40.40`. Warum scheitert `containsExactly`?"
+      options:
+        - "`BigDecimal.equals` vergleicht auch die Scale: `40.4` ist nicht gleich `40.40`"
+        - Records haben kein `equals`
+        - "`count` ist `Long`, im Record steht `long`"
+      answer: 0
+      explanation: |
+        Die Datenbank liefert die Scale der Spalte (`numeric(38,2)`). Schreib den erwarteten Wert mit derselben Scale oder vergleiche mit `isEqualByComparingTo`.
