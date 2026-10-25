@@ -51,17 +51,18 @@ Draft unit list per module (core units only; Vertiefung units were dropped on 20
 Exercises (autograded): one per 2–3 units from unit 5 on, the last two in full Aufgabe-1 size.
 
 ## 4 · Service-Schicht (Aufgabe 2)
-1. Wo sitzt das Service? Schichtenmodell (Mermaid) und was Aufgabe 2 verlangt
-2. Pseudocode der Angabe in Java übersetzen: Datenklassen, Service-Konstruktor, Methodensignaturen
-3. Geschäftsregeln als eigene Methoden und Predicates (z. B. „unter 5 Sekunden verwerfen“, „ab 85 % voll abrechnen“)
-4. Testdaten aufbauen: alle Geschäftsfälle abdecken, Randwerte mit parametrisierten Tests
-5. Fehlerfälle: ungültige Argumente, eigene Exceptions, testen mit `assertThatThrownBy`
-6. Für „Sehr gut“: auf mehrere Klassen aufteilen (Regeln, Berechnung, Service)
-7. Spring-Service: `@Service`, Constructor Injection, `@Transactional` [18–19]
-8. DTOs als Records und das Mapping Entity ↔ DTO [19]
-9. Spring-Services testen: Mockito statt Datenbank [19]
+1. Aufgabe 2 im Überblick: Schichtenmodell (Mermaid), die zwei Formen der Angabe, Beurteilung
+2. Von der Angabe zum Code: Datenklassen als Records, Pseudocode → Konstruktor und Signaturen
+3. Geschäftsregeln als eigene Methoden und Predicates („unter 5 Sekunden verwerfen“, „ab 85 % voll abrechnen“), Geld in Cent
+4. Ergebnisse zusammenfassen: Enum-Schlüssel, Ergebnis-Records, sortieren und `groupingBy`, `EnumMap` mit allen Schlüsseln
+5. Testdaten für alle Geschäftsfälle: Fall-Tabelle aus der Angabe, Randwerte parametrisiert, Fabrikmethoden
+6. Fehlerfälle: ungültige Argumente, eigene Exceptions, `assertThatThrownBy`
+7. Datenzugriff als Interface: Stub oder Mock
+8. Für „Sehr gut“: auf mehrere Klassen aufteilen (Regeln, Auswertung, Ablauf)
+9. Spring-Service: `@Service`, Constructor Injection, fehlende Beans, `@Transactional`, DTOs als Records [18]
+10. Spring-Services testen: `MockitoExtension`, `@Mock`/`@Spy`/`@InjectMocks`, gute/Rand-/Fehlerfälle [19]
 
-Exercises (teacher feedback): 3 tasks in Aufgabe-2 size.
+Exercises (teacher feedback, Aufgabe-2 size): Ladestationen (data passed in), Sportabzeichen (repository interface + Map), Kinoreservierung (Spring service, DTOs, Mockito).
 
 ## 5 · REST-Controller (Aufgabe 3)
 1. REST-Grundlagen: Ressourcen, Pfade, HTTP-Methoden, Statuscodes (Mermaid-Sequenz)

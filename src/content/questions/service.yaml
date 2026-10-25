@@ -1,0 +1,472 @@
+- id: service-aufgabe-scope
+  unit: service/aufgabe-2
+  main:
+    kind: multi
+    prompt: Was gehört zu einer Lösung von Aufgabe 2?
+    options:
+      - Datenklassen aus dem Diagramm
+      - Ein Service mit den Geschäftsregeln
+      - Tests, die ihre Daten selbst erzeugen
+      - Entities mit `@Entity` und Repositories
+      - Ein REST-Controller
+    answer: [0, 1, 2]
+    explanation: |
+      Aufgabe 2 ist reine Geschäftslogik: Datenklassen, Service und Tests – ohne Datenbank und ohne REST.
+  followUps:
+    - kind: single
+      prompt: Datenklassen und Service sind vollständig und richtig, aber es gibt keine Tests. Welche Note ist laut Beurteilung höchstens möglich?
+      options:
+        - Genügend
+        - Befriedigend
+        - Gut
+        - Sehr gut
+      answer: 0
+      explanation: |
+        „Die Datenklassen und das Geschäftslogikservice sind vorhanden, aber nicht getestet“ ist die Beschreibung für Genügend. Ab Befriedigend zählen die getesteten Geschäftsfälle.
+
+- id: service-aufgabe-variants
+  unit: service/aufgabe-2
+  main:
+    kind: single
+    prompt: "„Es ist eine Datenzugriffsschnittstelle anzunehmen … die Datenzugriffsklassen sollen in den Tests gemockt oder durch Stubs ersetzt werden.“ Was musst du programmieren?"
+    options:
+      - Ein Interface für den Datenzugriff, ohne Implementierung; im Test ersetzt du es durch einen Stub oder Mock
+      - Eine Implementierung mit Spring Data JPA und einer H2-Datenbank
+      - Nichts, die Schnittstelle wird von der Prüfung mitgeliefert
+    answer: 0
+    explanation: |
+      Das Service bekommt ein Interface im Konstruktor. Woher die Daten wirklich kommen, ist nicht Teil der Aufgabe – im Test liefert ein Stub oder Mock die Daten.
+  followUps:
+    - kind: single
+      prompt: Für welche Note verlangt die Beurteilung zusätzlich, dass der Code auf mehrere Klassen aufgeteilt ist?
+      options:
+        - Gut
+        - Sehr gut
+        - Befriedigend
+      answer: 1
+      explanation: |
+        „Gut“: alle Geschäftsfälle getestet. „Sehr gut“: zusätzlich auf mehrere Klassen aufgeteilt und damit wartbarer.
+
+- id: service-code-types
+  unit: service/angabe-zu-code
+  main:
+    kind: single
+    prompt: "Im Diagramm steht `borrowedOn : Date`. Welcher Java-Typ passt?"
+    options:
+      - "`LocalDate`"
+      - "`LocalDateTime`"
+      - "`java.util.Date`"
+      - "`String`"
+    answer: 0
+    explanation: |
+      `Date` ist ein Datum ohne Uhrzeit: `LocalDate`. `DateTime` wäre `LocalDateTime`, `Time` wäre `LocalTime`.
+  followUps:
+    - kind: single
+      prompt: "Warum speichert der Konstruktor `this.loans = List.copyOf(loans);` statt `this.loans = loans;`?"
+      options:
+        - Damit spätere Änderungen an der übergebenen Liste das Service nicht verändern
+        - Weil `List` sonst nicht kompiliert
+        - Damit die Liste sortiert wird
+      answer: 0
+      explanation: |
+        `List.copyOf` macht eine unveränderbare Kopie. Wer die ursprüngliche Liste später ändert, ändert nicht mehr die Daten im Service. Nebenbei lehnt `List.copyOf` `null`-Elemente ab.
+
+- id: service-code-records
+  unit: service/angabe-zu-code
+  main:
+    kind: single
+    prompt: "Wie setzt du `class Book { isbn : String; title : String }` aus Aufgabe 2 am besten um?"
+    options:
+      - "`public record Book(String isbn, String title) { }`"
+      - "`@Entity public class Book extends AbstractPersistable<Long>`"
+      - "`public enum Book`"
+    answer: 0
+    explanation: |
+      In Aufgabe 2 gibt es keine Datenbank. Datenklassen ohne Verhalten sind Records: Konstruktor, Getter, `equals` und `toString` gibt es geschenkt.
+  followUps:
+    - kind: single
+      prompt: "Der Pseudocode verlangt `Long streamingSecondsForArtist(Liste<StreamingLogEntry> entries, Artist artist)`. Was ist erlaubt?"
+      options:
+        - "`long streamingSecondsForArtist(List<StreamingLogEntry> entries, Artist artist)`"
+        - "`long secondsFor(List<StreamingLogEntry> e, Artist a)`"
+        - Beides
+      answer: 0
+      explanation: |
+        Typen passt du an Java an (`Liste` → `List`, `Long` → `long`). Den Methodennamen behältst du, damit die Beurteilung deine Lösung wiederfindet.
+
+- id: service-rules-boundary
+  unit: service/geschaeftsregeln
+  main:
+    kind: single
+    prompt: "Regel: „Verspätungen bis einschließlich 2 Tage sind kostenlos, danach 20 Cent pro Tag Verspätung.“ Ein Buch kommt 3 Tage zu spät. Was kostet es?"
+    options:
+      - 20 Cent
+      - 60 Cent
+      - 0 Cent
+    answer: 1
+    explanation: |
+      Ab 3 Tagen ist die Verspätung nicht mehr kostenlos, und dann zählen alle Tage: 3 × 20 = 60 Cent. Genau solche Grenzen gehören in die Tests.
+  followUps:
+    - kind: single
+      prompt: "„Streams **unter** 5 Sekunden sind zu verwerfen.“ Welche Bedingung verwirft richtig?"
+      options:
+        - "`seconds < 5`"
+        - "`seconds <= 5`"
+        - "`seconds > 5`"
+      answer: 0
+      explanation: |
+        Unter 5 heißt kleiner als 5. Ein Stream mit genau 5 Sekunden zählt.
+    - kind: single
+      prompt: "Welcher Ausdruck prüft „mindestens 85 % der Songlänge“ ohne Rundungsfehler?"
+      options:
+        - "`streamed * 100 >= songLength * 85`"
+        - "`streamed / songLength >= 0.85`"
+        - "`streamed / songLength * 100 >= 85`"
+      answer: 0
+      explanation: |
+        Mit `int`-Werten ist `streamed / songLength` eine Ganzzahldivision und fast immer 0. Multiplizieren statt dividieren bleibt bei ganzen Zahlen und ist exakt.
+
+- id: service-rules-structure
+  unit: service/geschaeftsregeln
+  main:
+    kind: single
+    prompt: Warum bekommt jede Regel der Angabe eine eigene Methode?
+    options:
+      - Jede Regel lässt sich einzeln testen, und die Hauptmethode liest sich wie die Angabe
+      - Weil Java keine langen Methoden erlaubt
+      - Damit das Service schneller läuft
+    answer: 0
+    explanation: |
+      Kleine Methoden wie `fee`, `daysLate` oder `ofMember` kann man mit Randwerten einzeln prüfen. Die Hauptmethode setzt sie zusammen.
+  followUps:
+    - kind: single
+      prompt: Wie rechnest du Geldbeträge?
+      options:
+        - In Cent als `int`/`long` oder mit `BigDecimal`
+        - Mit `double`, das ist genau genug
+        - Mit `float`
+      answer: 0
+      explanation: |
+        `0.1 + 0.2` ergibt in `double` `0.30000000000000004`. Ganze Cent oder `BigDecimal` sind exakt.
+
+- id: service-aggregate-map
+  unit: service/ergebnisse-zusammenfassen
+  main:
+    kind: single
+    prompt: Die Angabe verlangt eine Map „Bestanden / Wiederholung möglich / Nicht bestanden → Liste von Ergebnissen“. Welcher Typ passt am besten?
+    options:
+      - "`Map<Grade, List<ExamResult>>` mit einem Enum `Grade` und einem Record `ExamResult`"
+      - "`Map<String, List<Object>>`"
+      - "`List<List<String>>`"
+    answer: 0
+    explanation: |
+      Ein Enum als Schlüssel verhindert Tippfehler, ein Record pro Ergebnis enthält genau die verlangten Werte (Name, Punkte).
+  followUps:
+    - kind: single
+      prompt: "Niemand hat „Nicht bestanden“. Was liefert `groupingBy(r -> grade(r))` für diesen Schlüssel?"
+      options:
+        - Eine leere Liste
+        - Den Schlüssel gibt es in der Map nicht – `get` liefert `null`
+        - Eine Exception
+      answer: 1
+      explanation: |
+        `groupingBy` legt nur Schlüssel an, die vorkommen. Willst du alle Schlüssel, belege eine `EnumMap` vorher mit leeren Listen.
+
+- id: service-aggregate-sort
+  unit: service/ergebnisse-zusammenfassen
+  main:
+    kind: single
+    prompt: Die Listen in der Map sollen absteigend nach Punkten sortiert sein. Wo sortierst du am einfachsten?
+    options:
+      - Im Stream vor `groupingBy` – jede Gruppe behält die Reihenfolge
+      - Nach `groupingBy` kann man nicht mehr sortieren
+      - Gar nicht, eine Map ist immer sortiert
+    answer: 0
+    explanation: |
+      `groupingBy` hängt die Elemente in der Reihenfolge des Streams an. Einmal vorher sortieren reicht für alle Listen.
+  followUps:
+    - kind: single
+      prompt: "Warum kompiliert `Comparator.comparingInt(f -> f.cents()).reversed()` nicht?"
+      options:
+        - Vor `reversed()` kennt Java den Typ von `f` nicht und nimmt `Object` an
+        - Weil `reversed()` nur für Strings geht
+        - Weil `comparingInt` keine Lambdas annimmt
+      answer: 0
+      explanation: |
+        Mit `MemberFee::cents` oder `(MemberFee f) -> f.cents()` kennt Java den Typ, und `reversed()` funktioniert.
+    - kind: single
+      prompt: Wie sollten die Testdaten für einen Sortiertest übergeben werden?
+      options:
+        - Absichtlich nicht sortiert
+        - Schon sortiert, damit der Test übersichtlich ist
+        - Egal
+      answer: 0
+      explanation: |
+        Sind die Daten schon sortiert, besteht auch ein Service ohne Sortierung den Test.
+
+- id: service-testdata-cases
+  unit: service/testdaten
+  main:
+    kind: single
+    prompt: "Regel: „höchstens 10 € pro Ausleihe“ bei 20 Cent pro Tag. Welche Testfälle prüfen die Grenze?"
+    options:
+      - Eine Verspätung, die genau 10 € ergibt, und eine, die darüber liegt
+      - Nur eine sehr lange Verspätung
+      - Nur eine Ausleihe ohne Verspätung
+    answer: 0
+    explanation: |
+      Randwerte: genau auf der Grenze (50 Tage zu spät = 10 €) und darüber (gedeckelt). Am besten in einem `@ParameterizedTest`.
+  followUps:
+    - kind: single
+      prompt: "Warum verwenden die Tests ein festes Datum statt `LocalDate.now()`?"
+      options:
+        - Sonst ändert sich das erwartete Ergebnis jeden Tag
+        - Weil `now()` in Tests verboten ist
+        - Weil `now()` langsamer ist
+      answer: 0
+      explanation: |
+        Eine offene Ausleihe kostet heute anders als morgen. Mit einem festen Datum ist der Test wiederholbar.
+
+- id: service-testdata-filter
+  unit: service/testdaten
+  main:
+    kind: single
+    prompt: Ein Test prüft `feeFor(ANNA, today)` und übergibt nur Ausleihen von Anna. Was übersieht er?
+    options:
+      - Ob das Service wirklich nur Annas Ausleihen zählt
+      - Nichts
+      - Ob Anna existiert
+    answer: 0
+    explanation: |
+      Ohne eine Ausleihe eines anderen Mitglieds besteht auch ein Service ohne Filter. Testdaten müssen falsche Lösungen scheitern lassen.
+  followUps:
+    - kind: single
+      prompt: "Was macht `name = \"{0} Tage → {1} Cent\"` in `@ParameterizedTest`?"
+      options:
+        - Es benennt jeden Durchlauf mit seinen Werten, z. B. „31 Tage → 60 Cent“
+        - Es legt die Testdaten fest
+        - Es gibt eine Meldung bei einem Fehler aus
+      answer: 0
+      explanation: |
+        `{0}`, `{1}` sind die Argumente des Durchlaufs. Die Testausgabe zeigt so sofort, welcher Fall scheitert.
+
+- id: service-errors-types
+  unit: service/fehlerfaelle
+  main:
+    kind: single
+    prompt: "Eine Ausleihe hat `returnedOn` vor `borrowedOn`. Welche Exception passt?"
+    options:
+      - "`IllegalArgumentException`"
+      - "`NullPointerException`"
+      - "`Exception` (checked)"
+    answer: 0
+    explanation: |
+      Ein unsinniger Wert ist ein ungültiges Argument. Geprüft wird am besten im kompakten Konstruktor des Records.
+  followUps:
+    - kind: single
+      prompt: Warum erbt eine eigene Exception wie `MemberNotFoundException` von `RuntimeException`?
+      options:
+        - Sie muss dann nicht mit `throws` deklariert oder gefangen werden
+        - Weil nur `RuntimeException`s eine Nachricht haben
+        - Damit sie nie geworfen werden kann
+      answer: 0
+      explanation: |
+        Unchecked Exceptions durchlaufen Service und Controller ohne `throws`. In Aufgabe 3 wird daraus ein Statuscode.
+
+- id: service-errors-tests
+  unit: service/fehlerfaelle
+  main:
+    kind: single
+    prompt: Welcher Test prüft eine Fehlerbehandlung am genauesten?
+    options:
+      - "`assertThatThrownBy(…).isInstanceOf(MemberNotFoundException.class).hasMessage(\"no loans for member Zoe\")`"
+      - "`assertThatThrownBy(…).isInstanceOf(RuntimeException.class)`"
+      - "`assertThatThrownBy(…)` ohne weitere Prüfung"
+    answer: 0
+    explanation: |
+      Typ und Nachricht zusammen schließen aus, dass zufällig ein anderer Fehler geworfen wurde.
+  followUps:
+    - kind: single
+      prompt: Das Service bekommt eine leere Liste von Ausleihen. Was ist sinnvoll?
+      options:
+        - Summe 0 bzw. eine Auswertung mit leeren Listen
+        - Eine `IllegalArgumentException`
+        - "`null` zurückgeben"
+      answer: 0
+      explanation: |
+        Leere Daten sind ein gültiger Fall mit einem klaren Ergebnis. Exceptions nur, wenn das Ergebnis sonst falsch wäre.
+
+- id: service-access-interface
+  unit: service/datenzugriff
+  main:
+    kind: single
+    prompt: Wie kommt das Service an das Datenzugriffs-Interface?
+    options:
+      - Über seinen Konstruktor
+      - Es erzeugt mit `new` selbst eine Implementierung
+      - Über eine statische Variable
+    answer: 0
+    explanation: |
+      Bekommt das Service das Interface im Konstruktor, kann der Test einen Stub oder Mock übergeben.
+  followUps:
+    - kind: single
+      prompt: Was ist ein Stub?
+      options:
+        - Eine einfache Implementierung des Interfaces, die feste Testdaten liefert
+        - Ein Mock, der Aufrufe mit `verify` prüft
+        - Eine Datenbank im Speicher
+      answer: 0
+      explanation: |
+        Ein Stub ist eine (anonyme) Klasse oder ein Lambda mit festen Daten. Er prüft keine Aufrufe – dafür gibt es Mocks.
+
+- id: service-access-mockito
+  unit: service/datenzugriff
+  main:
+    kind: single
+    prompt: "Ein Test legt `when(repo.findAll()).thenReturn(…)` fest, das Service ruft aber nur `findByMemberName` auf. Was meldet `MockitoExtension`?"
+    options:
+      - "`UnnecessaryStubbingException`"
+      - Nichts
+      - "`NullPointerException`"
+    answer: 0
+    explanation: |
+      Mockito ist standardmäßig strikt: Ein festgelegtes Verhalten, das nie gebraucht wird, lässt den Test scheitern.
+  followUps:
+    - kind: single
+      prompt: "Was liefert ein `@Mock LoanRepository` für `findByMemberName(\"Anna\")`, wenn nichts festgelegt ist?"
+      options:
+        - Eine leere Liste
+        - "`null`"
+        - Eine Exception
+      answer: 0
+      explanation: |
+        Mocks liefern für Listen eine leere Liste, für Objekte `null`, für Zahlen 0 und für `boolean` `false`.
+
+- id: service-split-why
+  unit: service/aufteilen
+  main:
+    kind: single
+    prompt: Nach welchem Kriterium teilst du das Service auf?
+    options:
+      - Nach Aufgaben, z. B. Regeln, Auswertung, Ablauf
+      - Eine Klasse pro Methode
+      - Nach der Zahl der Zeilen
+    answer: 0
+    explanation: |
+      Jede Klasse hat einen Grund, sich zu ändern: Ändert sich eine Gebührenregel, ändert sich nur `FeeRules`.
+  followUps:
+    - kind: single
+      prompt: "`FeeReportService` braucht `FeeRules`. Wie bekommt es die Regeln?"
+      options:
+        - Über den Konstruktor, wie das Repository
+        - Es ruft `new FeeRules()` in jeder Methode auf
+        - Über eine öffentliche statische Variable
+      answer: 0
+      explanation: |
+        Abhängigkeiten über den Konstruktor machen das Service testbar und passen zu Spring (Einheit 9).
+
+- id: service-split-tests
+  unit: service/aufteilen
+  main:
+    kind: single
+    prompt: Wo testest du die Randwerte der Gebührenregeln nach dem Aufteilen?
+    options:
+      - In `FeeRulesTest`, ohne Repository und ohne Mock
+      - Nur im Test des Service, mit Mock
+      - Gar nicht mehr
+    answer: 0
+    explanation: |
+      Die Regeln brauchen keine Daten von außen. Ein eigener Test für die Regelklasse ist kürzer und zeigt Fehler genauer.
+
+- id: service-spring-injection
+  unit: service/spring-service
+  main:
+    kind: single
+    prompt: "`@Service public class FeeReportService` hat genau einen Konstruktor `FeeReportService(LoanRepository repo, FeeRules rules)`. Was braucht es noch, damit Spring ihn verwendet?"
+    options:
+      - Nichts, bei genau einem Konstruktor übergibt Spring die Beans automatisch – sofern es sie gibt
+      - "`@Autowired` am Konstruktor"
+      - Setter für beide Felder
+    answer: 0
+    explanation: |
+      Constructor Injection braucht bei einem einzigen Konstruktor kein `@Autowired`. Aber jede Abhängigkeit muss eine Bean sein.
+  followUps:
+    - kind: single
+      prompt: "Im Seed-Projekt scheitert plötzlich `contextLoads` mit „required a bean of type 'LoanRepository' that could not be found“. Warum?"
+      options:
+        - Das Service hat `@Service`, aber für das Interface `LoanRepository` gibt es keine Implementierung als Bean
+        - Das Interface hat zu viele Methoden
+        - "`contextLoads` testet immer die Datenbank"
+      answer: 0
+      explanation: |
+        Spring kann das Service nicht erzeugen. In Aufgabe 2 also entweder kein `@Service` oder eine einfache Implementierung mit `@Repository`.
+
+- id: service-spring-dto
+  unit: service/spring-service
+  main:
+    kind: single
+    prompt: Wozu gibt das Service ein DTO wie `record FeeDto(String member, double euros, int openLoans)` zurück?
+    options:
+      - Es enthält genau, was der Aufrufer braucht; interne Daten verlassen das Service nicht
+      - Weil Records schneller sind als Klassen
+      - Weil Spring nur Records zurückgeben kann
+    answer: 0
+    explanation: |
+      Das DTO ist die Schnittstelle nach außen, etwa das JSON in Aufgabe 3. Das Mapping steht an einer Stelle im Service.
+  followUps:
+    - kind: single
+      prompt: "Wo setzt man `@Transactional(readOnly = true)` typischerweise?"
+      options:
+        - An der Service-Klasse, schreibende Methoden bekommen `@Transactional`
+        - An jedem Record
+        - Am Repository-Interface
+      answer: 0
+      explanation: |
+        Lesende Methoden laufen dann ohne Schreibzugriff, schreibende in einer normalen Transaktion. Das gibt es nur in Projekten mit Spring Data JPA.
+
+- id: service-spring-test-setup
+  unit: service/spring-service-testen
+  main:
+    kind: single
+    prompt: Was braucht ein Test für ein Spring-Service mit Repository?
+    options:
+      - "`@ExtendWith(MockitoExtension.class)`, `@Mock` für das Repository, `@InjectMocks` für das Service"
+      - "`@SpringBootTest` und eine H2-Datenbank"
+      - "`@DataJpaTest`"
+    answer: 0
+    explanation: |
+      Das Service ist eine normale Klasse. Mockito ersetzt das Repository – ohne Spring-Kontext und ohne Datenbank.
+  followUps:
+    - kind: single
+      prompt: "`FeeRules` soll im Test echt rechnen, aber trotzdem über `@InjectMocks` ins Service kommen. Wie?"
+      options:
+        - "`@Spy private FeeRules rules = new FeeRules();`"
+        - "`@Mock private FeeRules rules;`"
+        - Gar nicht
+      answer: 0
+      explanation: |
+        Ein `@Mock` würde immer 0 liefern. Ein `@Spy` ist ein echtes Objekt, das Mockito trotzdem in das Service einsetzt.
+
+- id: service-spring-test-cases
+  unit: service/spring-service-testen
+  main:
+    kind: multi
+    prompt: Welche Fälle sollte der Test eines Service abdecken?
+    options:
+      - Gute Fälle
+      - Randfälle (z. B. keine Gebühren, offene Ausleihe)
+      - Fehlerfälle (z. B. unbekanntes Mitglied)
+      - Den Spring-Kontext
+    answer: [0, 1, 2]
+    explanation: |
+      Gute, Rand- und Fehlerfälle – dieselben drei Arten verlangt die Beurteilung von Aufgabe 3. Der Spring-Kontext ist nicht Teil des Service-Tests.
+  followUps:
+    - kind: single
+      prompt: "Was prüft `verify(loanRepository).findByMemberName(\"Anna\")`?"
+      options:
+        - Dass das Service das Repository genau einmal mit „Anna“ aufgerufen hat
+        - Dass das Repository Daten für Anna hat
+        - Dass Anna Gebühren hat
+      answer: 0
+      explanation: |
+        `verify` prüft Aufrufe am Mock, ohne `times(...)` genau einmal.
