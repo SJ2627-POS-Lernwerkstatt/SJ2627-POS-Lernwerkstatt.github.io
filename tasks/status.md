@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-24 (session 3: Phase C complete). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-25 (session 4: D2, CI chores, foojay). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -27,15 +27,17 @@ Last updated: 2026-10-24 (session 3: Phase C complete). Live: https://sj2627-pos
 | C4 | JPA exercise 2 `jpa-02-fahrradverleih-beziehungen` (site page `jpa/exercises/02-fahrradverleih-beziehungen.md`, draft): Address as Value Object with `@Valid`, `BikeType` with codes + `BikeTypeConverter`, rich type `InventoryNumber`, bidirectional Station–Bike (cascade PERSIST, no orphanRemoval, `fk_bike_station`). Starter = exercise 1 solution (user decision). 17 grading tests, 22 points; check.py: solution 22/22, vorlage 0, 11 mutants. Public template `vorlage-jpa-02-fahrradverleih-beziehungen`, bundle in `classroom50`, assignment registered (invite link only). Not spiked with a real student repo yet |
 | — | `vorlage-jpa-01-fahrradverleih` updated with the H2 pin |
 | — | JPA units 2–4, 6–10: UML diagrams in exam notation; unit 3: Lombok section (verified: both constructor annotations on a class without own fields fail with "Konstruktor X() ist bereits … definiert"; `@AllArgsConstructor` takes only own fields incl. lists; `@Data` replaces AbstractPersistable's equals and warns). Lombok needs `compileOnly`/`annotationProcessor("org.projectlombok:lombok")`, not in the seed |
+| D2 | Classroom50 accept links in `classroomUrl` of both JPA exercises (`…/lernwerkstatt/assignments/<slug>/accept`) |
+| — | CI: actions on current majors (checkout 7, setup-node 7, setup-java 6, cache 6, upload-artifact 7, upload-pages-artifact 5, deploy-pages 5), also in `loesungen` |
+| — | Seed: foojay resolver 1.0.0 in `settings.gradle.kts` and `buildSrc/settings.gradle.kts` (there without version, it is already on the classpath). Verified with an empty Gradle home and `auto-detect=false`: Temurin 25 is downloaded, exercise 2 tests pass. Both template repos updated |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercises 1 and 2 (site text `draft`; starter, solution and grading tests in `loesungen`, assignments registered but unlisted). All content `draft`.
+Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercises 1 and 2 (site text `draft`; starter, solution and grading tests in `loesungen`, assignments linked from the site). All content `draft`.
 
 ## Next
 
-1. **D2** accept links from the Classroom50 web UI into `classroomUrl` (both JPA exercises). Optionally spike exercise 2 with a real student repo, as in B2.
-2. CI chores: `actions/setup-java@v5`, newer `deploy-pages`.
-3. Phase D1/D3 after the review.
+1. Optionally spike exercise 2 with a real student repo, as in B2.
+2. Phase D1/D3 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -99,5 +101,5 @@ Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA e
 - Radios inside a card label need `aria-labelledby` on the tier name, otherwise their accessible name is the whole card.
 - Grading tests run with `@Transactional(propagation = NOT_SUPPORTED)` and `deleteAll()` in `@BeforeEach`: each save is its own transaction, so a rejected save does not break the next check.
 - Classroom50: `gh teacher` needs scopes `admin:org` etc. (`gh teacher login`, interactive). Student repos must stay private, public ones are not autograded.
-- Students need a local JDK 25; the seed has no toolchain auto-download (open question for the user: add the foojay resolver?).
+- Students no longer need a local JDK 25: the foojay resolver downloads it (needs network on the first build).
 - Branch deletion and force pushes are blocked by the permission check unless the user approves them.

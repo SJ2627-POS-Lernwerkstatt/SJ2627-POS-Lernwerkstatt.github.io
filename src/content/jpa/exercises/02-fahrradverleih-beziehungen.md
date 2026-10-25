@@ -2,6 +2,7 @@
 title: Fahrradverleih – Beziehungen und eigene Typen
 minutes: 90
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/jpa-02-fahrradverleih-beziehungen/accept
 status: draft
 rubric:
   erwartet: >-

@@ -2,6 +2,7 @@
 title: Fahrradverleih – die ersten Entities
 minutes: 60
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/jpa-01-fahrradverleih/accept
 status: draft
 rubric:
   erwartet: >-
