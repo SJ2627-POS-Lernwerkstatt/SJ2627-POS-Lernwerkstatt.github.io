@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-25 (session 4: D2, CI chores, foojay). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA units 11–18, exercises 3–4). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -30,19 +30,19 @@ Last updated: 2026-10-25 (session 4: D2, CI chores, foojay). Live: https://sj262
 | D2 | Classroom50 accept links in `classroomUrl` of both JPA exercises (`…/lernwerkstatt/assignments/<slug>/accept`) |
 | — | CI: actions on current majors (checkout 7, setup-node 7, setup-java 6, cache 6, upload-artifact 7, upload-pages-artifact 5, deploy-pages 5), also in `loesungen` |
 | — | Seed: foojay resolver 1.0.0 in `settings.gradle.kts` and `buildSrc/settings.gradle.kts` (there without version, it is already on the classpath). Verified with an empty Gradle home and `auto-detect=false`: Temurin 25 is downloaded, exercise 2 tests pass. Both template repos updated |
+| — | Vertiefung units dropped (testing 13–15, streams 10 and their 8 question groups); curriculum lists core units only. Site code for `core: false` stays, unused |
+| — | JPA units 11–18 (ManyToMany, OneToOne, ElementCollection, Vererbung, Objektgraphen testen, abgeleitete Queries, JPQL, Projektionen), 16 question groups, all examples run in a scratch project |
+| — | JPA exercise 3 `jpa-03-paketdienst` (units 2–10, empty starter): two embedded addresses with `@EmbeddedColumnNaming`, `ServiceLevel` codes, `TrackingNumber` (`RR123456789AT`), composition Shipment–Parcel with orphanRemoval. 22 tests, 28 points, 16 mutants |
+| — | JPA exercise 4 `jpa-04-fachtagung` (full Aufgabe 1, modelled on PLÜ 2025-12-03): Person + abstract PersonRole → Speaker/Attendee, ConferenceEvent (format codes, embedded Room, speakers m:n), TimeSlot composition (`day`/`from`/`to` → renamed columns) with attendees m:n, 4 queries incl. projection and distinct count. 25 tests, 39 points, 22 mutants; grading independent of the inheritance strategy |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 15 units, streams 10, jpa 10 (85 question groups); JPA exercises 1 and 2 (site text `draft`; starter, solution and grading tests in `loesungen`, assignments linked from the site). All content `draft`.
+Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA exercises 1–4 (1–2 linked from the site, 3–4 waiting for template repos). All content `draft`.
 
 ## Next
 
-Session 5 (2026-10-25, cut off by usage limit): Vertiefung units dropped; JPA units 11–18 + 16 question groups committed (not pushed).
-Exercise 3 `jpa-03-paketdienst` in `loesungen` (committed locally, not pushed): solution, sample tests, grading tests (28 points), check --quick passes. Lab project with verified facts: scratchpad only.
-
-1. Exercise 3: `mutants.json`, full `check.py`, site page `jpa/exercises/03-paketdienst.md`, template repo, classroom50 bundle + `gh teacher assignment add`, `classroomUrl`.
-2. Exercise 4 (exam-sized, like PLÜ 2025-12-03 task 1): planned domain "Konferenz": Person + abstract PersonRole → Speaker/Attendee (rich-type codes), Session (format enum with codes, embedded Room, speakers m:n), TimeSlot composition with attendees m:n; queries: findByLastNameIgnoreCase, projection with concatenated room number + seats, sessions by floor, attendee count per session.
-3. Push both repos, deploy, update this file.
-4. Optionally spike exercise 2 with a real student repo. Phase D1/D3 after the review.
+1. **Publish exercises 3 and 4** (blocked: creating public repos needs the user's approval). Script: `publish-jpa-03-04.sh` (creates `vorlage-jpa-03-paketdienst` and `vorlage-jpa-04-fachtagung`, marks them as templates, runs `gh teacher assignment add` with Java 25). Bundles are already in `classroom50`. Then add `classroomUrl` (`…/assignments/<slug>/accept`) to both exercise pages.
+2. Optionally spike exercises 2–4 with a real student repo, as in B2.
+3. Phase D1/D3 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -97,6 +97,10 @@ Exercise 3 `jpa-03-paketdienst` in `loesungen` (committed locally, not pushed): 
 - One commit per batch of units with their questions, deployed per batch. Run the Playwright smoke test as its own command and check its exit code (a piped `tail` once hid a failure).
 
 ## Gotchas
+
+- Grading tests: in a transactional test class, a save rejected at flush stays in the persistence context, so every later `saveAndFlush` in the same test is rejected too. Put several `assertRejected` checks in a `NOT_SUPPORTED` class. `firstValue` (own JDBC connection) cannot see uncommitted data; in transactional classes use a native query through the `TestEntityManager`.
+- `cascade = PERSIST` to an already saved (detached) entity fails with `Detached entity passed to persist` outside a shared transaction.
+- JPA facts from session 5: `@Column(nullable = false)` in a SINGLE_TABLE subclass breaks saving the other subclasses; `@NotNull` there adds no DDL. Bidirectional ManyToMany default join table `books_authors(books_id, authors_id)`. ElementCollection/ManyToMany `List` removal rewrites all rows. Spring Data fills a record from a derived query (`branchName` → `branch.name`) and adds `new …` to a `@Query` returning a record. `+` does not concatenate strings in HQL. `sum(int)` → Long, `avg` → Double, `sum` over no rows → null.
 
 - SvelteKit 3: `$app/env` (not `$app/environment`); config lives in `vite.config.ts`; `#lib/*` imports need a `.js` extension, files under `scripts/` are imported with `.ts`.
 - `vite preview` caches the file list at start: restart it after every `npm run build`.
