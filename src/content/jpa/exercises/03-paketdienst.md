@@ -2,6 +2,7 @@
 title: Paketdienst – Sendungen und Pakete
 minutes: 90
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/jpa-03-paketdienst/accept
 status: draft
 rubric:
   erwartet: >-

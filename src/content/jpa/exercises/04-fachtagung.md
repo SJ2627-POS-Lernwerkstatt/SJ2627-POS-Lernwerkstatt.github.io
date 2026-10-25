@@ -2,6 +2,7 @@
 title: Fachtagung – eine Aufgabe 1 in voller Größe
 minutes: 150
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/jpa-04-fachtagung/accept
 status: draft
 rubric:
   erwartet: >-

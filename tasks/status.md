@@ -36,13 +36,12 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA units 11–18, exer
 | — | JPA exercise 4 `jpa-04-fachtagung` (full Aufgabe 1, modelled on PLÜ 2025-12-03): Person + abstract PersonRole → Speaker/Attendee, ConferenceEvent (format codes, embedded Room, speakers m:n), TimeSlot composition (`day`/`from`/`to` → renamed columns) with attendees m:n, 4 queries incl. projection and distinct count. 25 tests, 39 points, 22 mutants; grading independent of the inheritance strategy |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA exercises 1–4 (1–2 linked from the site, 3–4 waiting for template repos). All content `draft`.
+Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
 
 ## Next
 
-1. **Publish exercises 3 and 4** (blocked: creating public repos needs the user's approval). Script: `publish-jpa-03-04.sh` (creates `vorlage-jpa-03-paketdienst` and `vorlage-jpa-04-fachtagung`, marks them as templates, runs `gh teacher assignment add` with Java 25). Bundles are already in `classroom50`. Then add `classroomUrl` (`…/assignments/<slug>/accept`) to both exercise pages.
-2. Optionally spike exercises 2–4 with a real student repo, as in B2.
-3. Phase D1/D3 after the review.
+1. Optionally spike exercises 2–4 with a real student repo, as in B2.
+2. Phase D1/D3 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
