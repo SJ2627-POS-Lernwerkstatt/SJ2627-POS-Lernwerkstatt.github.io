@@ -243,8 +243,8 @@ As in parsonxam's student app: Svelte 5 runes, logic in `lib/` as plain TS with 
 | Date | Live |
 |---|---|
 | **2026-12-01** | Site incl. study mode, exercise mode, progress export, review page. Modules **testing** and **streams** complete. **jpa** core units 1–10 + 2 autograded exercises |
-| 2026-12-15 | **jpa** complete (+ Vertiefung), **service** module |
-| 2027-01-10 | **rest** module, Vertiefung (HATEOAS, pagination first, then `@JsonTest`) |
+| 2026-12-15 | **jpa** complete (units 11–18, exercises 3–4), **service** module |
+| 2027-01-10 | **rest** module |
 | 2027-02-15 | Mock exams: 2 small, 2 medium |
 | 2027-03-15 | 3 full mock exams |
 

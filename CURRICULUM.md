@@ -1,6 +1,6 @@
 # Curriculum outline
 
-Draft unit list per module. **V** = Vertiefung (optional). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
+Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
 
 ## 1 · Unit Testing (Auffrischung)
 1. Aufbau eines Tests: Arrange / Act / Assert, `@Test`, die richtigen Imports (`org.junit.jupiter.api`) [4]
@@ -15,9 +15,6 @@ Draft unit list per module. **V** = Vertiefung (optional). Numbers in brackets =
 10. Testdaten: Fixtures, Hilfsmethoden, Randwerte finden
 11. Mockito I: `@ExtendWith(MockitoExtension.class)`, `@Mock`, `@InjectMocks`, `when … thenReturn` [5]
 12. Mockito II: `verify`, `times`, `any()`, `doThrow` für void, `returnsFirstArg` [6]
-13. V: `@TestFactory` (dynamische Tests) [4]
-14. V: `@ParameterizedClass` und `@Parameter` [4]
-15. V: Testreihenfolge: `@Order`, `@TestMethodOrder`, `@TestClassOrder`, und warum man sie selten braucht [4]
 
 ## 2 · Stream API (Auffrischung)
 1. Lambdas und Methodenreferenzen: `Predicate`, `Function`, `Consumer`, `Supplier`
@@ -29,7 +26,6 @@ Draft unit list per module. **V** = Vertiefung (optional). Numbers in brackets =
 7. `flatMap`: verschachtelte Listen auflösen [2]
 8. Collectors: `groupingBy`, `counting`, `summingLong`, `toMap`, `partitioningBy`
 9. Datenklassen: Records, Konstruktor, `equals`/`hashCode`, Collections kapseln, Unveränderlichkeit [2]
-10. V: Sealed Classes und Pattern Matching mit `switch` [2]
 
 ## 3 · Spring Data JPA (Aufgabe 1)
 1. Vom UML zum Code: Entity, Value Object, Rich Type, Enumeration, `{nn}`. Wie lese ich die Angabe? [9–12]
@@ -51,8 +47,6 @@ Draft unit list per module. **V** = Vertiefung (optional). Numbers in brackets =
 17. `@Query` mit JPQL: Joins, Parameter [16]
 18. Projektionen und Aggregate: Konstruktor-Ausdruck, Records, `sum … group by` [16]
 19. Für „Sehr gut“: Constraints und Fremdschlüssel sinnvoll benennen, Precision
-20. V: Optimistic Locking mit `@Version` [17]
-21. V: Auditing (`@CreatedDate`, `@LastModifiedDate`, `@EnableJpaAuditing`) [17]
 
 Exercises (autograded): one per 2–3 units from unit 5 on, the last two in full Aufgabe-1 size.
 
@@ -82,9 +76,6 @@ Exercises (teacher feedback): 3 tasks in Aufgabe-2 size.
 10. MockMvc: `perform`, `status`, `jsonPath`, JSON-Body mit `ObjectMapper` [22]
 11. Teststrategie nach Beurteilung: Good Cases → Edge Cases → Exception Cases
 12. Unterressourcen: `/api/reservations/{id}/rooms`
-13. V: HATEOAS: `linkTo(methodOn(...))`, `EntityModel`, `CollectionModel` [22]
-14. V: Pagination: `Pageable`, `@PageableDefault`, `Page`, `PagedModel` [20]
-15. V: `@JsonTest` [5]
 
 Exercises (teacher feedback): 3 tasks in Aufgabe-3 size, one with a sub-resource, one with pagination.
 
