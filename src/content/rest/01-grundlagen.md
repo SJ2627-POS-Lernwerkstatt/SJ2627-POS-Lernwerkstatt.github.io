@@ -31,7 +31,7 @@ sequenceDiagram
     participant R as BookController
     participant S as BookService
     C->>R: POST /api/books {"isbn": "...", ...}
-    R->>R: JSON → BookDto, @Valid prüfen
+    R->>R: JSON → BookCreateCmd, @Valid prüfen
     R->>S: create(book)
     S-->>R: BookDto
     R-->>C: 201 Created, Location: /api/books/978...

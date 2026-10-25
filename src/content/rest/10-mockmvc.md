@@ -30,7 +30,7 @@ get("/api/books").param("author", "Bachmann")
 
 post("/api/books")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(MALINA))
+        .content(objectMapper.writeValueAsString(CREATE_MALINA))
 
 patch("/api/books/{isbn}", "9783518365000")
         .contentType(MediaType.APPLICATION_JSON)
@@ -40,7 +40,7 @@ patch("/api/books/{isbn}", "9783518365000")
 delete("/api/books/9783518365000")
 ```
 
-`objectMapper.writeValueAsString(dto)` erzeugt das JSON aus einem Record. Für ungültiges oder absichtlich falsches JSON schreibst du den Text selbst.
+`objectMapper.writeValueAsString(cmd)` erzeugt das JSON aus einem Record. Für ungültiges oder absichtlich falsches JSON schreibst du den Text selbst.
 
 ## Erwartungen
 
@@ -61,22 +61,25 @@ delete("/api/books/9783518365000")
 ## Den Mock prüfen
 
 ```java
+private static final BookCreateCmd CREATE_MALINA =
+        new BookCreateCmd("9783518365000", "Malina", "Ingeborg Bachmann", 1971);
+
 @Test
 void verify_create() throws Exception {
-    when(bookService.create(any(BookDto.class))).thenReturn(MALINA);
+    when(bookService.create(any(BookCreateCmd.class))).thenReturn(MALINA);
 
     mockMvc.perform(post("/api/books")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(MALINA)))
+                    .content(objectMapper.writeValueAsString(CREATE_MALINA)))
             .andExpect(status().isCreated())
             .andExpect(header().string("Location", endsWith("/api/books/9783518365000")))
             .andExpect(jsonPath("$.isbn").value("9783518365000"));
-    verify(bookService).create(MALINA);
+    verify(bookService).create(CREATE_MALINA);
 }
 
 @Test
 void verify_create_invalid() throws Exception {
-    BookDto invalid = new BookDto("12", "", "Ingeborg Bachmann", 1971, null);
+    BookCreateCmd invalid = new BookCreateCmd("12", "", "Ingeborg Bachmann", 1971);
 
     mockMvc.perform(post("/api/books")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +90,7 @@ void verify_create_invalid() throws Exception {
 }
 ```
 
-- `verify(bookService).create(MALINA)` beweist, dass das JSON richtig in ein `BookDto` umgewandelt wurde – Records vergleichen mit `equals`.
+- `verify(bookService).create(CREATE_MALINA)` beweist, dass das JSON richtig in ein `BookCreateCmd` umgewandelt wurde – Records vergleichen mit `equals`.
 - `verifyNoInteractions` beweist, dass bei ungültigen Daten das Service gar nicht aufgerufen wurde.
 
 :::merke

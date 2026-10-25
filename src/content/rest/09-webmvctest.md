@@ -43,7 +43,7 @@ Wie in der Service-Schicht mit Mockito:
 
 ```java
 when(bookService.findByIsbn("9783518365000")).thenReturn(Optional.of(MALINA));
-when(bookService.create(any(BookDto.class))).thenReturn(MALINA);
+when(bookService.create(any(BookCreateCmd.class))).thenReturn(MALINA);
 doThrow(new BookNotFoundException("1")).when(bookService).delete("1");
 ```
 

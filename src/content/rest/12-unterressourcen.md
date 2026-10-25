@@ -25,7 +25,7 @@ public List<LoanDto> loans(@PathVariable String isbn) {
 }
 
 @PostMapping("/{isbn}/loans")
-public ResponseEntity<LoanDto> borrow(@PathVariable String isbn, @Valid @RequestBody LoanCreateDto loan) {
+public ResponseEntity<LoanDto> borrow(@PathVariable String isbn, @Valid @RequestBody LoanCreateCmd loan) {
     LoanDto created = bookService.borrow(isbn, loan);
     return ResponseEntity
             .created(linkTo(methodOn(BookController.class).loan(isbn, created.id())).toUri())

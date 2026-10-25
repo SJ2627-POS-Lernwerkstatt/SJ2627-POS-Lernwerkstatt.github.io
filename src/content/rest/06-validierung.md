@@ -5,17 +5,18 @@ cheatsheet: 21
 status: draft
 ---
 
-„Die Attribute name, preparation-time … sind verpflichtend.“ Solche Regeln stehen als Bean-Validation-Annotationen im DTO – genau wie bei den Entities in Aufgabe 1:
+„Die Attribute name, preparation-time … sind verpflichtend.“ Solche Regeln stehen als Bean-Validation-Annotationen im **Command** – dem Objekt, das hereinkommt –, genau wie bei den Entities in Aufgabe 1:
 
 ```java
-public record BookDto(
+public record BookCreateCmd(
         @NotBlank @Pattern(regexp = "\\d{13}") String isbn,
         @NotBlank String title,
         @NotBlank String author,
-        @JsonProperty("published-year") @Min(1450) @Max(2100) int publishedYear,
-        LocalDate addedOn) {
+        @JsonProperty("published-year") @Min(1450) @Max(2100) int publishedYear) {
 }
 ```
+
+Das `BookDto`, das zurückgeht, braucht keine Annotationen: Was der Server schickt, prüft niemand.
 
 | Annotation | Prüft |
 |---|---|
@@ -31,7 +32,7 @@ public record BookDto(
 
 ```java
 @PostMapping
-public ResponseEntity<BookDto> create(@Valid @RequestBody BookDto book) { ... }
+public ResponseEntity<BookDto> create(@Valid @RequestBody BookCreateCmd book) { ... }
 ```
 
 Ohne `@Valid` prüft niemand die Annotationen. Mit `@Valid` wirft Spring bei einem Fehler eine `MethodArgumentNotValidException` – **bevor** deine Methode läuft – und antwortet mit `400 Bad Request`.
@@ -59,7 +60,7 @@ Für Pflichtzahlen ist `@NotNull Integer` deshalb besser als `int`: Die Fehlerme
 ## Verschachtelte Objekte
 
 ```java
-public record RecipeCreateDto(
+public record RecipeCreateCmd(
         @NotBlank String name,
         @NotNull @Valid List<IngredientDto> ingredients) { }
 
@@ -69,7 +70,7 @@ public record IngredientDto(@NotBlank String name, @Positive int amount, @NotBla
 `@Valid` an der Liste prüft jede Zutat. Fehlt es, wird eine Zutat ohne Namen angenommen.
 
 :::merke
-- Regeln als Annotationen im DTO, `@Valid` vor `@RequestBody`.
+- Regeln als Annotationen im Command, `@Valid` vor `@RequestBody`.
 - Fehler → `400`, deine Methode läuft gar nicht.
 - Ohne Handler ist der Body leer – gib mit einem `ProblemDetail` die Felder zurück.
 - `@Valid` an verschachtelten Objekten und Listen nicht vergessen.

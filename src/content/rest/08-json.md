@@ -60,15 +60,15 @@ public record PreparationStepDto(int step, String description) { }
 
 Jedes verschachtelte Objekt bekommt einen eigenen Record. Listen werden zu `List<…>`.
 
-## Ein DTO pro Zweck
+## Ein Record pro Zweck
 
-| DTO | Wofür |
-|---|---|
-| `RecipeViewDto` | lesen: alles, inklusive `reference` |
-| `RecipeCreateDto` | anlegen: ohne `reference` |
-| `RecipeReplaceDto` | ersetzen: nur die Kernattribute |
+| Record | Richtung | Wofür |
+|---|---|---|
+| `RecipeViewDto` | hinaus | lesen: alles, inklusive `reference` |
+| `RecipeCreateCmd` | herein | anlegen: ohne `reference` |
+| `RecipeReplaceCmd` | herein | ersetzen: nur die Kernattribute |
 
-Die Angabe nennt diese Schnittstellenobjekte oft ausdrücklich. Jedes bekommt seinen Record – auch wenn sich zwei nur in einem Feld unterscheiden.
+Die Angabe nennt diese Schnittstellenobjekte oft ausdrücklich. Jedes bekommt seinen Record – auch wenn sich zwei nur in einem Feld unterscheiden. Was hereinkommt, ist ein **Command** (`…Cmd`, mit Validierung), was hinausgeht, ein `…Dto`.
 
 ## `null` und leere Listen
 

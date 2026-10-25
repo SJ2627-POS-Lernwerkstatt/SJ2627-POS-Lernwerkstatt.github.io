@@ -72,6 +72,8 @@ Regeln für die Eingaben:
 
 `reference` ist eine UUID und wird beim Anlegen vom Service vergeben.
 
+Eingehende Objekte sind Commands: `ConcertCreateCmd` und `TicketOrderCmd` (mit der Validierung). Was die API zurückschickt, heißt `ConcertView` und `TicketView`.
+
 ## Endpunkte
 
 - Alle Konzerte lesen, optional gefiltert nach Künstler (`?artist=…`)

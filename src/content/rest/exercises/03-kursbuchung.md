@@ -75,6 +75,8 @@ Regeln:
 - `courseUpdate`: Fehlende Felder bleiben unverändert. Geschickte Felder gelten dieselben Regeln.
 - `participant`: Name nicht leer, gültige E-Mail.
 
+Eingehende Objekte sind Commands: `CourseCreateCmd`, `CourseUpdateCmd` und `ParticipantCmd` (mit der Validierung). Was die API zurückschickt, heißt `CourseView` und `ParticipantDto`.
+
 Lehnt die API eine Eingabe ab, nennt die Antwort **jedes** fehlerhafte Feld, bei Terminen mit Position, z. B. `sessions[0].room must not be blank`.
 
 ## Endpunkte

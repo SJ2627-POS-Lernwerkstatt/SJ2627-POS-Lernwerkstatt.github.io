@@ -158,14 +158,14 @@
   unit: rest/validierung
   main:
     kind: single
-    prompt: "`create(@RequestBody BookDto book)` – das DTO hat `@NotBlank String title`. Ein Client schickt `\"title\": \"\"`. Was passiert?"
+    prompt: "`create(@RequestBody BookCreateCmd book)` – das Command hat `@NotBlank String title`. Ein Client schickt `\"title\": \"\"`. Was passiert?"
     options:
       - Nichts, ohne `@Valid` wird nicht geprüft – das Buch wird angelegt
       - "`400 Bad Request`"
       - "`422`"
     answer: 0
     explanation: |
-      Die Annotationen im DTO wirken nur mit `@Valid` vor `@RequestBody`.
+      Die Annotationen im Command wirken nur mit `@Valid` vor `@RequestBody`.
   followUps:
     - kind: single
       prompt: "Mit `@Valid` scheitert die Validierung. Was steht ohne eigenen Handler im Body der `400`-Antwort?"
@@ -272,6 +272,29 @@
       answer: 0
       explanation: |
         Jackson 3 hat neue Packages. `com.fasterxml.jackson.databind` gibt es im Seed-Projekt nicht mehr; nur die Annotationen bleiben in `com.fasterxml.jackson.annotation`.
+
+- id: rest-json-commands
+  unit: rest/json
+  main:
+    kind: single
+    prompt: "Die Angabe nennt die Schnittstellenobjekte `recipeView` und `recipeCreate`. Wie heißen die Records?"
+    options:
+      - "`RecipeViewDto` (hinaus) und `RecipeCreateCmd` (herein, mit Validierung)"
+      - "`RecipeViewDto` und `RecipeCreateDto`"
+      - "Ein gemeinsamer `RecipeDto` für beides"
+    answer: 0
+    explanation: |
+      Eingehende Objekte sind Commands (`…Cmd`) und tragen die Validierung. Was der Server zurückschickt, ist ein `…Dto`.
+  followUps:
+    - kind: single
+      prompt: "Wo stehen `@NotBlank`, `@Min` und Co.?"
+      options:
+        - Im Command, das hereinkommt
+        - Im DTO, das hinausgeht
+        - Im Controller
+      answer: 0
+      explanation: |
+        Geprüft wird, was der Client schickt. Das DTO der Antwort braucht keine Validierung.
 
 - id: rest-webmvctest-setup
   unit: rest/webmvctest

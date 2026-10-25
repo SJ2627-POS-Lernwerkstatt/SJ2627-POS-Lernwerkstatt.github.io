@@ -55,6 +55,8 @@ Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, 
 
 `customer` muss eine gültige E-Mail-Adresse sein.
 
+Das eingehende Objekt ist ein Command: `RentalCreateCmd`. Was die API zurückschickt, heißt `BikeView`, `StationView` und `RentalView`.
+
 ## Endpunkte
 
 | | Pfad | Antwort |
