@@ -76,6 +76,7 @@
 				{@render children()}
 			</main>
 			<footer>
+				<a href={resolve('/so-funktionierts')}>So funktioniert's</a>
 				<a href={resolve('/fortschritt')}>Mein Fortschritt</a>
 				<a href={resolve('/datenschutz')}>Datenschutz</a>
 			</footer>

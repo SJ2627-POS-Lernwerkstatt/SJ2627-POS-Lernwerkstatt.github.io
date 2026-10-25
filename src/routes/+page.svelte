@@ -17,7 +17,7 @@
 <h1>POS Lernwerkstatt</h1>
 <p class="lead">
 	Kleine Lerneinheiten, Übungsfragen und Programmieraufgaben zur Vorbereitung auf die
-	Reife- und Diplomprüfung in POS.
+	Reife- und Diplomprüfung in POS. <a href={resolve('/so-funktionierts')}>So funktioniert die Lernwerkstatt</a>
 </p>
 
 <!-- Progress is only known in the browser; until then the entry points stay neutral. -->

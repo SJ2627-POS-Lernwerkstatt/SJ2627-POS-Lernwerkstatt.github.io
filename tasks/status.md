@@ -34,6 +34,7 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA units 11–18, exer
 | — | JPA units 11–18 (ManyToMany, OneToOne, ElementCollection, Vererbung, Objektgraphen testen, abgeleitete Queries, JPQL, Projektionen), 16 question groups, all examples run in a scratch project |
 | — | JPA exercise 3 `jpa-03-paketdienst` (units 2–10, empty starter): two embedded addresses with `@EmbeddedColumnNaming`, `ServiceLevel` codes, `TrackingNumber` (`RR123456789AT`), composition Shipment–Parcel with orphanRemoval. 22 tests, 28 points, 16 mutants |
 | — | JPA exercise 4 `jpa-04-fachtagung` (full Aufgabe 1, modelled on PLÜ 2025-12-03): Person + abstract PersonRole → Speaker/Attendee, ConferenceEvent (format codes, embedded Room, speakers m:n), TimeSlot composition (`day`/`from`/`to` → renamed columns) with attendees m:n, 4 queries incl. projection and distinct count. 25 tests, 39 points, 22 mutants; grading independent of the inheritance strategy |
+| D3 | `/so-funktionierts` (Markdown route with a prose layout): modules, units, Üben with boxes, Classroom50 exercises, progress export, privacy. Linked from the footer and the start page |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
 Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
@@ -41,7 +42,7 @@ Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA ex
 ## Next
 
 1. Optionally spike exercises 2–4 with a real student repo, as in B2.
-2. Phase D1/D3 after the review.
+2. Phase D1 after the review.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
