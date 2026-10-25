@@ -2,6 +2,7 @@
 title: Sportabzeichen – Auswertung
 minutes: 100
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/service-02-sportabzeichen/accept
 status: draft
 rubric:
   erwartet: >-

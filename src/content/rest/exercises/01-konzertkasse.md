@@ -2,6 +2,7 @@
 title: Konzertkasse – eine REST-API
 minutes: 120
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/rest-01-konzertkasse/accept
 status: draft
 rubric:
   erwartet: >-

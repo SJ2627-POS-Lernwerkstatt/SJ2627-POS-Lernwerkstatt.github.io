@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercises 3–4, D3, Service-Schicht module). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercises 3–4, D3, Service-Schicht and REST-Controller modules). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -36,18 +36,19 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercis
 | — | JPA exercise 4 `jpa-04-fachtagung` (full Aufgabe 1, modelled on PLÜ 2025-12-03): Person + abstract PersonRole → Speaker/Attendee, ConferenceEvent (format codes, embedded Room, speakers m:n), TimeSlot composition (`day`/`from`/`to` → renamed columns) with attendees m:n, 4 queries incl. projection and distinct count. 25 tests, 39 points, 22 mutants; grading independent of the inheritance strategy |
 | D3 | `/so-funktionierts` (Markdown route with a prose layout): modules, units, Üben with boxes, Classroom50 exercises, progress export, privacy. Linked from the footer and the start page |
 | — | Module **service**: 10 units (Aufgabe 2 overview, Angabe → Code, Regeln, Ergebnisse zusammenfassen, Testdaten, Fehlerfälle, Datenzugriff Stub/Mock, aufteilen, Spring-Service, Spring-Services testen), 20 question groups. Running example: library late fees. All code run in a copy of the seed's `Aufgabe2_BusinessService` |
-| — | Service exercises (teacher-graded, `loesungen/exercises/service-0N-…`, empty starter): Ladestationen (data passed in; 25 sample tests), Sportabzeichen (repository interface + `Map<Badge, List<…>>`; 20), Kinoreservierung (Spring `@Service`, DTOs, 4 exceptions, in-memory `@Repository`s; 16). Not yet published |
+| — | Service exercises (teacher-graded, `loesungen/exercises/service-0N-…`, empty starter): Ladestationen (data passed in; 25 sample tests), Sportabzeichen (repository interface + `Map<Badge, List<…>>`; 20), Kinoreservierung (Spring `@Service`, DTOs, 4 exceptions, in-memory `@Repository`s; 16). Published (templates `vorlage-service-0N-…`, zero-point run test `./gradlew test`, linked from the site) |
 | — | `loesungen/scripts/publish.sh <id> "<title>" "<description>"`: template repo + `gh teacher assignment add` (Java 25) + for teacher-graded exercises a zero-point run test `./gradlew test` |
+| — | Module **rest**: 15 units (Grundlagen, `@RestController`, Parameter, Anlegen, Ändern/Löschen, Validierung, Fehlerbehandlung mit `ResponseEntityExceptionHandler`, JSON/Jackson 3, `@WebMvcTest`, MockMvc, Teststrategie, Unterressourcen, HATEOAS, Pagination, `@JsonTest`), 18 question groups. HATEOAS, pagination and `@JsonTest` are core units again (user: needed for good grades) |
+| — | REST exercises (teacher-graded, `loesungen/exercises/rest-0N-…`): Konzertkasse (CRUD, tickets sub-resource, error reference; 24 sample tests), Fahrradverleih-API (pagination + HATEOAS; 15), Kursbuchung (nested validation, PATCH, 409s, `@JsonTest` against a file; 20). All six service/REST exercises published with `scripts/publish.sh` and linked |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 12 units, streams 9, jpa 18, service 10 (113 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
+Content so far: testing 12 units, streams 9, jpa 18, service 10, rest 15 (132 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
 
 ## Next
 
-1. **Publish the service exercises** (creating public repos needs the user's approval): `scripts/publish.sh service-01-ladestationen …`, `service-02-sportabzeichen`, `service-03-kinoreservierung`; then add `classroomUrl` to the three pages.
-2. Optionally spike exercises 2–4 with a real student repo, as in B2.
-3. Phase D1 after the review.
-4. Next module: REST-Controller (Aufgabe 3).
+1. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
+2. Phase D1 after the review.
+3. Next: module Probeprüfungen (mock exams: 2 small, 2 medium, 3 full).
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -102,6 +103,9 @@ Content so far: testing 12 units, streams 9, jpa 18, service 10 (113 question gr
 - One commit per batch of units with their questions, deployed per batch. Run the Playwright smoke test as its own command and check its exit code (a piped `tail` once hid a failure).
 
 ## Gotchas
+
+- REST: a `@ExceptionHandler(Exception.class)` without `extends ResponseEntityExceptionHandler` turns Spring's own 400/404/405/415 into 500 (the PLÜ II reference solution has this). `spring.mvc.problemdetails.enabled` registers its own handler that wins over yours ("Invalid request content."). `linkTo(methodOn(C.class).m())` fails with "Could not generate CGLIB subclass" when `m` returns a record — return `ResponseEntity`/`EntityModel`. Returning `Page` logs "Serializing PageImpl instances as-is is not supported"; use Spring Data's `PagedModel` or `PagedResourcesAssembler`. Jackson 3: a missing primitive field is a 400 (`FAIL_ON_NULL_FOR_PRIMITIVES`), unknown fields are ignored, `ObjectMapper` is `tools.jackson.databind`. `@MockBean` is gone, use `@MockitoBean`.
+- `scripts/publish.sh`: bash takes „“ after `$var` as part of the name — write `${var}`.
 
 - Service module: a `@Service` whose constructor needs an interface without a bean breaks the seed's `contextLoads` ("required a bean of type … that could not be found"). `@InjectMocks` takes the constructor with the most parameters and passes `null` for anything without `@Mock`/`@Spy`. `spring-tx` (`@Transactional`) is not on the `Aufgabe2_BusinessService` classpath. `Comparator.comparingInt(f -> f.x()).reversed()` does not compile (lambda type is `Object`).
 

@@ -2,6 +2,7 @@
 title: Kinoreservierung – ein Spring-Service
 minutes: 100
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/service-03-kinoreservierung/accept
 status: draft
 rubric:
   erwartet: >-

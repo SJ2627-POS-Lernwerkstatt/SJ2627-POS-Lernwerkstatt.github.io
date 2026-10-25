@@ -2,6 +2,7 @@
 title: Kursbuchung – Validierung, Fehler und JSON
 minutes: 110
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/rest-03-kursbuchung/accept
 status: draft
 rubric:
   erwartet: >-

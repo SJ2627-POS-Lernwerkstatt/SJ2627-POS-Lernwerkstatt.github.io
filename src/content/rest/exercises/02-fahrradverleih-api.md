@@ -2,6 +2,7 @@
 title: Fahrradverleih-API – Seiten und Links
 minutes: 120
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/rest-02-fahrradverleih-api/accept
 status: draft
 rubric:
   erwartet: >-
