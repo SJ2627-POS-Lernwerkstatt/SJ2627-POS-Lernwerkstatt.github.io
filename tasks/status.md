@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA units 11–18, exercises 3–4). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercises 3–4, D3, Service-Schicht module). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -35,14 +35,19 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA units 11–18, exer
 | — | JPA exercise 3 `jpa-03-paketdienst` (units 2–10, empty starter): two embedded addresses with `@EmbeddedColumnNaming`, `ServiceLevel` codes, `TrackingNumber` (`RR123456789AT`), composition Shipment–Parcel with orphanRemoval. 22 tests, 28 points, 16 mutants |
 | — | JPA exercise 4 `jpa-04-fachtagung` (full Aufgabe 1, modelled on PLÜ 2025-12-03): Person + abstract PersonRole → Speaker/Attendee, ConferenceEvent (format codes, embedded Room, speakers m:n), TimeSlot composition (`day`/`from`/`to` → renamed columns) with attendees m:n, 4 queries incl. projection and distinct count. 25 tests, 39 points, 22 mutants; grading independent of the inheritance strategy |
 | D3 | `/so-funktionierts` (Markdown route with a prose layout): modules, units, Üben with boxes, Classroom50 exercises, progress export, privacy. Linked from the footer and the start page |
+| — | Module **service**: 10 units (Aufgabe 2 overview, Angabe → Code, Regeln, Ergebnisse zusammenfassen, Testdaten, Fehlerfälle, Datenzugriff Stub/Mock, aufteilen, Spring-Service, Spring-Services testen), 20 question groups. Running example: library late fees. All code run in a copy of the seed's `Aufgabe2_BusinessService` |
+| — | Service exercises (teacher-graded, `loesungen/exercises/service-0N-…`, empty starter): Ladestationen (data passed in; 25 sample tests), Sportabzeichen (repository interface + `Map<Badge, List<…>>`; 20), Kinoreservierung (Spring `@Service`, DTOs, 4 exceptions, in-memory `@Repository`s; 16). Not yet published |
+| — | `loesungen/scripts/publish.sh <id> "<title>" "<description>"`: template repo + `gh teacher assignment add` (Java 25) + for teacher-graded exercises a zero-point run test `./gradlew test` |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
+Content so far: testing 12 units, streams 9, jpa 18, service 10 (113 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
 
 ## Next
 
-1. Optionally spike exercises 2–4 with a real student repo, as in B2.
-2. Phase D1 after the review.
+1. **Publish the service exercises** (creating public repos needs the user's approval): `scripts/publish.sh service-01-ladestationen …`, `service-02-sportabzeichen`, `service-03-kinoreservierung`; then add `classroomUrl` to the three pages.
+2. Optionally spike exercises 2–4 with a real student repo, as in B2.
+3. Phase D1 after the review.
+4. Next module: REST-Controller (Aufgabe 3).
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -97,6 +102,8 @@ Content so far: testing 12 units, streams 9, jpa 18 (93 question groups); JPA ex
 - One commit per batch of units with their questions, deployed per batch. Run the Playwright smoke test as its own command and check its exit code (a piped `tail` once hid a failure).
 
 ## Gotchas
+
+- Service module: a `@Service` whose constructor needs an interface without a bean breaks the seed's `contextLoads` ("required a bean of type … that could not be found"). `@InjectMocks` takes the constructor with the most parameters and passes `null` for anything without `@Mock`/`@Spy`. `spring-tx` (`@Transactional`) is not on the `Aufgabe2_BusinessService` classpath. `Comparator.comparingInt(f -> f.x()).reversed()` does not compile (lambda type is `Object`).
 
 - Grading tests: in a transactional test class, a save rejected at flush stays in the persistence context, so every later `saveAndFlush` in the same test is rejected too. Put several `assertRejected` checks in a `NOT_SUPPORTED` class. `firstValue` (own JDBC connection) cannot see uncommitted data; in transactional classes use a native query through the `TestEntityManager`.
 - `cascade = PERSIST` to an already saved (detached) entity fails with `Detached entity passed to persist` outside a shared transaction.
