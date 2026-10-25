@@ -1,0 +1,464 @@
+- id: rest-basics-paths
+  unit: rest/grundlagen
+  main:
+    kind: single
+    prompt: Welcher Endpunkt ist RESTful für „ein Buch löschen“?
+    options:
+      - "`DELETE /api/books/{isbn}`"
+      - "`POST /api/books/delete/{isbn}`"
+      - "`GET /api/deleteBook?isbn=…`"
+    answer: 0
+    explanation: |
+      Der Pfad nennt die Ressource, die HTTP-Methode die Aktion. Verben im Pfad sind nicht RESTful.
+  followUps:
+    - kind: single
+      prompt: Welcher Statuscode passt nach einem erfolgreichen `POST`, der ein Buch anlegt?
+      options:
+        - "`201 Created` mit `Location`-Header"
+        - "`200 OK`"
+        - "`204 No Content`"
+      answer: 0
+      explanation: |
+        `201` sagt „angelegt“, der `Location`-Header zeigt auf die neue Ressource.
+    - kind: single
+      prompt: Das Buch mit der angefragten ISBN gibt es nicht. Was antwortet die API?
+      options:
+        - "`404 Not Found`"
+        - "`200 OK` mit `null`"
+        - "`500 Internal Server Error`"
+      answer: 0
+      explanation: |
+        Eine fehlende Ressource ist `404`. Ein `500` bedeutet, dass ein Fehler nicht behandelt wurde.
+
+- id: rest-basics-grading
+  unit: rest/grundlagen
+  main:
+    kind: single
+    prompt: Alle Endpunkte sind umgesetzt, aber nur die Good Cases getestet. Welche Note ist laut Beurteilung erreichbar?
+    options:
+      - Befriedigend
+      - Gut
+      - Sehr gut
+    answer: 0
+    explanation: |
+      Good Cases → Befriedigend, zusätzlich Edge Cases → Gut, zusätzlich Exception Cases → Sehr gut.
+
+- id: rest-controller-responseentity
+  unit: rest/restcontroller
+  main:
+    kind: single
+    prompt: "`bookService.findByIsbn(isbn)` liefert ein `Optional<BookDto>`. Welche Rückgabe liefert `200` oder `404`?"
+    options:
+      - "`return bookService.findByIsbn(isbn).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());`"
+      - "`return bookService.findByIsbn(isbn).orElse(null);`"
+      - "`return bookService.findByIsbn(isbn).get();`"
+    answer: 0
+    explanation: |
+      `null` ergäbe `200` mit leerem Body, `get()` eine Exception und damit `500`. Mit `ResponseEntity` bestimmst du den Status.
+  followUps:
+    - kind: single
+      prompt: Warum bekommt der Service-Stub in Aufgabe 3 `@Service`?
+      options:
+        - Damit der Spring-Kontext startet und `contextLoads` aus dem Seed-Projekt weiter läuft
+        - Damit die Tests ihn statt eines Mocks verwenden
+        - Weil der Controller sonst nicht kompiliert
+      answer: 0
+      explanation: |
+        Der Controller braucht eine `BookService`-Bean. In den Controller-Tests ersetzt `@MockitoBean` sie durch einen Mock.
+
+- id: rest-params
+  unit: rest/parameter
+  main:
+    kind: single
+    prompt: "`@GetMapping(\"/search\") List<BookDto> search(@RequestParam String q)` – was liefert `GET /api/books/search` ohne `q`?"
+    options:
+      - "`400 Bad Request`, die Methode läuft nicht"
+      - "Die Methode läuft mit `q = null`"
+      - "`404 Not Found`"
+    answer: 0
+    explanation: |
+      `@RequestParam` ist standardmäßig Pflicht. Mit `required = false` oder `defaultValue` wird er optional.
+  followUps:
+    - kind: single
+      prompt: "Was gehört in den Pfad, was in die Query?"
+      options:
+        - "Pfad: welche Ressource (`/api/books/{isbn}`); Query: Filter, Suche, Seite (`?author=…`)"
+        - "Pfad: Filter; Query: Id"
+        - Egal
+      answer: 0
+      explanation: |
+        Der Pfad identifiziert die Ressource. Query-Parameter bestimmen, wie eine Liste gelesen wird.
+    - kind: single
+      prompt: "`@GetMapping(\"/by-id/{id}\") … (@PathVariable long id)` wird mit `/by-id/abc` aufgerufen. Ergebnis?"
+      options:
+        - "`400 Bad Request`"
+        - "`404 Not Found`"
+        - "`id = 0`"
+      answer: 0
+      explanation: |
+        `abc` lässt sich nicht in `long` umwandeln. Spring antwortet mit `400`, bevor deine Methode läuft.
+
+- id: rest-create-location
+  unit: rest/anlegen
+  main:
+    kind: single
+    prompt: Wie baust du den `Location`-Header für ein neu angelegtes Buch am robustesten?
+    options:
+      - "`linkTo(methodOn(BookController.class).findByIsbn(created.isbn())).toUri()`"
+      - "`URI.create(\"http://localhost:8080/api/books/\" + created.isbn())`"
+      - Gar nicht, der Header ist optional
+    answer: 0
+    explanation: |
+      `linkTo(methodOn(...))` baut die URL aus der Methode, die die Ressource liefert – Host, Port und Pfad stimmen automatisch.
+  followUps:
+    - kind: single
+      prompt: "Ein Client schickt `POST /api/books` mit JSON, aber ohne `Content-Type: application/json`. Was passiert?"
+      options:
+        - "`415 Unsupported Media Type`"
+        - "`201 Created`"
+        - "`400 Bad Request`"
+      answer: 0
+      explanation: |
+        Ohne Content-Type weiß Spring nicht, wie es den Body lesen soll. Im Test also immer `.contentType(MediaType.APPLICATION_JSON)`.
+
+- id: rest-modify
+  unit: rest/aendern-loeschen
+  main:
+    kind: single
+    prompt: Was ist der Unterschied zwischen `PUT` und `PATCH`?
+    options:
+      - "`PUT` ersetzt die ganze Ressource, `PATCH` ändert nur die geschickten Felder"
+      - "`PUT` legt an, `PATCH` löscht"
+      - Es gibt keinen
+    answer: 0
+    explanation: |
+      Bei `PUT` ist danach leer, was im Body fehlte. `PATCH` lässt den Rest unverändert. Ein eigenes DTO pro Methode macht das klar.
+  followUps:
+    - kind: single
+      prompt: Welcher Statuscode passt nach einem erfolgreichen `DELETE`?
+      options:
+        - "`204 No Content`"
+        - "`201 Created`"
+        - "`404 Not Found`"
+      answer: 0
+      explanation: |
+        Gelöscht, kein Body: `ResponseEntity.noContent().build()`.
+    - kind: multi
+      prompt: Welche Methoden sind idempotent?
+      options:
+        - "`GET`"
+        - "`PUT`"
+        - "`DELETE`"
+        - "`POST`"
+      answer: [0, 1, 2]
+      explanation: |
+        Zehnmal ausführen hat dieselbe Wirkung wie einmal. `POST` legt jedes Mal neu an.
+
+- id: rest-validation
+  unit: rest/validierung
+  main:
+    kind: single
+    prompt: "`create(@RequestBody BookDto book)` – das DTO hat `@NotBlank String title`. Ein Client schickt `\"title\": \"\"`. Was passiert?"
+    options:
+      - Nichts, ohne `@Valid` wird nicht geprüft – das Buch wird angelegt
+      - "`400 Bad Request`"
+      - "`422`"
+    answer: 0
+    explanation: |
+      Die Annotationen im DTO wirken nur mit `@Valid` vor `@RequestBody`.
+  followUps:
+    - kind: single
+      prompt: "Mit `@Valid` scheitert die Validierung. Was steht ohne eigenen Handler im Body der `400`-Antwort?"
+      options:
+        - Nichts, der Body ist leer
+        - Die Liste der fehlerhaften Felder
+        - Der Stacktrace
+      answer: 0
+      explanation: |
+        Ohne Handler erfährt der Client nicht, was falsch war. Ein `@ExceptionHandler(MethodArgumentNotValidException.class)` gibt die Felder als `ProblemDetail` zurück.
+    - kind: single
+      prompt: "Im JSON fehlt `\"published-year\"`, im Record steht `int publishedYear`. Ergebnis mit Jackson 3?"
+      options:
+        - "`400`, schon beim Lesen des JSON – `null` passt nicht in ein `int`"
+        - "Das Buch wird mit Jahr 0 angelegt"
+        - "`500`"
+      answer: 0
+      explanation: |
+        Jackson 3 setzt kein `null` in einen primitiven Typ. Mit `@NotNull Integer` bekommst du stattdessen einen Validierungsfehler mit Feldname.
+
+- id: rest-errors-advice
+  unit: rest/fehlerbehandlung
+  main:
+    kind: single
+    prompt: Das Service wirft `BookNotFoundException`. Wie wird daraus in allen Controllern `404`?
+    options:
+      - "Ein `@RestControllerAdvice` mit `@ExceptionHandler(BookNotFoundException.class)`, der ein `ProblemDetail` mit 404 liefert"
+      - "In jeder Controller-Methode `try … catch`"
+      - Gar nicht, Spring macht das automatisch
+    answer: 0
+    explanation: |
+      Ohne Handler wird die Exception zu `500`. Der Advice übersetzt sie an einer Stelle.
+  followUps:
+    - kind: single
+      prompt: "Die Angabe verlangt eine eindeutige Fehlerreferenz in der Antwort und im Log. Wie?"
+      options:
+        - "`UUID.randomUUID()`, mit `problem.setProperty(\"reference\", …)` in die Antwort und mit `log.warn(…, reference, e)` ins Log"
+        - Den Stacktrace in die Antwort schreiben
+        - Die Uhrzeit als Referenz
+      answer: 0
+      explanation: |
+        Die Referenz verbindet die Antwort des Clients mit dem Logeintrag samt Stacktrace.
+    - kind: single
+      prompt: "Was passiert mit deinem eigenen `MethodArgumentNotValidException`-Handler, wenn du `spring.mvc.problemdetails.enabled: true` setzt?"
+      options:
+        - "Springs eigener Handler greift zuerst; die Antwort sagt nur „Invalid request content.“"
+        - Nichts, beide arbeiten zusammen
+        - Die Validierung wird abgeschaltet
+      answer: 0
+      explanation: |
+        Die Einstellung registriert einen Handler, der vor deinem greift. Leite stattdessen selbst von `ResponseEntityExceptionHandler` ab.
+
+- id: rest-errors-catchall
+  unit: rest/fehlerbehandlung
+  main:
+    kind: single
+    prompt: "Ein `@RestControllerAdvice` (ohne Basisklasse) hat `@ExceptionHandler(Exception.class)` mit Status 500. Was liefert jetzt `PUT /api/books`, das es nicht gibt?"
+    options:
+      - "`500` – der Catch-all fängt auch Springs `HttpRequestMethodNotSupportedException`"
+      - "`405 Method Not Allowed`"
+      - "`404 Not Found`"
+    answer: 0
+    explanation: |
+      Ohne Basisklasse landen auch Springs eigene Fehler im Catch-all: `400`, `404`, `405` und `415` werden zu `500`. Mit `extends ResponseEntityExceptionHandler` gewinnt für sie der genauere Handler der Basisklasse.
+  followUps:
+    - kind: single
+      prompt: "Du leitest von `ResponseEntityExceptionHandler` ab. Wie bekommst du die Feldnamen in die Antwort auf einen Validierungsfehler?"
+      options:
+        - "`handleMethodArgumentNotValid` überschreiben"
+        - "Einen zusätzlichen `@ExceptionHandler(MethodArgumentNotValidException.class)` schreiben"
+        - Gar nicht
+      answer: 0
+      explanation: |
+        Die Basisklasse behandelt `MethodArgumentNotValidException` schon. Du überschreibst ihre Methode mit `@Override` und baust das `ProblemDetail` selbst.
+
+- id: rest-json-names
+  unit: rest/json
+  main:
+    kind: single
+    prompt: "Die Angabe verlangt das Feld `\"preparation-time\"`. Wie heißt die Komponente im Record?"
+    options:
+      - "`@JsonProperty(\"preparation-time\") int preparationTime`"
+      - "`int preparation_time`"
+      - "`int preparationtime`"
+    answer: 0
+    explanation: |
+      Ein Bindestrich ist in Java-Namen nicht erlaubt. `@JsonProperty` setzt den JSON-Namen.
+  followUps:
+    - kind: single
+      prompt: "Wie schreibt Jackson ein `LocalDate` von 1. März 2024?"
+      options:
+        - "`\"2024-03-01\"`"
+        - "`[2024, 3, 1]`"
+        - "`1709251200000`"
+      answer: 0
+      explanation: |
+        Spring Boot konfiguriert Jackson so, dass Datum und Zeit als ISO-Text geschrieben werden.
+    - kind: single
+      prompt: "Aus welchem Package kommt der `ObjectMapper` in Spring Boot 4?"
+      options:
+        - "`tools.jackson.databind`"
+        - "`com.fasterxml.jackson.databind`"
+        - "`org.springframework.http.converter`"
+      answer: 0
+      explanation: |
+        Jackson 3 hat neue Packages. `com.fasterxml.jackson.databind` gibt es im Seed-Projekt nicht mehr; nur die Annotationen bleiben in `com.fasterxml.jackson.annotation`.
+
+- id: rest-webmvctest-setup
+  unit: rest/webmvctest
+  main:
+    kind: single
+    prompt: Womit ersetzt du das Service in einem `@WebMvcTest`?
+    options:
+      - "`@MockitoBean private BookService bookService;`"
+      - "`@Mock private BookService bookService;`"
+      - "`@MockBean private BookService bookService;`"
+    answer: 0
+    explanation: |
+      `@MockitoBean` legt den Mock als Bean in den Spring-Kontext. `@Mock` kennt Spring nicht („No qualifying bean of type BookService“), `@MockBean` gibt es in Spring Boot 4 nicht mehr.
+  followUps:
+    - kind: multi
+      prompt: Was lädt `@WebMvcTest(BookController.class)`?
+      options:
+        - Den `BookController`
+        - Alle `@RestControllerAdvice`s
+        - Jackson und Bean Validation
+        - Das echte `BookService`
+        - Die Datenbank
+      answer: [0, 1, 2]
+      explanation: |
+        Nur die Web-Schicht. Das Service kommt als `@MockitoBean`, eine Datenbank gibt es nicht.
+
+- id: rest-mockmvc-expect
+  unit: rest/mockmvc
+  main:
+    kind: single
+    prompt: "Wie prüfst du, dass die Antwort eine Liste mit zwei Elementen ist?"
+    options:
+      - "`.andExpect(jsonPath(\"$\", hasSize(2)))`"
+      - "`.andExpect(jsonPath(\"$.size\").value(2))`"
+      - "`.andExpect(content().string(\"2\"))`"
+    answer: 0
+    explanation: |
+      `$` ist das ganze JSON, `hasSize` kommt aus Hamcrest.
+  followUps:
+    - kind: single
+      prompt: "Ein Test schickt ungültige Daten. Wie beweist er, dass das Service gar nicht aufgerufen wurde?"
+      options:
+        - "`verifyNoInteractions(bookService)`"
+        - "`verify(bookService).create(any())`"
+        - Gar nicht
+      answer: 0
+      explanation: |
+        Die Validierung schlägt vor der Controller-Methode fehl. `verifyNoInteractions` macht das sichtbar.
+    - kind: single
+      prompt: "Wie schickst du ein DTO als JSON-Body?"
+      options:
+        - "`.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(dto))`"
+        - "`.content(dto.toString())`"
+        - "`.param(\"body\", dto)`"
+      answer: 0
+      explanation: |
+        `toString()` eines Records ist kein JSON. Der `ObjectMapper` schreibt genau das JSON, das auch der Client schicken würde.
+
+- id: rest-strategy
+  unit: rest/teststrategie
+  main:
+    kind: single
+    prompt: Welcher Test ist ein Edge Case für `GET /api/books?author=…`?
+    options:
+      - Ein Autor ohne Bücher → `200` mit `[]`
+      - Ein Autor mit zwei Büchern → `200` mit zwei Einträgen
+      - Das Service wirft eine Exception → Fehlerstatus
+    answer: 0
+    explanation: |
+      Der normale Fall ist ein Good Case, die Exception ein Exception Case. Eine leere Liste liegt am Rand.
+  followUps:
+    - kind: single
+      prompt: Wie testest du `DELETE` eines Buchs, das es nicht gibt?
+      options:
+        - "`doThrow(new BookNotFoundException(…)).when(bookService).delete(…)`, dann `404` und das `ProblemDetail` prüfen"
+        - "Ohne Mock-Verhalten aufrufen – der Mock wirft von selbst"
+        - Gar nicht, das ist Sache des Service
+      answer: 0
+      explanation: |
+        Ein Mock tut ohne Festlegung nichts. Der Test lässt ihn werfen und prüft, dass der Advice `404` daraus macht.
+
+- id: rest-subresource
+  unit: rest/unterressourcen
+  main:
+    kind: single
+    prompt: Welcher Pfad passt für „die Zutaten eines Rezepts“?
+    options:
+      - "`GET /api/recipes/{reference}/ingredients`"
+      - "`GET /api/ingredients?recipe={reference}`"
+      - "`GET /api/recipeIngredients/{reference}`"
+    answer: 0
+    explanation: |
+      Zutaten gibt es nur in einem Rezept – sie sind eine Unterressource unter dem Pfad des Rezepts.
+  followUps:
+    - kind: single
+      prompt: "`GET /api/books/9783518365000/loans` – das Buch gibt es, es hat aber keine Ausleihen. Antwort?"
+      options:
+        - "`200` mit `[]`"
+        - "`404`"
+        - "`204`"
+      answer: 0
+      explanation: |
+        Eine leere Liste ist ein gültiges Ergebnis. `404` nur, wenn das Buch selbst fehlt.
+
+- id: rest-hateoas
+  unit: rest/hateoas
+  main:
+    kind: single
+    prompt: Wie gibst du ein Buch mit einem Link auf sich selbst und auf seine Ausleihen zurück?
+    options:
+      - "`EntityModel.of(book, linkTo(methodOn(BookController.class).findByIsbn(isbn)).withSelfRel(), linkTo(methodOn(BookController.class).loans(isbn)).withRel(\"loans\"))`"
+      - "Eine Map mit den URLs als Strings"
+      - "`CollectionModel.of(book)`"
+    answer: 0
+    explanation: |
+      `EntityModel` verpackt das DTO und die Links. In HAL stehen sie unter `_links`.
+  followUps:
+    - kind: single
+      prompt: "Wo stehen in HAL die Elemente eines `CollectionModel<EntityModel<BookDto>>`?"
+      options:
+        - "Unter `_embedded.bookDtoList`"
+        - "Unter `content`"
+        - "Auf oberster Ebene als Array"
+      answer: 0
+      explanation: |
+        HAL legt Listen unter `_embedded`, der Name kommt vom Typ. `@Relation(collectionRelation = \"books\")` ändert ihn.
+    - kind: single
+      prompt: "Wie prüfst du im Test den Self-Link?"
+      options:
+        - "`jsonPath(\"$._links.self.href\").value(\"http://localhost/api/books/9783518365000\")`"
+        - "`jsonPath(\"$.self\")`"
+        - "`header().string(\"self\", …)`"
+      answer: 0
+      explanation: |
+        Links stehen in HAL unter `_links.<rel>.href`. In MockMvc ist der Host `http://localhost`.
+
+- id: rest-pagination
+  unit: rest/pagination
+  main:
+    kind: single
+    prompt: "`GET /api/books?page=1&size=2` mit einem `Pageable`-Parameter. Welche Einträge sind gemeint?"
+    options:
+      - Der 3. und 4. Eintrag – `page` zählt ab 0
+      - Der 1. und 2. Eintrag
+      - Der 2. und 3. Eintrag
+    answer: 0
+    explanation: |
+      Seite 0 sind die Einträge 1–2, Seite 1 die Einträge 3–4.
+  followUps:
+    - kind: single
+      prompt: "Warum gibt man nicht einfach `Page<BookDto>` zurück?"
+      options:
+        - "Das JSON von `PageImpl` ist nicht stabil, Spring warnt; `PagedModel` hat ein festes Format"
+        - "`Page` lässt sich nicht als JSON schreiben"
+        - "`Page` ist langsamer"
+      answer: 0
+      explanation: |
+        `new PagedModel<>(page)` (Spring Data) liefert `content` und `page`, `PagedResourcesAssembler` (HATEOAS) zusätzlich Links auf die Nachbarseiten.
+    - kind: single
+      prompt: "Wie prüfst du, dass `?page=1&size=2` richtig beim Service ankommt?"
+      options:
+        - "`verify(bookService).findPage(PageRequest.of(1, 2))`"
+        - "`jsonPath(\"$.page\").value(1)`"
+        - Gar nicht
+      answer: 0
+      explanation: |
+        `PageRequest` hat `equals`. Der Test beweist so, dass Controller und Spring die Query richtig übersetzen.
+
+- id: rest-jsontest
+  unit: rest/jsontest
+  main:
+    kind: single
+    prompt: Was prüft ein `@JsonTest` mit `JacksonTester<BookDto>`?
+    options:
+      - Wie ein DTO als JSON geschrieben und gelesen wird – ohne Controller
+      - Einen ganzen Endpunkt mit Status und Header
+      - Die Datenbank
+    answer: 0
+    explanation: |
+      `@JsonTest` startet nur Jackson. Ideal für Feldnamen wie `published-year`, Datumsformate und Enums.
+  followUps:
+    - kind: single
+      prompt: "Wie vergleichst du das geschriebene JSON mit einer Datei `book.json`?"
+      options:
+        - "`assertThat(json.write(book)).isEqualToJson(\"book.json\")`"
+        - "`assertEquals(json.write(book), \"book.json\")`"
+        - "`json.parseObject(\"book.json\")`"
+      answer: 0
+      explanation: |
+        `isEqualToJson` ignoriert Reihenfolge und Leerzeichen. Die Datei liegt im selben Package unter `src/test/resources`.

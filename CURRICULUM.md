@@ -1,6 +1,6 @@
 # Curriculum outline
 
-Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
+Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25, HATEOAS, pagination and `@JsonTest` are core REST units at the user's request because good grades need them). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
 
 ## 1 · Unit Testing (Auffrischung)
 1. Aufbau eines Tests: Arrange / Act / Assert, `@Test`, die richtigen Imports (`org.junit.jupiter.api`) [4]
@@ -77,6 +77,9 @@ Exercises (teacher feedback, Aufgabe-2 size): Ladestationen (data passed in), Sp
 10. MockMvc: `perform`, `status`, `jsonPath`, JSON-Body mit `ObjectMapper` [22]
 11. Teststrategie nach Beurteilung: Good Cases → Edge Cases → Exception Cases
 12. Unterressourcen: `/api/reservations/{id}/rooms`
+13. HATEOAS: `linkTo(methodOn(...))`, `EntityModel`, `CollectionModel` [22]
+14. Pagination: `Pageable`, `@PageableDefault`, `Page`, `PagedModel` [20]
+15. `@JsonTest`: JSON-Abbildung der DTOs für sich testen [5]
 
 Exercises (teacher feedback): 3 tasks in Aufgabe-3 size, one with a sub-resource, one with pagination.
 
