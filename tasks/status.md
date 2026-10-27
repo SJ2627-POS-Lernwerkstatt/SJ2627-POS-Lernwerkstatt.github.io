@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-27 (session 6: module **modern-java** added as module 0 – var, Records, Optional, Switch-Ausdrücke, Git-Begriffe; cheat sheet page references re-checked against the updated 22-page PDF). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-27 (session 6: module **modern-java** added as module 0 – var, Records, Optional, Switch-Ausdrücke, Git-Begriffe; cheat sheet page references re-checked against the updated 22-page PDF; Phase E started: E1 pruefungen skeleton). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -43,8 +43,9 @@ Last updated: 2026-10-27 (session 6: module **modern-java** added as module 0 �
 | — | Module **rest**: 15 units (Grundlagen, `@RestController`, Parameter, Anlegen, Ändern/Löschen, Validierung, Fehlerbehandlung mit `ResponseEntityExceptionHandler`, JSON/Jackson 3, `@WebMvcTest`, MockMvc, Teststrategie, Unterressourcen, HATEOAS, Pagination, `@JsonTest`), 18 question groups. HATEOAS, pagination and `@JsonTest` are core units again (user: needed for good grades) |
 | — | REST exercises (teacher-graded, `loesungen/exercises/rest-0N-…`): Konzertkasse (CRUD, tickets sub-resource, error reference; 24 sample tests), Fahrradverleih-API (pagination + HATEOAS; 15), Kursbuchung (nested validation, PATCH, 409s, `@JsonTest` against a file; 20). All six service/REST exercises published with `scripts/publish.sh` and linked |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
+| E1 | Module **pruefungen** skeleton: unit `01-ablauf` (format table, time plan, reading order, push-partial-solutions warning); two draft exam pages following the existing exercise layout (one page, tasks in body): `uebungen/immobilienmakler.md` (size small, grading auto, PlantUML class sketch, 5-stage rubric) and `uebungen/autowerkstatt-und-fahrschule.md` (size full, 300 min, 4×17 P, tasks A1 Autowerkstatt, A2 Fahrschule enum-codes, B Parkhaus, C Produktkatalog, time plan table). Smoke test extended (mock exam pages + `figure.diagram-plantuml img` — PlantUML embeds as base64 data URI, not inline `<svg>`) |
 
-Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
+Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25); pruefungen: 1 unit + 2 skeleton exam pages, no question groups. All content `draft`.
 
 ## Next
 
@@ -52,7 +53,7 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).
 3. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
 4. Phase D1 after the review.
-5. Next: module Probeprüfungen (mock exams: 2 small, 2 medium, 3 full).
+5. Next: Phase E – Probeprüfungen (4 small / 4 medium / 4 full, plan in tasks/plan.md); E1 done, next E2.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
@@ -121,7 +122,7 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 - `vite preview` caches the file list at start: restart it after every `npm run build`.
 - Local dev needs `plantuml` on the PATH (Homebrew) or `PLANTUML_JAR`.
 - Progress store loads in the root layout's `onMount`, so prerendered markup hydrates with empty progress first. Never mutate `$state` during render (create run answers when navigating, see `prepare()` in the run page).
-- The Playwright smoke test uses real content (first group of `testing/aufbau` is a single question with a follow-up; `jpa/uebungen/fahrradverleih` exists). Adjust `e2e/smoke.test.ts` if that content changes.
+- The Playwright smoke test uses real content (first group of `testing/aufbau` is a single question with a follow-up; `jpa/uebungen/fahrradverleih` exists; the mock exam test needs `pruefungen/uebungen/autowerkstatt-und-fahrschule` and `pruefungen/uebungen/immobilienmakler` incl. its PlantUML diagram). Adjust `e2e/smoke.test.ts` if that content changes.
 - Radios inside a card label need `aria-labelledby` on the tier name, otherwise their accessible name is the whole card.
 - Grading tests run with `@Transactional(propagation = NOT_SUPPORTED)` and `deleteAll()` in `@BeforeEach`: each save is its own transaction, so a rejected save does not break the next check.
 - Classroom50: `gh teacher` needs scopes `admin:org` etc. (`gh teacher login`, interactive). Student repos must stay private, public ones are not autograded.

@@ -59,6 +59,19 @@ test('exercise page: self-rating and "abgegeben" are stored', async ({ page }) =
 	await expect(page.getByLabel('Ich habe diese Aufgabe abgegeben')).toBeChecked();
 });
 
+test('mock exam pages: full exam shows all four tasks, small exam renders its UML', async ({ page }) => {
+	await page.goto('/pruefungen/uebungen/autowerkstatt-und-fahrschule');
+	await hydrated(page);
+	await expect(page.getByRole('heading', { level: 1, name: /Autowerkstatt und Fahrschule/ })).toBeVisible();
+	await expect(page.getByText('volle Probeprüfung', { exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { level: 2, name: /Aufgabe \d/ })).toHaveCount(4);
+
+	await page.goto('/pruefungen/uebungen/immobilienmakler');
+	await expect(page.getByText('kleine Probeprüfung', { exact: true })).toBeVisible();
+	// The task's PlantUML diagram is rendered at build time into an inline-SVG image.
+	await expect(page.locator('figure.diagram-plantuml img').first()).toBeVisible();
+});
+
 test('side panel: shows the course, marks read units and stays collapsed after a reload', async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 800 });
 	await page.goto('/testing/aufbau');

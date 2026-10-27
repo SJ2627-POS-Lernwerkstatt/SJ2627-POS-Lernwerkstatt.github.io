@@ -122,10 +122,14 @@ Target for 2026-12-01: about 30 groups per module that is live.
 
 ### Mock exam
 
-Same as an exercise, in module `pruefungen`, with `size: small | medium | full`:
-- small: 1 task, ~60–100 min
-- medium: 2 tasks, ~150 min
-- full: 3 tasks (JPA + service + REST), 300 min, Matura size (3 exams)
+Same as an exercise, in module `pruefungen`, one page per exam with `size: small | medium | full`;
+the tasks and their per-task criteria live in the page body:
+- small: 1 JPA task (17 P), ~90 min, autograded
+- medium: Service + REST (2×17 P), ~180 min, teacher-graded
+- full: 4 tasks, 300 min, 4×17 P = 68, teacher-graded: A1 OR-Mapping (regular), A2 OR-Mapping with
+  one twist (enum-code converter, ElementCollection/@OneToOne, inheritance, or m:n + projections),
+  B Business-Service, C REST-API. Both A tasks are mandatory, as in the Haupttermin 2026-05
+  (which shipped A1 and A2 as two ORM subprojects). Suggested split: A1 70 / A2 80 / B 75 / C 75 min.
 
 All mock exams are new (not past Matura tasks).
 
