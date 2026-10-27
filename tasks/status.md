@@ -54,9 +54,10 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).
 3. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
 4. Phase D1 after the review.
-5. Next: Phase E – Probeprüfungen. E2: site pages 1–13 drafted, loesungen pp-a-01..04 pending
-   `check.py` runs and publish (user approval); then E3 (medium Angaben), E4 (Seed 2× ORM, full
-   pp-a-05..12), E5 (review).
+5. Next: Phase E – Probeprüfungen. E2: pages 1–13 drafted and live; loesungen pp-a-01..04
+   check.py green (solution 17/17, vorlage 0, 29 mutants exact) and pushed. Open: publish the
+   four exams (needs your OK – public templates + Classroom50 assignments), then E3 (medium
+   Angaben), E4 (Seed 2× ORM, full exams), E5 (review).
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 
