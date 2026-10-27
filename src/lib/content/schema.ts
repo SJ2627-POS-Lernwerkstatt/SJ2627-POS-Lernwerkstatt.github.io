@@ -90,7 +90,7 @@ export type Question = z.infer<typeof question>;
 export const questionGroup = z.strictObject({
 	id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'lowercase words separated by "-"'),
 	/** Unit id "<module>/<slug>", e.g. "jpa/enums". */
-	unit: z.string().regex(/^[a-z]+\/[a-z0-9-]+$/, 'expected "<module>/<slug>"'),
+	unit: z.string().regex(/^[a-z]+(?:-[a-z0-9]+)*\/[a-z0-9-]+$/, 'expected "<module>/<slug>"'),
 	main: question,
 	followUps: z.array(question).max(2).default([])
 });

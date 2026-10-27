@@ -44,9 +44,10 @@ export type ContentFiles = {
 	pools: Record<string, string>;
 };
 
-const UNIT_PATH = /^([a-z]+)\/(\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
-const EXERCISE_PATH = /^([a-z]+)\/exercises\/(\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
-const POOL_PATH = /^questions\/([a-z]+)\.yaml$/;
+const MODULE_PART = '([a-z]+(?:-[a-z0-9]+)*)';
+const UNIT_PATH = new RegExp(`^${MODULE_PART}/(\\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\\.md$`);
+const EXERCISE_PATH = new RegExp(`^${MODULE_PART}/exercises/(\\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\\.md$`);
+const POOL_PATH = new RegExp(`^questions/${MODULE_PART}\\.yaml$`);
 
 /** Splits "---\n<yaml>\n---\n<body>" and parses the YAML. */
 export function frontmatter(raw: string): unknown {

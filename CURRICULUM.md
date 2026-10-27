@@ -2,6 +2,16 @@
 
 Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25, HATEOAS, pagination and `@JsonTest` are core REST units at the user's request because good grades need them). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
 
+## 0 · Moderne Java Features (Grundlagen)
+
+Quelle der Inhalte: Vorlesung 3xHIF `01_Var_Records_Optional_Switch`.
+
+1. var – Typ dort, wo er offensichtlich ist: LVTI, Regel, Grenzen, Collections [2]
+2. Records – Datenklassen in einem Satz: generierte Members, kompakter Konstruktor, Record vs. Klasse [2]
+3. Optional – die Schachtel mit Deckel: Erzeugen, orElse/orElseGet/orElseThrow, Best Practices
+4. Switch-Ausdrücke – Pfeil statt break: Arrow-Syntax, yield, Vollständigkeit, Pattern Matching an sealed [2]
+5. Git – die Begriffe: Working Directory, Staging, Commit, Branch, Merge, Remote, push/pull, Classroom50-Ablauf
+
 ## 1 · Unit Testing (Auffrischung)
 1. Aufbau eines Tests: Arrange / Act / Assert, `@Test`, die richtigen Imports (`org.junit.jupiter.api`) [4]
 2. Lebenszyklus: `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll` [4]

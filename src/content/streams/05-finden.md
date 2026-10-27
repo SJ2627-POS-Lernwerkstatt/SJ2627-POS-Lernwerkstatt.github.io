@@ -36,7 +36,7 @@ Optional<Student> oldest   = students.stream().max(Comparator.comparing(Student:
 
 ## `Optional` richtig verwenden
 
-Ein `Optional` ist eine Schachtel, die einen Wert enthält – oder leer ist. Du holst den Wert so heraus, dass der leere Fall **bewusst** behandelt wird:
+Ein `Optional` ist eine Schachtel, die einen Wert enthält – oder leer ist. Du holst den Wert so heraus, dass der leere Fall **bewusst** behandelt wird. Von Grund auf (Erzeugen, `orElse` vs. `orElseGet`, Best Practices): [Moderne Java Features – Optional](/modern-java/optional).
 
 ```java
 String name = students.stream()

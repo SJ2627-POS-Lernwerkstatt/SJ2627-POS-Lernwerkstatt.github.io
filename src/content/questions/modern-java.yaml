@@ -1,0 +1,325 @@
+- id: modern-java-var-rule
+  unit: modern-java/var
+  main:
+    kind: single
+    prompt: "Wann ist `var` die gute Wahl?"
+    options:
+      - "Wenn der Typ rechts offensichtlich ist, z. B. `var list = new ArrayList<String>();`"
+      - "Immer – auch bei `var x = liesDaten();` macht der Typ beim Lesen keinen Unterschied"
+      - "Nur bei primitiven Typen wie `int` und `double`"
+      - "Nur in Schleifen"
+    answer: 0
+    explanation: |
+      `var` leitet den Typ vom Startwert ab. Sinnvoll ist es, wenn der Typ rechts dasteht (`new …`, Literale).
+      Findest du den Typ nur in der Signatur einer Methode wie `liesDaten()`, verdeckt `var` wichtige Information.
+
+- id: modern-java-var-restrictions
+  unit: modern-java/var
+  main:
+    kind: single
+    prompt: "Welche Deklarationen kompiliert der Compiler mit `var`?"
+    code: |
+      // A
+      var count = 42;
+      // B
+      var x;
+      // C
+      var y = null;
+      // D
+      for (var entry : map.entrySet()) { … }
+    options:
+      - "A und D"
+      - "A und B"
+      - "B und C"
+      - "C und D"
+      - "Alle vier"
+    answer: 0
+    explanation: |
+      `var` braucht einen Startwert, aus dem der Typ ableitbar ist – `null` allein reicht nicht
+      („Typ … kann nicht abgeleitet wird"). Erlaubt sind lokale Variablen, Schleifenvariablen und for-each-Elemente,
+      nicht Felder, Parameter oder Rückgabetypen.
+
+- id: modern-java-var-collections
+  unit: modern-java/var
+  main:
+    kind: template
+    prompt: "Ergänze die `var`-Kurzform für Map und Schleife."
+    template: |
+      {{var}} map = {{new HashMap<String, List<Integer>>()}};
+      map.put("A", List.of(1, 2));
+
+      for ({{var entry : map.entrySet()}}) {
+          System.out.println(entry.getKey() + "=" + entry.getValue());
+      }
+    redHerrings:
+      - "Map<String, List<Integer>> map = new HashMap<>()"
+      - "map.entrySet().stream()"
+    reusable:
+      - "var"
+    explanation: |
+      `new HashMap<String, List<Integer>>()` nennt den Typ rechts – der typische Fall für `var`.
+      In der for-each-Zeile steht `var entry : map.entrySet()`; der Typ `Map.Entry<String, List<Integer>>` bleibt im Kopf erhalten.
+
+- id: modern-java-records-generated
+  unit: modern-java/records
+  main:
+    kind: single
+    prompt: "Welche Methode erzeugt Java bei `record Person(String name, int age)` NICHT automatisch?"
+    code: |
+      public record Person(String name, int age) { }
+    options:
+      - "`Person(String name, int age)`"
+      - "`name()`"
+      - "`getName()`"
+      - "`equals(Object o)`"
+      - "`toString()`"
+    answer: 2
+    explanation: |
+      Die Zugriffsmethode heißt bei Records `name()` – ohne `get`-Präfix. Ein `getName()` existiert nicht,
+      außer man schreibt es selbst.
+  followUps:
+    - kind: single
+      prompt: "Was liefert `new Person(\"Anna\", 19).equals(new Person(\"Anna\", 19))`?"
+      options:
+        - "`true` – `equals` vergleicht alle Felder"
+        - "`false` – es sind zwei verschiedene Objekte"
+        - "Compilerfehler – Records kann man nicht vergleichen"
+        - "`true` nur bei identischer Referenz"
+      answer: 0
+      explanation: |
+        Records sind reine Datenklassen: `equals`, `hashCode` und `toString` gehen über alle Felder.
+        Zwei Records mit gleichen Werten sind gleich – genau das brauchen `distinct`, `groupingBy` und `isEqualTo`.
+
+- id: modern-java-records-compact
+  unit: modern-java/records
+  main:
+    kind: single
+    prompt: "Was passiert beim Aufruf von `new Grade(\"POS\", 6)`?"
+    code: |
+      public record Grade(String subject, int value) {
+          public Grade {
+              if (value < 1 || value > 5) {
+                  throw new IllegalArgumentException("grade must be 1..5: " + value);
+              }
+          }
+      }
+    options:
+      - "Eine `IllegalArgumentException` – der kompakte Konstruktor prüft vor der Anlage"
+      - "Ein Objekt mit `value = 6`; die Prüfung läuft erst beim Ausgeben"
+      - "Die Prüfung entfällt, weil das Feld `final` ist"
+      - "Compilerfehler – Records dürfen nicht prüfen"
+    answer: 0
+    explanation: |
+      Im kompakten Konstruktor `public Grade { … }` prüfst du, bevor Java die Werte in die Felder schreibt.
+      Ungültige Objekte entstehen gar nicht erst. Eine Zuweisung wie `value = …` schreibst du dort nicht – die übernimmt Java.
+
+- id: modern-java-records-vs-class
+  unit: modern-java/records
+  main:
+    kind: multi
+    prompt: "Wofür ist ein Record die richtige Wahl?"
+    options:
+      - "Datenklassen mit Geschäftsregeln in Aufgabe 2"
+      - "Ergebnis-Typ (DTO) für eine Query"
+      - "JPA-Entity in Aufgabe 1"
+      - "Ein Zähler, den das Service hochzählt"
+    answer: [0, 1]
+    explanation: |
+      Records sind für unveränderliche Daten. Entities braucht JPA veränderlich mit No-Args-Konstruktor –
+      ein `persist` auf einem Record schlägt fehl (`Can not set final …`). Veränderlicher Zustand bleibt eine normale Klasse.
+
+- id: modern-java-optional-create
+  unit: modern-java/optional
+  main:
+    kind: single
+    prompt: "Eine Methode kann `null` zurückgeben. Wie machst du daraus ein `Optional`?"
+    options:
+      - "`Optional.ofNullable(ergebnis)`"
+      - "`Optional.of(ergebnis)`"
+      - "`Optional.empty()`"
+      - "`new Optional(ergebnis)`"
+    answer: 0
+    explanation: |
+      `of` verlangt einen nicht-null-Wert und wirft sofort `NullPointerException`, wenn `null` ankommt.
+      Für alles, was fehlen darf, ist `ofNullable` da; `empty()` wäre ein leeres Optional ohne Wert.
+  followUps:
+    - kind: single
+      prompt: "Was wirft `opt.get()` auf einem leeren Optional?"
+      options:
+        - "`NoSuchElementException`"
+        - "`NullPointerException`"
+        - "`IllegalStateException`"
+        - "Nichts – es gibt `null` zurück"
+      answer: 0
+      explanation: |
+        `get()` auf leerer Schachtel wirft `NoSuchElementException: No value present`. Deshalb den leeren Fall
+        bewusst behandeln: `orElse`, `orElseGet`, `orElseThrow` oder `ifPresent`.
+
+- id: modern-java-optional-or-else
+  unit: modern-java/optional
+  main:
+    kind: single
+    prompt: "`vorhanden` enthält einen Wert. Wie oft läuft `lief()` – die Methode mit der teuren Datenbankabfrage?"
+    code: |
+      var vorhanden = Optional.of("anna@example.com");
+      var a = vorhanden.orElse(lief());
+      var b = vorhanden.orElseGet(OptionalDemo::lief);
+    options:
+      - "Einmal – `orElse` wertet seinen Startwert immer aus, `orElseGet` nur im leeren Fall"
+      - "Keinmal – in beiden Fällen ist ja ein Wert vorhanden"
+      - "Zweimal – beide Varianten rufen `lief()` auf"
+      - "Einmal, aber durch `orElseGet`, nicht durch `orElse`"
+    answer: 0
+    explanation: |
+      Das Argument von `orElse` wird ausgewertet, egal ob etwas in der Schachtel ist. `orElseGet` bekommt
+      einen Supplier und ruft ihn nur, wenn das Optional leer ist – bei vorhandenen Werten bleibt die Arbeit aus.
+
+- id: modern-java-optional-practice
+  unit: modern-java/optional
+  main:
+    kind: multi
+    prompt: "Welche Verwendungen von `Optional` sind schlechter Stil?"
+    options:
+      - "`Optional` als Feld einer Datenklasse"
+      - "`Optional` als Rückgabetyp einer Suchmethode"
+      - "`Optional` als Methodenparameter"
+      - "Der leere Fall wird ignoriert und `get()` direkt aufgerufen"
+    answer: [0, 2, 3]
+    explanation: |
+      `Optional` gehört in Signaturen von Methoden, die nichts finden können. Als Feld oder Parameter ist es
+      nur eine teure Schachtel um `null`; blindes `get()` ist dieselbe Lücke wie früher.
+  followUps:
+    - kind: single
+      prompt: "Welcher Ausdruck liefert ein `Optional`?"
+      options:
+        - "`students.stream().findFirst()`"
+        - "`students.stream().count()`"
+        - "`students.stream().anyMatch(s -> s.age() > 20)`"
+        - "`students.stream().toList()`"
+      answer: 0
+      explanation: |
+        `findFirst` (wie `min`, `max`, `findAny`) kann nichts finden – das Ergebnis ist ein `Optional`.
+        Ausführlich ist das im [Stream-Modul](/streams/finden) erklärt.
+
+- id: modern-java-switch-arrow
+  unit: modern-java/switch
+  main:
+    kind: template
+    prompt: "Wandle den alten switch in einen Switch-Ausdruck mit Pfeil-Syntax um."
+    code: |
+      String r;
+      switch (day) {
+          case MONDAY: case FRIDAY: r = "Work day"; break;
+          case SATURDAY: case SUNDAY: r = "Weekend"; break;
+          default: r = "Midweek";
+      }
+    template: |
+      var result = {{switch}} (day) {
+          case MONDAY, FRIDAY {{->}} "Work day";
+          case SATURDAY, SUNDAY {{->}} "Weekend";
+          default {{->}} "Midweek";
+      };
+    redHerrings:
+      - "break"
+      - "yield"
+    reusable:
+      - "->"
+    explanation: |
+      `switch` wird hier als Ausdruck verwendet und weist einem `var` einen Wert zu – deshalb braucht es
+      weder `break` noch `yield`. Pro Regel steht ein `->`, mehrere Fälle werden mit Komma getrennt.
+
+- id: modern-java-switch-exhaustive
+  unit: modern-java/switch
+  main:
+    kind: single
+    prompt: "Warum kompiliert dieser Switch-Ausdruck nicht?"
+    code: |
+      enum Tag { MON, TUE, WED, THU, FRI, SAT, SUN }
+      var t = Tag.MON;
+      String r = switch (t) { case MON -> "Mo"; };
+    options:
+      - "Er deckt nicht alle möglichen Eingabewerte ab – alle enum-Fälle oder ein `default` fehlen"
+      - "Weil `var` in switch-Ausdrücken verboten ist"
+      - "Weil enum-Fälle keinen Pfeil benutzen dürfen"
+      - "Weil `r` eine normale Klasse sein muss"
+    answer: 0
+    explanation: |
+      „Der Switch-Ausdruck deckt nicht alle möglichen Eingabewerte ab" – bei enum heißt das: alle Werte
+      durchdecken oder `default`. Ein bewusst leeres `default` passt eher, wenn nichts anderes geben kann.
+
+- id: modern-java-switch-sealed
+  unit: modern-java/switch
+  main:
+    kind: single
+    prompt: "Warum braucht dieser switch-Ausdruck kein `default`?"
+    code: |
+      sealed interface Shape permits Circle, Rectangle { }
+      double area = switch (shape) {
+          case Circle c -> Math.PI * c.radius() * c.radius();
+          case Rectangle r -> r.width() * r.height();
+      };
+    options:
+      - "`sealed` nennt alle erlaubten Subtypen – der Compiler prüft die Vollständigkeit"
+      - "Weil Interfaces immer vollständig gematcht werden"
+      - "Weil `double` einen Default-Wert 0 hat"
+      - "Weil `default` bei switch-Ausdrücken nie erlaubt ist"
+    answer: 0
+    explanation: |
+      Die `permits`-Liste macht die Typfamilie endlich: Nur Circle und Rectangle können vorkommen, beide sind
+      abgedeckt. Erlaubst du später einen dritten Subtyp, meldet sich der Compiler – genau das ist der Nutzen.
+  followUps:
+    - kind: single
+      prompt: "Was leistet `case null` in einem Pattern-switch?"
+      options:
+        - "Der leere Fall wird Teil des Ausdrucks – keine Vorprüfung nötig"
+        - "Es verhält sich exakt wie `default`"
+        - "Es erlaubt nur `null` als einzigen Fall"
+        - "Es bricht bei `null` ab, ohne die restlichen Fälle zu prüfen"
+      answer: 0
+      explanation: |
+        Seit Java 21 darf `null` ein eigener Fall sein (`case null`, oft `case null, default`).
+        Ohne `case null` wirft der switch bei `null` – wie der klassische, nur jetzt mit explizitem Ausweg.
+
+- id: modern-java-git-commit-push
+  unit: modern-java/git
+  main:
+    kind: single
+    prompt: "Was ist der Unterschied zwischen `git commit` und `git push`?"
+    options:
+      - "`commit` speichert in dein lokales Repo, `push` überträgt die Commits zum Remote"
+      - "`commit` legt in die Staging Area, `push` ins lokale Repo"
+      - "Beide machen dasselbe, `push` nur mit Meldung"
+      - "`commit` lädt vom Remote herunter, `push` speichert lokal"
+    answer: 0
+    explanation: |
+      Die drei Orte: Working Directory → Staging Area (`git add`) → lokales Repo (`git commit`) → Remote (`git push`).
+      Erst mit dem Push sieht Classroom50 deine Abgabe.
+  followUps:
+    - kind: single
+      prompt: "Was ist ein Merge-Konflikt?"
+      options:
+        - "Zwei Zweige haben dieselbe Stelle geändert – du entscheidest per Hand, was gilt"
+        - "Der Push wurde abgelehnt, weil das Netzwerk weg war"
+        - "Ein Commit wurde versehentlich zweimal gespeichert"
+        - "Das Repo ist voll, Git räumt auf"
+      answer: 0
+      explanation: |
+        Git verbindet, was eindeutig ist. Haben beide Zweige dieselbe Zeile geändert, stoppt es und lässt dich
+        wählen. Nichts geht verloren – es ist nur Handarbeit.
+
+- id: modern-java-git-classroom
+  unit: modern-java/git
+  main:
+    kind: template
+    prompt: "Bringe die Schritte einer Classroom50-Abgabe in die richtige Reihenfolge."
+    template: |
+      {{Aufgabe in Classroom50 annehmen}}
+      {{git clone …}}
+      {{Dateien ändern, git add, git commit}}
+      {{git push}}
+      {{Release mit den Bewertungstests ansehen}}
+    redHerrings:
+      - "git push --force"
+    explanation: |
+      Annehmen erzeugt dein eigenes privates Repo auf GitHub. Dort arbeitest du: clone, ändern, add, commit, push.
+      Der Push löst die Bewertung aus. Force-Pushes brauchst du für eine Abgabe nie.

@@ -31,7 +31,7 @@ Für `long`- und `double`-Werte gibt es `mapToLong` und `mapToDouble`.
 | `count()` | `long` | `0` |
 | `summaryStatistics()` | min, max, Durchschnitt, Summe, Anzahl auf einmal | Anzahl 0 |
 
-Der Durchschnitt ist ein `Optional`, weil man aus nichts keinen Durchschnitt bilden kann. Entscheide, was dann gelten soll:
+Der Durchschnitt ist ein `Optional`, weil man aus nichts keinen Durchschnitt bilden kann. Entscheide, was dann gelten soll (`orElse`, mehr in [Moderne Java Features – Optional](/modern-java/optional)):
 
 ```java
 double avgPos = students.stream()

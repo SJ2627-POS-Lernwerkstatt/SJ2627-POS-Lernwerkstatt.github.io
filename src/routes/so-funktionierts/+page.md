@@ -10,6 +10,7 @@ Die Lernwerkstatt bereitet dich auf den praktischen Teil der Reife- und Diplompr
 
 | Modul | Bereitet vor auf |
 |---|---|
+| Moderne Java Features | Grundlagen – `var`, Records, `Optional`, Switch, Git-Begriffe |
 | Unit Testing, Stream API | Auffrischung – brauchst du in allen drei Aufgaben |
 | Spring Data JPA | Aufgabe 1: Modell, Datenbank-Abbildung und Abfragen |
 | Service-Schicht | Aufgabe 2: Geschäftslogik |

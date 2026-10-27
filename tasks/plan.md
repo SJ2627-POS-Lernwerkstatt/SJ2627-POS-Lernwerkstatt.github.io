@@ -41,6 +41,8 @@ Every unit follows the same pattern: draft → deploy → your review on the sit
 | C2 ✓ | Module streams: units 1–9 + V 10, ~30 question groups | 10 units |
 | C3 ✓ | Module jpa: units 1–10, ~25 question groups | 10 units |
 | C4 ✓ | JPA exercises 1–2 (task, starter template, grading tests, sample solution) | 2 exercises |
+| C5 ✓ | Module modern-java: units 1–5 (var, records, optional, switch, git), 14 question groups; streams cross-links; from lecture 3xHIF 01 | 5 units |
+| C6 ✓ | Re-check all `cheatsheet` page references against the updated POS_Java_CheatSheet.pdf (22 pages, built 2026-10-27) | 69 units |
 
 ## Phase D: Release (Nov 30 – Dec 1)
 

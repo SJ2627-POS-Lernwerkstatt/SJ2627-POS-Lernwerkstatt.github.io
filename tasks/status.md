@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercises 3–4, D3, Service-Schicht and REST-Controller modules). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-27 (session 6: module **modern-java** added as module 0 – var, Records, Optional, Switch-Ausdrücke, Git-Begriffe; cheat sheet page references re-checked against the updated 22-page PDF). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -25,6 +25,8 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercis
 | C2 | Module streams: units 01–10 (10 Vertiefung), 30 question groups in `streams.yaml`, all `draft` |
 | C3 | Module jpa: units 01–10, 25 question groups in `jpa.yaml`, all `draft`. Running example: library (`Branch`, `Book`, `Address`, `Isbn`, `Genre`, `RoomName` from the exam) |
 | C4 | JPA exercise 2 `jpa-02-fahrradverleih-beziehungen` (site page `jpa/exercises/02-fahrradverleih-beziehungen.md`, draft): Address as Value Object with `@Valid`, `BikeType` with codes + `BikeTypeConverter`, rich type `InventoryNumber`, bidirectional Station–Bike (cascade PERSIST, no orphanRemoval, `fk_bike_station`). Starter = exercise 1 solution (user decision). 17 grading tests, 22 points; check.py: solution 22/22, vorlage 0, 11 mutants. Public template `vorlage-jpa-02-fahrradverleih-beziehungen`, bundle in `classroom50`, assignment registered (invite link only). Not spiked with a real student repo yet |
+| C5 | Module **modern-java** (Grundlagen, first in course order): 5 units from lecture 3xHIF `01_Var_Records_Optional_Switch` – var (LVTI, Grenzen, Collections), Records (generierte Members, kompakter Konstruktor, Record vs. Klasse, `instanceof`-Muster), Switch-Ausdrücke (Pfeil, `yield`, Vollständigkeit, Pattern Matching an sealed), Optional (Erzeugen, orElse/orElseGet/orElseThrow, Best Practices) and Git-Begriffe (drei Orte, Branch/Merge/Konflikt, push/pull, Classroom50-Ablauf, mermaid-Commit-Graph). 14 question groups, all examples run on Temurin 27 (incl. negative compiles: `var` field/null, uncoverable switch). Streams module stays as the refresher; cross-links between `modern-java/records`↔`streams/datenklassen`, `modern-java/optional`↔`streams/finden`+`streams/zahlen`, `modern-java/records`→`jpa/konstruktoren`, `modern-java/optional`→`jpa/repositories`. Wiring: `MODULES`/`MODULE_SLUGS`; unit/exercise/pool path regexes in `build.ts` + unit-id regex in `schema.ts` now allow hyphens in module slugs |
+| C6 | All `cheatsheet` page references (64 existing + 5 new units) checked against the updated POS_Java_CheatSheet.pdf (22 pages, local build `POS_cheatsheets/build/docs/asciidoc/pdf/`): every reference matches the new pagination — no corrections needed. Re-check against the hosted PDF after its PR merge. Optional and Git have no sheet section yet (candidate for `_Language_CheatSheet.adoc` in a future PR — would shift pages again) |
 | — | `vorlage-jpa-01-fahrradverleih` updated with the H2 pin |
 | — | JPA units 2–4, 6–10: UML diagrams in exam notation; unit 3: Lombok section (verified: both constructor annotations on a class without own fields fail with "Konstruktor X() ist bereits … definiert"; `@AllArgsConstructor` takes only own fields incl. lists; `@Data` replaces AbstractPersistable's equals and warns). Lombok needs `compileOnly`/`annotationProcessor("org.projectlombok:lombok")`, not in the seed |
 | D2 | Classroom50 accept links in `classroomUrl` of both JPA exercises (`…/lernwerkstatt/assignments/<slug>/accept`) |
@@ -42,13 +44,15 @@ Last updated: 2026-10-25 (session 5: Vertiefung dropped, JPA 11–18 and exercis
 | — | REST exercises (teacher-graded, `loesungen/exercises/rest-0N-…`): Konzertkasse (CRUD, tickets sub-resource, error reference; 24 sample tests), Fahrradverleih-API (pagination + HATEOAS; 15), Kursbuchung (nested validation, PATCH, 409s, `@JsonTest` against a file; 20). All six service/REST exercises published with `scripts/publish.sh` and linked |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 
-Content so far: testing 12 units, streams 9, jpa 18, service 10, rest 15 (132 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
+Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25). All content `draft`.
 
 ## Next
 
-1. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
-2. Phase D1 after the review.
-3. Next: module Probeprüfungen (mock exams: 2 small, 2 medium, 3 full).
+1. Review the `modern-java` units on the live site → `status: reviewed` (D1).
+2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).
+3. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
+4. Phase D1 after the review.
+5. Next: module Probeprüfungen (mock exams: 2 small, 2 medium, 3 full).
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 

@@ -52,6 +52,7 @@ Success looks like: a student opens the site, works through a unit in about 10 m
 
 | # | Slug | Title | Kind |
 |---|---|---|---|
+| 0 | `modern-java` | Moderne Java Features (var, Records, Optional, Switch, Git) | basics |
 | 1 | `testing` | Unit Testing (Auffrischung) | refresher |
 | 2 | `streams` | Stream API (Auffrischung) | refresher |
 | 3 | `jpa` | Spring Data JPA | exam task 1 |
