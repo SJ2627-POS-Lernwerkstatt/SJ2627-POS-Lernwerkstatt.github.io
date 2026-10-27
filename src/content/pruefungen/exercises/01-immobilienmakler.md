@@ -95,8 +95,9 @@ Hilfsmethoden für die Beziehungen – beide setzen **immer beide Seiten**:
 
 - `Property.addViewing(Viewing v)` / `removeViewing`, `Buyer.addViewing(Viewing v)` / `removeViewing`
 - `getViewings()` bei Property und Buyer: gekapselte (unveränderliche) Liste
-- Die **Property** kaskiert `PERSIST` auf ihre Viewings; vom Buyer aus wird nicht kaskiert –
-  ein Buyer wird also zuerst gespeichert, dann sein Viewing über die Property angehängt.
+- Gespeichert wird über die Property: sie kaskiert `PERSIST` auf ihre Viewings. Der Buyer wird
+  **zuerst gespeichert** und dann dem Viewing zugeordnet – ein Viewing ohne Buyer und ohne
+  Property kann nicht gespeichert werden.
 
 Dazu eine abgeleitete Query in `PropertyRepository`:
 

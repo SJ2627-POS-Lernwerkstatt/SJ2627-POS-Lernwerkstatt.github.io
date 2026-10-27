@@ -24,8 +24,9 @@ rubric:
 
 Eine kleine Probeprüfung, **eine OR-Mapping-Aufgabe, 90 Minuten, 17 Punkte**, automatisch
 bewertet. Die Besonderheit dieser Prüfung: ein **Enum, der als Code gespeichert wird**, und eine
-**eingebettete Sammlung von Wertobjekten**. Du brauchst die Einheiten 1–13 aus dem JPA-Modul.
-Der Ablauf steht in [So läuft eine Probeprüfung](/pruefungen/ablauf).
+**eingebettete Sammlung von Wertobjekten**. Du brauchst die Einheiten 1–13 aus dem JPA-Modul
+(insbesondere 12 OneToOne, 13 ElementCollection). Der Ablauf steht in
+[So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 ## Aufgabe 1 – Tiere, Boxen und Impfungen (17 Punkte)
 
@@ -81,8 +82,9 @@ Richtungen null-sicher**. Die Spalte `species` hat Länge 1.
 `@ElementCollection` in der Tabelle **`animal_vaccinations`** (Fremdspalte `animal_id`) – ohne
 eigene Entity und ohne eigenes Repository.
 
-Die Box-Beziehung: Spalte `kennel_id`, Fremdschlüssel **`fk_animal_kennel`**. Eine Box wird
-**zuerst gespeichert**, dann dem Tier über `assignKennel(kennel)` zugeordnet.
+Die Tier-Box-Beziehung: `@OneToOne` auf der `Animal`-Seite, Spalte `kennel_id`, Fremdschlüssel
+**`fk_animal_kennel`**, ohne Kaskade – **die Box wird zuerst gespeichert**, dann dem Tier über
+`assignKennel(kennel)` zugeordnet.
 
 ## Implementierung
 
