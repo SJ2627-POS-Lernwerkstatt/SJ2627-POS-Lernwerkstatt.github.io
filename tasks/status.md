@@ -43,6 +43,7 @@ Last updated: 2026-10-27 (session 6: module **modern-java** added as module 0 �
 | — | Module **rest**: 15 units (Grundlagen, `@RestController`, Parameter, Anlegen, Ändern/Löschen, Validierung, Fehlerbehandlung mit `ResponseEntityExceptionHandler`, JSON/Jackson 3, `@WebMvcTest`, MockMvc, Teststrategie, Unterressourcen, HATEOAS, Pagination, `@JsonTest`), 18 question groups. HATEOAS, pagination and `@JsonTest` are core units again (user: needed for good grades) |
 | — | REST exercises (teacher-graded, `loesungen/exercises/rest-0N-…`): Konzertkasse (CRUD, tickets sub-resource, error reference; 24 sample tests), Fahrradverleih-API (pagination + HATEOAS; 15), Kursbuchung (nested validation, PATCH, 409s, `@JsonTest` against a file; 20). All six service/REST exercises published with `scripts/publish.sh` and linked |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
+| E2 | **Site:** 13 Prüfungsseiten `src/content/pruefungen/exercises/` – 1–4 small (vollständige Angaben mit UML, alle Namen wie die Bewertungstests sie erzwingen), 5–9 medium (Rahmen: B+C-Paarungen aus dem Pool, je 2×17 P, 180 min; 09 = Theater+Ticketshop neu), 10–13 full (A1+A2 mit Angabe-Skizzen, 4×17 P, 300 min; 10 = Autowerkstatt und Fahrschule ausführlich). Nummern in den Titeln, Reihenfolge in `01-ablauf`. **loesungen:** pp-a-01..04 complete – solution, 14/12/12/12 grading tests à 17 P, weights, 9/7/7/6 mutants, starters, `check.py` green on all four (solution 17/17, vorlage 0, every mutant fails exactly the listed tests) |
 | E1 | Module **pruefungen** skeleton: unit `01-ablauf` (format table, time plan, reading order, push-partial-solutions warning); two draft exam pages following the existing exercise layout (one page, tasks in body): `uebungen/immobilienmakler.md` (size small, grading auto, PlantUML class sketch, 5-stage rubric) and `uebungen/autowerkstatt-und-fahrschule.md` (size full, 300 min, 4×17 P, tasks A1 Autowerkstatt, A2 Fahrschule enum-codes, B Parkhaus, C Produktkatalog, time plan table). Smoke test extended (mock exam pages + `figure.diagram-plantuml img` — PlantUML embeds as base64 data URI, not inline `<svg>`) |
 
 Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25); pruefungen: 1 unit + 2 skeleton exam pages, no question groups. All content `draft`.
@@ -53,7 +54,9 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).
 3. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
 4. Phase D1 after the review.
-5. Next: Phase E – Probeprüfungen (4 small / 4 medium / 4 full, plan in tasks/plan.md); E1 done, next E2.
+5. Next: Phase E – Probeprüfungen. E2: site pages 1–13 drafted, loesungen pp-a-01..04 pending
+   `check.py` runs and publish (user approval); then E3 (medium Angaben), E4 (Seed 2× ORM, full
+   pp-a-05..12), E5 (review).
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 

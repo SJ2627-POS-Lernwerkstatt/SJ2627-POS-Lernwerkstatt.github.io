@@ -1,0 +1,107 @@
+---
+title: Probeprüfung 2 – Tierheim
+minutes: 90
+grading: auto
+size: small
+status: draft
+rubric:
+  erwartet: >-
+    Alle Entities, der Enum-Converter mit Codes, die eingebettete Impf-Sammlung und die
+    One-to-one-Box sind vollständig und korrekt umgesetzt; alle Bewertungstests bestehen.
+  genuegend: >-
+    Die Entities existieren und werden gespeichert; Converter, Collection-Table oder
+    Fremdschlüssel-Benennung fehlen ganz oder teilweise.
+  befriedigend: >-
+    Grunddaten und Box-Beziehung stimmen; Codes werden noch nicht korrekt gespeichert oder
+    die Impfungen liegen in der falschen Tabelle.
+  gut: >-
+    Alles funktioniert, einzelne Details (Spaltenlängen, No-Args-Konstruktor, unveränderliche
+    Getter) fehlen noch.
+  sehrGut: >-
+    Vollständig korrekt inklusive null-sicherem Converter, benanntem Fremdschlüssel und
+    gekapselter Impf-Liste – alle Bewertungstests grün.
+---
+
+Eine kleine Probeprüfung, **eine OR-Mapping-Aufgabe, 90 Minuten, 17 Punkte**, automatisch
+bewertet. Die Besonderheit dieser Prüfung: ein **Enum, der als Code gespeichert wird**, und eine
+**eingebettete Sammlung von Wertobjekten**. Du brauchst die Einheiten 1–13 aus dem JPA-Modul.
+Der Ablauf steht in [So läuft eine Probeprüfung](/pruefungen/ablauf).
+
+## Aufgabe 1 – Tiere, Boxen und Impfungen (17 Punkte)
+
+Ein Tierheim vermittelt Tiere. Jedes Tier hat einen Namen, ein Ankunftsdatum und eine Art.
+Jede **Box** hat eine Nummer und eine Beschreibung; ein Tier bewohnt höchstens eine Box –
+jeweils **genau eins pro Box**. Zu jedem Tier führt das Tierheim ein **Impf-Heft**: eine
+Sammlung von Einträgen mit Datum und Präparat.
+
+```plantuml
+@startuml
+hide empty methods
+
+enum Species {
+  KATZE
+  HUND
+  MEERSCHWEINCHEN
+}
+
+class Vaccination <<(V) Value Object>> {
+  - date : LocalDate {nn}
+  - product : String {nn}
+}
+
+class Kennel <<(E) Entity>> {
+  - id : Long
+  - number : Integer {nn, uq}
+  - description : String {nn}
+}
+
+class Animal <<(E) Entity>> {
+  - id : Long
+  - name : String {nn}
+  - arrivalDate : LocalDate {nn}
+  - species : Species {nn}
+}
+
+Animal "0..1" -- "0..1" Kennel : kennel
+Animal "1" *-- "0..*" Vaccination : vaccinations
+Animal --> Species
+@enduml
+```
+
+Regeln: `name` höchstens 60 Zeichen, `description` höchstens 120, `product` höchstens 60.
+Die Tier-Box-Beziehung ist **ein-seitig**: nur `Animal` kennt die Box; eine Box kann auch
+ohne Tier existieren.
+Die **Art wird als Code gespeichert**: `Species` ist ein Enum mit `KATZE("K")`, `HUND("H")`,
+`MEERSCHWEINCHEN("M")`, `String getCode()` und `static Species fromCode(String)`
+(wirft `IllegalArgumentException` für unbekannte Codes). Der `SpeciesConverter` implementiert
+`AttributeConverter<Species, String>` mit `@Converter(autoApply = true)` und ist in **beiden
+Richtungen null-sicher**. Die Spalte `species` hat Länge 1.
+
+`Vaccination` ist ein **Record** mit den Komponenten `date` und `product`, als
+`@ElementCollection` in der Tabelle **`animal_vaccinations`** (Fremdspalte `animal_id`) – ohne
+eigene Entity und ohne eigenes Repository.
+
+Die Box-Beziehung: Spalte `kennel_id`, Fremdschlüssel **`fk_animal_kennel`**. Eine Box wird
+**zuerst gespeichert**, dann dem Tier über `assignKennel(kennel)` zugeordnet.
+
+## Implementierung
+
+Package `ormapping.model`, Repositories `AnimalRepository` und `KennelRepository` in
+`ormapping.persistence` (JpaRepository über `Long`). Entities erben von
+`AbstractPersistable<Long>`, mit `protected` No-Args-Konstruktor, öffentlichem Konstruktor ohne
+`id` (Animal: name, arrivalDate, species – Box und Impfungen kommen über Hilfsmethoden) und
+Gettern. `assignKennel(Kennel)` und `addVaccination(Vaccination)`; `getVaccinations()` liefert
+eine **unveränderliche** Liste.
+
+## Tests
+
+Ein `@DataJpaTest` pro Repository, der Speichern und Wiederlesen prüft. Die Bewertungstests
+prüfen zusätzlich: Codes in der Datenbank, null-sicherer Converter, Nummer eindeutig,
+Tabelle `animal_vaccinations`, benannter Fremdschlüssel, unveränderliche Impf-Liste.
+
+:::pruefung
+Erwartete Ergebnisse: Alle vier Klassen (Enum, Converter, Entity mit Collection-Table und
+One-to-one) korrekt abgebildet; die Box ist ohne Tier beschreibbar, das Tier auch ohne Box.
+Wer die Impfungen als eigene Entity statt `@ElementCollection` anlegt, verfehlt die
+erwarteten Ergebnisse dieser Angabe.
+:::
