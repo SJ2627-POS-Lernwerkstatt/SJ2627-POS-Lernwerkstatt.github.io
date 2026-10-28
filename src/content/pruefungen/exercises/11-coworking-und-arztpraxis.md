@@ -2,6 +2,7 @@
 title: Probeprüfung 11 – Coworking und Arztpraxis
 minutes: 300
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-full-03-coworking-und-arztpraxis/accept
 size: full
 status: draft
 rubric:

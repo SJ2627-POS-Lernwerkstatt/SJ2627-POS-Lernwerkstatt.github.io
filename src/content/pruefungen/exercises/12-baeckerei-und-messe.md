@@ -2,6 +2,7 @@
 title: Probeprüfung 12 – Bäckereikette und Messe
 minutes: 300
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-full-04-baeckerei-und-messe/accept
 size: full
 status: draft
 rubric:

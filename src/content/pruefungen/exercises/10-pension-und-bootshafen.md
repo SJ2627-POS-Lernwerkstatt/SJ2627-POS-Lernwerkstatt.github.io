@@ -2,6 +2,7 @@
 title: Probeprüfung 10 – Pension und Bootshafen
 minutes: 300
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-full-02-pension-und-bootshafen/accept
 size: full
 status: draft
 rubric:

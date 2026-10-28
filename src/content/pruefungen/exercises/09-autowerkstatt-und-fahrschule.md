@@ -2,6 +2,7 @@
 title: Probeprüfung 9 – Autowerkstatt und Fahrschule
 minutes: 300
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-full-01-autowerkstatt-und-fahrschule/accept
 size: full
 status: draft
 rubric:
