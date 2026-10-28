@@ -39,13 +39,13 @@ Interessenten.
 @startuml
 hide empty methods
 
-class Address <<(V) Value Object>> {
+class Address <<(V) ValueObject>> {
   - street : String {nn}
   - zip : String {nn}
   - city : String {nn}
 }
 
-class EmailAddress <<(R) Rich Type>> {
+class EmailAddress <<(R) RichType>> {
   - value : String
 }
 

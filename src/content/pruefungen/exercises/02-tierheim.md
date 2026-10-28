@@ -40,13 +40,13 @@ Sammlung von Einträgen mit Datum und Präparat.
 @startuml
 hide empty methods
 
-enum Species {
-  KATZE
-  HUND
-  MEERSCHWEINCHEN
+enum Species <<Enumeration>> {
+  KATZE("K")
+  HUND("H")
+  MEERSCHWEINCHEN("M")
 }
 
-class Vaccination <<(V) Value Object>> {
+class Vaccination <<(V) ValueObject>> {
   - date : LocalDate {nn}
   - product : String {nn}
 }
