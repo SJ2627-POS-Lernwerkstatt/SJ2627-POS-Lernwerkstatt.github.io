@@ -42,15 +42,17 @@ class Member <<(E) Entity>> {
   - name : String {nn}
   - joinDate : LocalDate {nn}
   - monthlyFee : BigDecimal {nn}
+  - departments : Department[*]
 }
 
 class Department <<(E) Entity>> {
   - id : Long
   - name : String {nn, uq}
   - maxGroupSize : Integer {nn}
+  - members : Member[*]
 }
 
-Member "0..*" -- "0..*" Department : departments
+Member "0..*" -- "0..*" Department
 @enduml
 ```
 

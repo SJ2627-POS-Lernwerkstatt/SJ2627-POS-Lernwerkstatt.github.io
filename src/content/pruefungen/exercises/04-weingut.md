@@ -50,9 +50,10 @@ class Sale <<(E) Entity>> {
   - soldAt : LocalDate {nn}
   - bottles : Integer {nn}
   - pricePerBottle : BigDecimal {nn}
+  - wine : Wine {nn}
 }
 
-Wine "1" -- "0..*" Sale : sold as
+Sale "0..*" --> "1" Wine : wine
 @enduml
 ```
 

@@ -62,11 +62,13 @@ class Animal <<(E) Entity>> {
   - name : String {nn}
   - arrivalDate : LocalDate {nn}
   - species : Species {nn}
+  - kennel : Kennel
+  - vaccinations : Vaccination[*]
 }
 
-Animal "0..1" -- "0..1" Kennel : kennel
+Animal "0..1" --> "0..1" Kennel : kennel
 Animal "1" *-- "0..*" Vaccination : vaccinations
-Animal --> Species
+Animal --> "1" Species : species
 @enduml
 ```
 

@@ -54,23 +54,29 @@ class Property <<(E) Entity>> {
   - title : String {nn}
   - areaSqm : BigDecimal {nn}
   - price : BigDecimal {nn}
+  - location : Address {nn}
+  - viewings : Viewing[*]
 }
 
 class Buyer <<(E) Entity>> {
   - id : Long
   - name : String {nn}
   - email : EmailAddress {nn, uq}
+  - viewings : Viewing[*]
 }
 
 class Viewing <<(E) Entity>> {
   - id : Long
   - scheduledAt : LocalDateTime {nn}
   - note : String
+  - property : Property {nn}
+  - buyer : Buyer {nn}
 }
 
-Property "1" *-- "1" Address : location {nn}
-Property "1" -- "0..*" Viewing : shown for
-Buyer "1" -- "0..*" Viewing : wants
+Property "1" *-- "1" Address : location
+Property "1" -- "0..*" Viewing
+Buyer "1" -- "0..*" Viewing
+Buyer --> "1" EmailAddress : email
 @enduml
 ```
 
