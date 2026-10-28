@@ -18,6 +18,13 @@ describe('transformCallouts', () => {
 		expect(transformCallouts(':::pruefung List<String>\nx\n:::')).toContain('List&lt;String&gt;');
 	});
 
+	it('renders inline code in titles', () => {
+		expect(transformCallouts(':::achtung `get()` ohne Prüfung\nx\n:::')).toContain(
+			'<p class="callout-title"><code>get()</code> ohne Prüfung</p>'
+		);
+		expect(transformCallouts(':::merke `List<T>`\nx\n:::')).toContain('<code>List&lt;T&gt;</code>');
+	});
+
 	it('leaves code fences alone', () => {
 		const src = '```text\n:::merke\n:::\n```';
 		expect(transformCallouts(src)).toBe(src);

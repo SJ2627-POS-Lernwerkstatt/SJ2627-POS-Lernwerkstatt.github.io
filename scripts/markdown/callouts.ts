@@ -24,6 +24,11 @@ function escapeHtml(text: string): string {
 	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/** Titles are plain text except for `inline code`, which the Markdown parser does not see inside the HTML. */
+function titleHtml(title: string): string {
+	return escapeHtml(title).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
 export function transformCallouts(source: string, file = 'markdown'): string {
 	const lines = source.split('\n');
 	const out: string[] = [];
@@ -52,7 +57,7 @@ export function transformCallouts(source: string, file = 'markdown'): string {
 			if (open) throw new Error(`${file}:${i + 1}: callouts cannot be nested (open since line ${open.line})`);
 			open = { kind, line: i + 1 };
 			const title = opening[2] ?? CALLOUTS[kind as keyof typeof CALLOUTS];
-			out.push(`<aside class="callout callout-${kind}">`, `<p class="callout-title">${escapeHtml(title)}</p>`, '');
+			out.push(`<aside class="callout callout-${kind}">`, `<p class="callout-title">${titleHtml(title)}</p>`, '');
 			return;
 		}
 		if (CLOSE.test(line)) {
