@@ -315,7 +315,7 @@
         - Den `BookController`
         - Alle `@RestControllerAdvice`s
         - Jackson und Bean Validation
-        - Das echte `BookService`
+        - Der echte `BookService`
         - Die Datenbank
       answer: [0, 1, 2]
       explanation: |

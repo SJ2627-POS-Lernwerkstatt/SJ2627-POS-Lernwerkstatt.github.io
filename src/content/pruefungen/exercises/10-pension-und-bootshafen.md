@@ -1,5 +1,5 @@
 ---
-title: Probeprüfung 11 – Pension und Bootshafen
+title: Probeprüfung 10 – Pension und Bootshafen
 minutes: 300
 grading: teacher
 size: full

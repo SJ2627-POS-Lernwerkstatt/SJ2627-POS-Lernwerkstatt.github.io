@@ -1,5 +1,5 @@
 ---
-title: Probeprüfung 12 – Coworking und Arztpraxis
+title: Probeprüfung 11 – Coworking und Arztpraxis
 minutes: 300
 grading: teacher
 size: full
@@ -27,7 +27,7 @@ Vorgehen: [So läuft eine Probeprüfung](/pruefungen/ablauf).
 | A1 | OR-Mapping: Coworking-Space | 17 | 70 min |
 | A2 | OR-Mapping: Arztpraxis (Vererbung) | 17 | 80 min |
 | B | Business-Service: Energie-Abrechnung | 17 | 75 min |
-| C | REST-API: Kurs-Anmeldungen | 17 | 75 min |
+| C | REST-API: Feriencamp-Anmeldungen | 17 | 75 min |
 
 :::achtung Entwurf
 Die vollständigen Angaben mit UML-Diagrammen kommen in Phase E4. Die Aufgaben B und C

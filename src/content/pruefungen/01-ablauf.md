@@ -31,11 +31,11 @@ der Nummern durch:
 | Nummern | Format | Dauer |
 |---|---|---|
 | 1 bis 4 | Kleine Probeprüfung (nur JPA) | je 90 min |
-| 5 bis 9 | Mittlere Probeprüfung (Service + REST) | je 180 min |
-| 10 bis 13 | Volle Probeprüfung (beide JPA + Service + REST) | je 300 min |
+| 5 bis 8 | Mittlere Probeprüfung (Service + REST) | je 180 min |
+| 9 bis 12 | Volle Probeprüfung (beide JPA + Service + REST) | je 300 min |
 
 Die kleinen Prüfungen (1–4) üben genau den einen Teil, der bei den vollen Prüfungen am meisten
-Zeit kostet: das OR-Mapping. Die mittleren (5–9) bestehen aus den Aufgaben B und C – dieselben Themen kommen in den vollen
+Zeit kostet: das OR-Mapping. Die mittleren (5–8) bestehen aus den Aufgaben B und C – dieselben Themen kommen in den vollen
 Prüfungen in neuer Paarung wieder. Ab der mittleren Prüfung gibt die Lehrkraft Feedback: Sieh es
 dir an, bevor du die nächste Prüfung beginnst.
 

@@ -6,7 +6,7 @@ classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/ass
 status: draft
 rubric:
   erwartet: >-
-    Die drei Datenklassen und das `ChargingBillingService` sind korrekt umgesetzt. Die Tests erzeugen
+    Die drei Datenklassen und der `ChargingBillingService` sind korrekt umgesetzt. Die Tests erzeugen
     genug Testdaten, um alle Abrechnungsregeln abzubilden – auch die Grenzen –, und laufen erfolgreich
     durch.
   genuegend: >-

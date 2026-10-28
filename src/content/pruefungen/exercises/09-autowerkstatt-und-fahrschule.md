@@ -1,5 +1,5 @@
 ---
-title: Probeprüfung 10 – Autowerkstatt und Fahrschule
+title: Probeprüfung 9 – Autowerkstatt und Fahrschule
 minutes: 300
 grading: teacher
 size: full

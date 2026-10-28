@@ -79,7 +79,7 @@ Das eingehende Objekt ist ein Command: `RentalCreateCmd`. Was die API zurücksch
 
 ## Der Service
 
-Ein `BikeService` mit `@Service` als Stub. Seiten liefert es als `Page<…>`. Fehler meldet es mit eigenen Exceptions: Fahrrad, Station oder Ausleihe nicht gefunden (`404`), Fahrrad schon ausgeliehen (`409`).
+Ein `BikeService` mit `@Service` als Stub. Seiten liefert er als `Page<…>`. Fehler meldet er mit eigenen Exceptions: Fahrrad, Station oder Ausleihe nicht gefunden (`404`), Fahrrad schon ausgeliehen (`409`).
 
 ## Tests
 

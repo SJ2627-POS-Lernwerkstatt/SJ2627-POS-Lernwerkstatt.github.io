@@ -89,7 +89,7 @@ Halte dich an die REST-Prinzipien: Pfade für Ressourcen und Unterressourcen, pa
 
 ## Der Service
 
-Lege ein `ConcertService` mit `@Service` als **Stub** an: Methoden, die leere Ergebnisse liefern oder eine Exception werfen. Es meldet Fehler mit eigenen Exceptions: Konzert oder Ticket nicht gefunden, ausverkauft („requested 4 tickets, only 3 left“), Konzert hat verkaufte Tickets.
+Lege einen `ConcertService` mit `@Service` als **Stub** an: Methoden, die leere Ergebnisse liefern oder eine Exception werfen. Er meldet Fehler mit eigenen Exceptions: Konzert oder Ticket nicht gefunden, ausverkauft („requested 4 tickets, only 3 left“), Konzert hat verkaufte Tickets.
 
 ## Fehler
 

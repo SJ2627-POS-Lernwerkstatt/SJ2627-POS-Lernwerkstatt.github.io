@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-28 (pp-a-01..04 published); before: 2026-10-27 (session 6: module **modern-java** added as module 0 – var, Records, Optional, Switch-Ausdrücke, Git-Begriffe; cheat sheet page references re-checked against the updated 22-page PDF; Phase E started: E1 pruefungen skeleton). Live: https://sj2627-pos-lernwerkstatt.github.io
+Last updated: 2026-10-28 (pp-a-01..04 published, E3 content done); before: 2026-10-27 (session 6: module **modern-java** added as module 0 – var, Records, Optional, Switch-Ausdrücke, Git-Begriffe; cheat sheet page references re-checked against the updated 22-page PDF; Phase E started: E1 pruefungen skeleton). Live: https://sj2627-pos-lernwerkstatt.github.io
 
 ## Done
 
@@ -44,9 +44,10 @@ Last updated: 2026-10-28 (pp-a-01..04 published); before: 2026-10-27 (session 6:
 | — | REST exercises (teacher-graded, `loesungen/exercises/rest-0N-…`): Konzertkasse (CRUD, tickets sub-resource, error reference; 24 sample tests), Fahrradverleih-API (pagination + HATEOAS; 15), Kursbuchung (nested validation, PATCH, 409s, `@JsonTest` against a file; 20). All six service/REST exercises published with `scripts/publish.sh` and linked |
 | — | Collapsible side panel with the course structure (`CourseNav.svelte`, `lib/sidebar.ts`, root `+layout.server.ts`); state applied before first paint in `app.html`; smoke test added |
 | E2 | **Site:** 13 Prüfungsseiten `src/content/pruefungen/exercises/` – 1–4 small (vollständige Angaben mit UML, alle Namen wie die Bewertungstests sie erzwingen), 5–9 medium (Rahmen: B+C-Paarungen aus dem Pool, je 2×17 P, 180 min; 09 = Theater+Ticketshop neu), 10–13 full (A1+A2 mit Angabe-Skizzen, 4×17 P, 300 min; 10 = Autowerkstatt und Fahrschule ausführlich). Nummern in den Titeln, Reihenfolge in `01-ablauf`. **loesungen:** pp-a-01..04 complete – solution, 14/12/12/12 grading tests à 17 P, weights, 9/7/7/6 mutants, starters, `check.py` green on all four (solution 17/17, vorlage 0, every mutant fails exactly the listed tests). **Published 2026-10-28:** bundles in `classroom50/lernwerkstatt/autograders/pp-a-0N-…`, public templates `vorlage-pp-a-0N-…`, assignments registered (Java 25), accept links in `classroomUrl` of pages 1–4. Not spiked with a real student repo yet |
+| E3 | **Medium exams 5–8** (teacher-graded, `loesungen/exercises/pp-bc-0N-…`, both subprojects): 5 Parkhaus (30-min blocks, day/night rate, 24 h cap, subscribers; `revenuePerDay` TreeMap) + Projekt-Tasks (CRUD, sub-resource, PATCH status, 409s; 43 sample tests); 6 Versandkosten (zone × weight table, bulky, free shipping, `OrderRepository` mock, `EnumMap` summary) + Produktkatalog (PagedModel, HAL links self/category/products, create under category; 34); 7 Energie-Abrechnung (`@Service`, two repositories + in-memory `@Repository`s, DTOs, started months, credit cap, ArgumentCaptor) + Sensorwerte (optional range ≤ 31 days, `count` 1–100 via built-in method validation – no `@Validated`, 204 statistics; 37); 8 Bonusprogramm (`BonusCalculator` + `TierService` with mocked calculator) + **Feriencamp-Anmeldungen** (renamed from Kurs-Anmeldungen: too close to rest-03 Kursbuchung; nested `@Valid` child/guardian, PATCH partial, 4× 409, `@JsonTest` against `registration.json`; 40). Exam 9 (Theater + Ticketshop) dropped, full exams renumbered 9–12. Not published yet |
 | E1 | Module **pruefungen** skeleton: unit `01-ablauf` (format table, time plan, reading order, push-partial-solutions warning); two draft exam pages following the existing exercise layout (one page, tasks in body): `uebungen/immobilienmakler.md` (size small, grading auto, PlantUML class sketch, 5-stage rubric) and `uebungen/autowerkstatt-und-fahrschule.md` (size full, 300 min, 4×17 P, tasks A1 Autowerkstatt, A2 Fahrschule enum-codes, B Parkhaus, C Produktkatalog, time plan table). Smoke test extended (mock exam pages + `figure.diagram-plantuml img` — PlantUML embeds as base64 data URI, not inline `<svg>`) |
 
-Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25); pruefungen: 1 unit + 13 exam pages (1–4 complete and published, 5–13 frames), no question groups. All content `draft`.
+Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, rest 15 (146 question groups); JPA exercises 1–4 (all four linked from the site; templates `vorlage-jpa-0N-…`, assignments registered with Java 25); pruefungen: 1 unit + 12 exam pages (1–4 published, 5–8 complete, 9–12 frames), no question groups. All content `draft`.
 
 ## Next
 
@@ -54,8 +55,9 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).
 3. Optionally spike JPA exercises 2–4 and one service/REST exercise with a real student repo, as in B2.
 4. Phase D1 after the review.
-5. Phase E – Probeprüfungen: E1+E2 done (pp-a-01..04 published). Next E3 (medium Angaben pp-bc-…;
-   plan says 4, site has 5 medium pages 5–9 – decide), E4 (Seed 2× ORM, full exams), E5 (review).
+5. Phase E – Probeprüfungen: E1+E2 done, E3 content done (pp-bc-01..04, pages 5–8 with full Angaben;
+   exam 9 Theater dropped, full exams renumbered 9–12). Open: publish pp-bc-01..04 (needs your OK:
+   public templates + assignments), then E4 (Seed 2× ORM, full exams), E5 (review).
 6. Language pass on modern-java and pruefungen done (2026-10-28). Conventions: „der Service“ (course-wide, 95 places changed), English identifiers in all exams (10–13 renamed), exam tasks labelled A1/A2/B/C (medium exams B/C), quotes „…“.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
