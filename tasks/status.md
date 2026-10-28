@@ -136,4 +136,5 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 - Grading tests run with `@Transactional(propagation = NOT_SUPPORTED)` and `deleteAll()` in `@BeforeEach`: each save is its own transaction, so a rejected save does not break the next check.
 - Classroom50: `gh teacher` needs scopes `admin:org` etc. (`gh teacher login`, interactive). Student repos must stay private, public ones are not autograded.
 - Students no longer need a local JDK 25: the foojay resolver downloads it (needs network on the first build).
+- Gradle wrapper 9.8.1 in the seed and all 22 `vorlage-*` repos (2026-10-28): 9.7.1 fails when JDK 27 is installed. A new wrapper version means: seed + every template repo (`gradle/wrapper/gradle-wrapper.properties`); student repos created earlier keep the old one.
 - Branch deletion and force pushes are blocked by the permission check unless the user approves them.
