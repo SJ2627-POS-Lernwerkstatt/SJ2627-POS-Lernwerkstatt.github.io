@@ -5,7 +5,7 @@ status: draft
 ---
 
 Die Probeprüfungen simulieren den praktischen Teil der Reife- und Diplomprüfung: echte Aufgaben,
-echtes Projekt, echte Zeit. Dieser Plan zeigt dir, wie du eine Prüfung angehst – am besten liest du
+echtes Projekt, echtes Zeitlimit. Dieser Plan zeigt dir, wie du eine Prüfung angehst – am besten liest du
 ihn einmal durch und legst ihn bei jeder Probeprüfung neben dich.
 
 ## Die drei Formate
@@ -18,9 +18,9 @@ ihn einmal durch und legst ihn bei jeder Probeprüfung neben dich.
 
 Die volle Prüfung entspricht dem Haupttermin: **beide OR-Mapping-Aufgaben sind zu lösen**,
 die zweite bringt eine Besonderheit mit (Enum-Codes, eingebettete Sammlungen, Vererbung oder
-viele-zu-viele mit Projektionen). Die kleine Prüfung hält sich an Aufgabe 1 des Herbsttermins:
-**ein Subprojekt `Aufgabe1_ORMapping`**, eine durchgehende Package-Kette `ormapping.model` →
-`ormapping.persistence`. Bei den vollen Prüfungen kommen zwei OR-Subprojekte mit den Paketen
+m:n-Beziehungen mit Projektionen). Die kleine Prüfung hält sich an Aufgabe 1 des Herbsttermins:
+**ein Subprojekt `Aufgabe1_ORMapping`** mit den Packages `ormapping.model` und
+`ormapping.persistence`. Die vollen Prüfungen haben zwei OR-Mapping-Teile mit den Packages
 `ormapping1` und `ormapping2` – wie im Haupttermin.
 
 ## Reihenfolge und Nummern
@@ -28,18 +28,18 @@ viele-zu-viele mit Projektionen). Die kleine Prüfung hält sich an Aufgabe 1 de
 Die Prüfungen sind durchnummeriert und bauen aufeinander auf – arbeite sie in der Reihenfolge
 der Nummern durch:
 
-| Nummern | Format | Wie oft |
+| Nummern | Format | Dauer |
 |---|---|---|
 | 1 bis 4 | Kleine Probeprüfung (nur JPA) | je 90 min |
 | 5 bis 9 | Mittlere Probeprüfung (Service + REST) | je 180 min |
 | 10 bis 13 | Volle Probeprüfung (beide JPA + Service + REST) | je 300 min |
 
 Die kleinen Prüfungen (1–4) üben genau den einen Teil, der bei den vollen Prüfungen am meisten
-Zeit kostet: das OR-Mapping. Die mittleren (5–9) sind exakt die Aufgaben 3 und 4 der vollen
-Prüfungen – was du dort löst, kommt später in gleicher Form wieder. Lass dir nach jeder Prüfung
-das Feedback der Lehrkraft ansehen, bevor du die nächste beginnst.
+Zeit kostet: das OR-Mapping. Die mittleren (5–9) bestehen aus den Aufgaben B und C – dieselben Themen kommen in den vollen
+Prüfungen in neuer Paarung wieder. Ab der mittleren Prüfung gibt die Lehrkraft Feedback: Sieh es
+dir an, bevor du die nächste Prüfung beginnst.
 
-## Reihenfolge in der Aufgabe
+## Vorgehen in einer Aufgabe
 
 :::merke
 - **Erst die Angabe komplett lesen**, besonders das UML-Diagramm: Welche Klassen? Welche Attribute
@@ -60,13 +60,14 @@ Ein Vorschlag, an dem du dich orientieren kannst – nicht mehr:
 | C REST-API | 75 min |
 
 :::achtung Nicht zum Schluss aufheben
-Bei der Matura ist Arbeiten nach Ende der Zeit nicht möglich. Push von Teillösungen zählt – lieber
-alle vier Aufgaben mit sicherem Code abgeben als eine perfekt und drei leer.
+Nach Ende der Zeit kannst du bei der Matura nicht weiterarbeiten. Es zählt, was du bis dahin
+gepusht hast – push deshalb laufend Teillösungen. Lieber alle vier Aufgaben solide angefangen
+abgeben als eine perfekt und drei leer.
 :::
 
 ## Hilfsmittel
 
 Wie bei der Prüfung darfst du den Java-Spickzettel und die Beurteilungskriterien benutzen.
-Arbeitsumgebung ist dasselbe Seed-Projekt wie in den Übungen (Gradle, Java 25, H2, Spring Boot);
+Gearbeitet wird im selben Seed-Projekt wie in den Übungen (Gradle, Java 25, H2, Spring Boot);
 die Angabe nennt Package, Klassennamen und Subprojekt. Bewerte dich nach der Abgabe selbst –
 die vier Stufen von Genügend bis Sehr gut stehen auf der Seite jeder Aufgabe.

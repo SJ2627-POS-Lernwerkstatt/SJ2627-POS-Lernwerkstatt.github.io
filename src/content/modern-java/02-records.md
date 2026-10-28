@@ -1,5 +1,5 @@
 ---
-title: Records – Datenklassen in einem Satz
+title: Records – Datenklassen in einer Zeile
 minutes: 8
 cheatsheet: 2
 status: draft
@@ -27,7 +27,7 @@ System.out.println(new Person("Anna", 19).equals(p)); // true
 
 ## Prüfen im kompakten Konstruktor
 
-Ungültige Objekte sollen gar nicht erst entstehen. Der **kompakte Konstruktor** hat keine eigene Parameterliste – du prüfst, und die Zuweisung macht Java danach selbst:
+Ungültige Objekte sollen gar nicht erst entstehen. Der **kompakte Konstruktor** hat keine eigene Parameterliste – du prüfst nur, die Felder weist Java danach selbst zu:
 
 ```java
 public record Point(int x, int y) {
@@ -53,7 +53,7 @@ Felder sind `final`. Einen anderen Wert bekommst du nur über ein neues Objekt:
 var older = new Person(p.name(), p.age() + 1);
 ```
 
-Seit Java 21 kann man Records direkt **auspacken**, wo man ihren Typ prüft:
+Seit Java 21 kannst du Records direkt dort **auspacken**, wo du ihren Typ prüfst:
 
 ```java
 Object obj = new Point(3, 4);
@@ -64,7 +64,7 @@ if (obj instanceof Point(int x, int y)) {
 
 ## Wann Record, wann Klasse?
 
-Der Spickzettel (S. 2, „Java types" und „Data Classes") listet beides. Als Faustregel:
+Der Spickzettel (S. 2, „Java types“ und „Data Classes“) listet beides. Als Faustregel:
 
 | Datenstruktur | Record? |
 |---|---|
@@ -76,6 +76,6 @@ Vertiefung: Im [Stream-Modul](/streams/datenklassen) geht es weiter – mit geka
 
 :::merke
 - `record Name(Typ feld, …)` – Konstruktor, Zugriff `feld()`, `equals`, `hashCode`, `toString` geschenkt.
-- Prüfungen im kompakten Konstruktor `public Name { … }`, ohne Zuweisung.
-- Unveränderlich: „Ändern" heißt ein neues Objekt; Entities bleiben normale Klassen.
+- Gültigkeit im kompakten Konstruktor `public Name { … }` prüfen, ohne Zuweisung.
+- Unveränderlich: „Ändern“ heißt ein neues Objekt; Entities bleiben normale Klassen.
 :::

@@ -28,17 +28,17 @@ Du brauchst das Service-Modul (speziell Einheit 8: Aufteilen) und das REST-Modul
 
 | Aufgabe | Thema | Punkte | Zeit |
 |---|---|---|---|
-| 1 | Business-Service: Bonusprogramm | 17 | 90 min |
-| 2 | REST-API: Kurs-Anmeldungen | 17 | 90 min |
+| B | Business-Service: Bonusprogramm | 17 | 90 min |
+| C | REST-API: Kurs-Anmeldungen | 17 | 90 min |
 
 Beide Aufgaben bearbeitest du in einem Projekt: `Aufgabe2_BusinessService` und
 `Aufgabe3_RestfulApi`. Bei jedem Push laufen deine eigenen Tests.
 
-## Aufgabe 1 – Bonusprogramm (17 Punkte)
+## Aufgabe B – Bonusprogramm (17 Punkte)
 
-Ein Händler führt Bonuspunkte: Einkäufe sammeln Punkte nach Warengruppe und Kundestufe;
+Ein Händler führt Bonuspunkte: Einkäufe sammeln Punkte nach Warengruppe und Kundenstufe;
 ab einer Schwelle steigt der Kunde auf, nach zwei Jahren ohne Einkauf fällt er zurück. Der
-Service wird **aufgeteilt**: ein `BonusCalculator` reiner Punkte, ein `TierService` entscheidet
+Service wird **aufgeteilt**: ein `BonusCalculator` berechnet nur die Punkte, ein `TierService` entscheidet
 über Auf- und Abstieg und bekommt den Rechner per Konstruktor. Der `TierService` wird mit
 Mockito getestet (der Rechner ist ein `@Mock`), der Rechner mit reinen AssertJ-Tests.
 Datenklassen als Records, Java ohne Spring – wie in Aufgabe 2 der Matura.
@@ -46,10 +46,10 @@ Datenklassen als Records, Java ohne Spring – wie in Aufgabe 2 der Matura.
 Erwartete Ergebnisse: keine Regel an zwei Stellen, beide Klassen unabhängig testbar,
 Mock-Tests zeigen die Zusammenarbeit.
 
-## Aufgabe 2 – Kurs-Anmeldungen (17 Punkte)
+## Aufgabe C – Kurs-Anmeldungen (17 Punkte)
 
 Eine Volkshochschule nimmt Anmeldungen zu Kursen an: `POST /api/courses/{id}/enrollments`
-mit verschachteltem Teilnehmenden-Objekt (Name Pflicht, E-Mail Format, Geburtsdatum vor 2012),
+mit verschachteltem Teilnehmenden-Objekt (Name Pflicht, E-Mail im gültigen Format, Geburtsdatum vor 2012),
 ein voller Kurs antwortet mit 409, ein unbekannter Kurs mit 404 und `ProblemDetail`-Referenz;
 `PATCH /api/enrollments/{id}` ändert den Status (bestätigt, storniert). Das JSON des
 Anmeldungs-Objekts wird zusätzlich per `@JsonTest` gegen eine Beispieldatei geprüft.

@@ -27,28 +27,28 @@ in [So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 | Aufgabe | Thema | Punkte | Zeit |
 |---|---|---|---|
-| 1 | Business-Service: Theaterabonnement | 17 | 90 min |
-| 2 | REST-API: Ticketshop-Bestellungen | 17 | 90 min |
+| B | Business-Service: Theaterabonnement | 17 | 90 min |
+| C | REST-API: Ticketshop-Bestellungen | 17 | 90 min |
 
 Beide Aufgaben bearbeitest du in einem Projekt: `Aufgabe2_BusinessService` und
 `Aufgabe3_RestfulApi`. Bei jedem Push laufen deine eigenen Tests.
 
-## Aufgabe 1 – Theaterabonnement (17 Punkte)
+## Aufgabe B – Theaterabonnement (17 Punkte)
 
 Ein Theater verlängert Abonnements: Stückliste mit Terminen, Rabatt nach Anzahl der gebuchten
-Stücke und Altersstufe, Frist = 14 Tage vorPremiere (Verlängerung danach nur mit Zuschlag,
-nach Vorstellungsbeginn Ablehnung mit Exception). Das Service liefert pro Abo den fälligen
+Stücke und Altersstufe, Frist: 14 Tage vor der Premiere (Verlängerung danach nur mit Zuschlag,
+nach Vorstellungsbeginn Ablehnung mit Exception). Der Service liefert pro Abo den fälligen
 Preis und eine Übersicht **nach Altersstufe gruppiert** (`Map`). Datenklassen als Records,
 eigene Testdaten mit AssertJ, reines Java – wie in Aufgabe 2 der Matura.
 
 Erwartete Ergebnisse: Fristgrenzen exakt getestet (Tag 14, Tag 13, Vorstellung selbst),
 Gruppierung vollständig, Exception nur im vorgesehenen Fall.
 
-## Aufgabe 2 – Ticketshop (17 Punkte)
+## Aufgabe C – Ticketshop (17 Punkte)
 
 Bestellungen für ein Festival: `POST /api/orders` mit Positionen (Tickettyp, Anzahl),
 `GET /api/orders/{id}`, `DELETE` storniert nur vor dem ersten Nutzungstag (sonst 409),
-unbekannte Id 404 mit `ProblemDetail`-Referenz, Validierung mit Feldfehler-Details, Antwort
+unbekannte ID 404 mit `ProblemDetail`-Referenz, Validierung mit Feldfehler-Details, Antwort
 mit `Location`-Header. Service gestubbt; `@WebMvcTest` mit `@MockitoBean`, MockMvc über
 good/edge/exception cases.
 

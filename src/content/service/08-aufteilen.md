@@ -59,7 +59,7 @@ public class FeeReportService {
 }
 ```
 
-Das Service bekommt die Regeln im Konstruktor – genau wie das Repository. Im Test übergibst du `new FeeRules()`.
+Der Service bekommt die Regeln im Konstruktor – genau wie das Repository. Im Test übergibst du `new FeeRules()`.
 
 ## Tests passend aufteilen
 

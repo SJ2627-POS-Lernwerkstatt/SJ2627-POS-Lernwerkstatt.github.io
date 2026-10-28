@@ -8,7 +8,7 @@ rubric:
   erwartet: >-
     Alle Endpunkte und JSON-Objekte sind umgesetzt, Pfade folgen den REST-Prinzipien, Methoden und
     Statuscodes stimmen. Fehler werden als `ProblemDetail` mit eindeutiger Referenz beantwortet und
-    geloggt. Das Service ist ein Stub, der im Test durch einen Mock ersetzt wird. Mappings, Statuscodes
+    geloggt. Der Service ist ein Stub, der im Test durch einen Mock ersetzt wird. Mappings, Statuscodes
     und Fehler sind getestet.
   genuegend: >-
     Die Endpunkte und Datenklassen sind definiert, es fehlen Details (z. B. `Location`-Header, Feldnamen
@@ -26,7 +26,7 @@ Eine Konzertkasse verkauft Tickets online. Baue die REST-API für Konzerte und i
 
 Du brauchst dafür die Einheiten 1–12 im Modul REST-Controller. Die Aufgabe hat die Größe von Aufgabe 3 der Matura.
 
-Alle Endpunkte liegen unter **`/api/concerts`**. Datenformat ist JSON. Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, das Service und die Datenklassen nach `restfulapi.service`.
+Alle Endpunkte liegen unter **`/api/concerts`**. Datenformat ist JSON. Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, der Service und die Datenklassen nach `restfulapi.service`.
 
 ## Schnittstellenobjekte
 
@@ -87,7 +87,7 @@ Eingehende Objekte sind Commands: `ConcertCreateCmd` und `TicketOrderCmd` (mit d
 
 Halte dich an die REST-Prinzipien: Pfade für Ressourcen und Unterressourcen, passende HTTP-Methoden, Statuscodes wie `200`, `201` mit `Location`, `204`, `400`, `404` und `409`.
 
-## Das Service
+## Der Service
 
 Lege ein `ConcertService` mit `@Service` als **Stub** an: Methoden, die leere Ergebnisse liefern oder eine Exception werfen. Es meldet Fehler mit eigenen Exceptions: Konzert oder Ticket nicht gefunden, ausverkauft („requested 4 tickets, only 3 left“), Konzert hat verkaufte Tickets.
 

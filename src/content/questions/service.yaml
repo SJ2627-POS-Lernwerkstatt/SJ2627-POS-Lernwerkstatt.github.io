@@ -35,7 +35,7 @@
       - Nichts, die Schnittstelle wird von der Prüfung mitgeliefert
     answer: 0
     explanation: |
-      Das Service bekommt ein Interface im Konstruktor. Woher die Daten wirklich kommen, ist nicht Teil der Aufgabe – im Test liefert ein Stub oder Mock die Daten.
+      Der Service bekommt ein Interface im Konstruktor. Woher die Daten wirklich kommen, ist nicht Teil der Aufgabe – im Test liefert ein Stub oder Mock die Daten.
   followUps:
     - kind: single
       prompt: Für welche Note verlangt die Beurteilung zusätzlich, dass der Code auf mehrere Klassen aufgeteilt ist?
@@ -64,7 +64,7 @@
     - kind: single
       prompt: "Warum speichert der Konstruktor `this.loans = List.copyOf(loans);` statt `this.loans = loans;`?"
       options:
-        - Damit spätere Änderungen an der übergebenen Liste das Service nicht verändern
+        - Damit spätere Änderungen an der übergebenen Liste den Service nicht verändern
         - Weil `List` sonst nicht kompiliert
         - Damit die Liste sortiert wird
       answer: 0
@@ -134,7 +134,7 @@
     options:
       - Jede Regel lässt sich einzeln testen, und die Hauptmethode liest sich wie die Angabe
       - Weil Java keine langen Methoden erlaubt
-      - Damit das Service schneller läuft
+      - Damit der Service schneller läuft
     answer: 0
     explanation: |
       Kleine Methoden wie `fee`, `daysLate` oder `ofMember` kann man mit Randwerten einzeln prüfen. Die Hauptmethode setzt sie zusammen.
@@ -233,7 +233,7 @@
     kind: single
     prompt: Ein Test prüft `feeFor(ANNA, today)` und übergibt nur Ausleihen von Anna. Was übersieht er?
     options:
-      - Ob das Service wirklich nur Annas Ausleihen zählt
+      - Ob der Service wirklich nur Annas Ausleihen zählt
       - Nichts
       - Ob Anna existiert
     answer: 0
@@ -287,7 +287,7 @@
       Typ und Nachricht zusammen schließen aus, dass zufällig ein anderer Fehler geworfen wurde.
   followUps:
     - kind: single
-      prompt: Das Service bekommt eine leere Liste von Ausleihen. Was ist sinnvoll?
+      prompt: Der Service bekommt eine leere Liste von Ausleihen. Was ist sinnvoll?
       options:
         - Summe 0 bzw. eine Auswertung mit leeren Listen
         - Eine `IllegalArgumentException`
@@ -300,14 +300,14 @@
   unit: service/datenzugriff
   main:
     kind: single
-    prompt: Wie kommt das Service an das Datenzugriffs-Interface?
+    prompt: Wie kommt der Service an das Datenzugriffs-Interface?
     options:
       - Über seinen Konstruktor
       - Es erzeugt mit `new` selbst eine Implementierung
       - Über eine statische Variable
     answer: 0
     explanation: |
-      Bekommt das Service das Interface im Konstruktor, kann der Test einen Stub oder Mock übergeben.
+      Bekommt der Service das Interface im Konstruktor, kann der Test einen Stub oder Mock übergeben.
   followUps:
     - kind: single
       prompt: Was ist ein Stub?
@@ -323,7 +323,7 @@
   unit: service/datenzugriff
   main:
     kind: single
-    prompt: "Ein Test legt `when(repo.findAll()).thenReturn(…)` fest, das Service ruft aber nur `findByMemberName` auf. Was meldet `MockitoExtension`?"
+    prompt: "Ein Test legt `when(repo.findAll()).thenReturn(…)` fest, der Service ruft aber nur `findByMemberName` auf. Was meldet `MockitoExtension`?"
     options:
       - "`UnnecessaryStubbingException`"
       - Nichts
@@ -346,7 +346,7 @@
   unit: service/aufteilen
   main:
     kind: single
-    prompt: Nach welchem Kriterium teilst du das Service auf?
+    prompt: Nach welchem Kriterium teilst du den Service auf?
     options:
       - Nach Aufgaben, z. B. Regeln, Auswertung, Ablauf
       - Eine Klasse pro Methode
@@ -363,7 +363,7 @@
         - Über eine öffentliche statische Variable
       answer: 0
       explanation: |
-        Abhängigkeiten über den Konstruktor machen das Service testbar und passen zu Spring (Einheit 9).
+        Abhängigkeiten über den Konstruktor machen den Service testbar und passen zu Spring (Einheit 9).
 
 - id: service-split-tests
   unit: service/aufteilen
@@ -394,20 +394,20 @@
     - kind: single
       prompt: "Im Seed-Projekt scheitert plötzlich `contextLoads` mit „required a bean of type 'LoanRepository' that could not be found“. Warum?"
       options:
-        - Das Service hat `@Service`, aber für das Interface `LoanRepository` gibt es keine Implementierung als Bean
+        - Der Service hat `@Service`, aber für das Interface `LoanRepository` gibt es keine Implementierung als Bean
         - Das Interface hat zu viele Methoden
         - "`contextLoads` testet immer die Datenbank"
       answer: 0
       explanation: |
-        Spring kann das Service nicht erzeugen. In Aufgabe 2 also entweder kein `@Service` oder eine einfache Implementierung mit `@Repository`.
+        Spring kann den Service nicht erzeugen. In Aufgabe 2 also entweder kein `@Service` oder eine einfache Implementierung mit `@Repository`.
 
 - id: service-spring-dto
   unit: service/spring-service
   main:
     kind: single
-    prompt: Wozu gibt das Service ein DTO wie `record FeeDto(String member, double euros, int openLoans)` zurück?
+    prompt: Wozu gibt der Service ein DTO wie `record FeeDto(String member, double euros, int openLoans)` zurück?
     options:
-      - Es enthält genau, was der Aufrufer braucht; interne Daten verlassen das Service nicht
+      - Es enthält genau, was der Aufrufer braucht; interne Daten verlassen den Service nicht
       - Weil Records schneller sind als Klassen
       - Weil Spring nur Records zurückgeben kann
     answer: 0
@@ -430,12 +430,12 @@
     kind: single
     prompt: Was braucht ein Test für ein Spring-Service mit Repository?
     options:
-      - "`@ExtendWith(MockitoExtension.class)`, `@Mock` für das Repository, `@InjectMocks` für das Service"
+      - "`@ExtendWith(MockitoExtension.class)`, `@Mock` für das Repository, `@InjectMocks` für den Service"
       - "`@SpringBootTest` und eine H2-Datenbank"
       - "`@DataJpaTest`"
     answer: 0
     explanation: |
-      Das Service ist eine normale Klasse. Mockito ersetzt das Repository – ohne Spring-Kontext und ohne Datenbank.
+      Der Service ist eine normale Klasse. Mockito ersetzt das Repository – ohne Spring-Kontext und ohne Datenbank.
   followUps:
     - kind: single
       prompt: "`FeeRules` soll im Test echt rechnen, aber trotzdem über `@InjectMocks` ins Service kommen. Wie?"
@@ -445,7 +445,7 @@
         - Gar nicht
       answer: 0
       explanation: |
-        Ein `@Mock` würde immer 0 liefern. Ein `@Spy` ist ein echtes Objekt, das Mockito trotzdem in das Service einsetzt.
+        Ein `@Mock` würde immer 0 liefern. Ein `@Spy` ist ein echtes Objekt, das Mockito trotzdem in den Service einsetzt.
 
 - id: service-spring-test-cases
   unit: service/spring-service-testen
@@ -464,7 +464,7 @@
     - kind: single
       prompt: "Was prüft `verify(loanRepository).findByMemberName(\"Anna\")`?"
       options:
-        - Dass das Service das Repository genau einmal mit „Anna“ aufgerufen hat
+        - Dass der Service das Repository genau einmal mit „Anna“ aufgerufen hat
         - Dass das Repository Daten für Anna hat
         - Dass Anna Gebühren hat
       answer: 0

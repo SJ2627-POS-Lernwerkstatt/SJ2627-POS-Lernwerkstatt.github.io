@@ -7,7 +7,7 @@ size: small
 status: draft
 rubric:
   erwartet: >-
-    Members und Departments mit der viele-zu-viele-Beziehung über eine benannte Join-Tabelle,
+    Members und Departments mit der m:n-Beziehung über eine benannte Join-Tabelle,
     alle Constraints und Repositories korrekt umgesetzt; alle Bewertungstests bestehen.
   genuegend: >-
     Beide Entities existieren und werden gespeichert; die Beziehung fehlt oder liegt in der
@@ -23,15 +23,15 @@ rubric:
 ---
 
 Eine kleine Probeprüfung, **eine OR-Mapping-Aufgabe, 90 Minuten, 17 Punkte**, automatisch
-bewertet. Die Besonderheit dieser Prüfung: eine **viele-zu-viele-Beziehung**. Du brauchst die
+bewertet. Die Besonderheit dieser Prüfung: eine **m:n-Beziehung**. Du brauchst die
 Einheiten 1–11 und 16 aus dem JPA-Modul. Der Ablauf steht in
 [So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 ## Aufgabe 1 – Mitglieder und Abteilungen (17 Punkte)
 
 Ein Sportverein führt seine **Mitglieder** und seine **Abteilungen**. Ein Mitglied zahlt einen
-monatlichen Beitrag und tritt einem oder mehreren Abteilungen bei; eine Abteilung hat
-null oder viele Mitglieder.
+monatlichen Beitrag und tritt einer oder mehreren Abteilungen bei; eine Abteilung hat
+keine, eine oder mehrere Mitglieder.
 
 ```plantuml
 @startuml
@@ -54,7 +54,7 @@ Member "0..*" -- "0..*" Department : departments
 @enduml
 ```
 
-Regeln: `name` beim Mitglied höchstens 80 Zeichen, `monthlyFee` Precision 6 Scale 2;
+Regeln: `name` beim Mitglied höchstens 80 Zeichen, `monthlyFee` Precision 6, Scale 2;
 Abteilungsname höchstens 50 Zeichen und **eindeutig**, `maxGroupSize` Pflicht.
 
 Die Beziehung: **besitzende Seite ist `Member`**, `@ManyToMany(cascade = PERSIST)` mit
@@ -64,7 +64,7 @@ department_id)`; beide Fremdschlüssel benannt: `fk_member_departments_member` u
 
 Hilfsmethoden: `Member.addDepartment(Department d)` / `removeDepartment` – sie setzen
 **beide Seiten**; `getDepartments()` (Member) und `getMembers()` (Department) liefern
-**unveränderliche** Listen. Ein Department kann leer sein (ohne Mitglieder gespeichert werden).
+**unveränderliche** Listen. Eine Abteilung darf auch ohne Mitglieder gespeichert werden.
 
 ## Implementierung
 

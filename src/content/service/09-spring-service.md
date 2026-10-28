@@ -1,11 +1,11 @@
 ---
-title: Das Service in Spring
+title: Der Service in Spring
 minutes: 10
 cheatsheet: 18
 status: draft
 ---
 
-In Aufgabe 2 ist das Service reines Java. In einer echten Anwendung – und in Aufgabe 3 – verwaltet **Spring** die Objekte: Es erzeugt das Service und übergibt ihm Repository und Regeln.
+In Aufgabe 2 ist der Service reines Java. In einer echten Anwendung – und in Aufgabe 3 – verwaltet **Spring** die Objekte: Es erzeugt den Service und übergibt ihm Repository und Regeln.
 
 ## `@Service` und Constructor Injection
 
@@ -60,7 +60,7 @@ public class LoanService {
 
 ## DTOs als Records
 
-Das Service gibt nicht die Datenklassen nach außen, sondern ein **DTO** (*Data Transfer Object*) mit genau dem, was der Aufrufer braucht:
+Der Service gibt nicht die Datenklassen nach außen, sondern ein **DTO** (*Data Transfer Object*) mit genau dem, was der Aufrufer braucht:
 
 ```java
 public record FeeDto(String member, double euros, int openLoans) {
@@ -80,7 +80,7 @@ public FeeDto feeFor(String memberName, LocalDate today) {
 ```
 
 - Das Mapping (Datenklasse → DTO) steht an **einer** Stelle, im Service oder in einer statischen Methode `FeeDto.from(...)`.
-- Der Controller in Aufgabe 3 gibt das DTO als JSON zurück. Interne Felder, etwa die ganze Liste der Ausleihen, verlassen das Service so nie.
+- Der Controller in Aufgabe 3 gibt das DTO als JSON zurück. Interne Felder, etwa die ganze Liste der Ausleihen, verlassen den Service so nie.
 - Euro als `double` ist hier nur zur Anzeige. Gerechnet wird weiter in Cent.
 
 :::merke

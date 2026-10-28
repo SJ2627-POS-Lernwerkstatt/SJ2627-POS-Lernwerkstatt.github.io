@@ -22,7 +22,7 @@ public PagedModel<BookDto> findAll(@PageableDefault(size = 20, sort = "title") P
 - `sort=author,desc` sortiert absteigend, mehrere `sort`-Parameter sind erlaubt.
 - Ungültige Werte wie `page=x` ignoriert Spring und nimmt den Default.
 
-Das Service liefert eine **`Page<BookDto>`**: die Einträge der Seite und die Gesamtzahl. Mit Spring Data JPA kommt sie direkt aus dem Repository (`findAll(Pageable)`); im Stub erzeugst du sie mit `Page.empty(pageable)` oder `new PageImpl<>(liste, pageable, gesamt)`.
+Der Service liefert eine **`Page<BookDto>`**: die Einträge der Seite und die Gesamtzahl. Mit Spring Data JPA kommt sie direkt aus dem Repository (`findAll(Pageable)`); im Stub erzeugst du sie mit `Page.empty(pageable)` oder `new PageImpl<>(liste, pageable, gesamt)`.
 
 ## Was zurückgeben?
 

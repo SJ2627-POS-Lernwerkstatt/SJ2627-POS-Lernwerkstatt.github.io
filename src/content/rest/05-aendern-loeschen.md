@@ -53,7 +53,7 @@ public ResponseEntity<Void> delete(@PathVariable String isbn) {
 | `PATCH` | | `404` |
 | `DELETE` | | `404` |
 
-Das Service signalisiert „gibt es nicht“ mit einem leeren `Optional` oder einer Exception wie `BookNotFoundException`. Wirft es, macht der `@RestControllerAdvice` daraus `404` (Einheit 7).
+Der Service signalisiert „gibt es nicht“ mit einem leeren `Optional` oder einer Exception wie `BookNotFoundException`. Wirft er, macht der `@RestControllerAdvice` daraus `404` (Einheit 7).
 
 ## Idempotent?
 

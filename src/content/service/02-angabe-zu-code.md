@@ -4,7 +4,7 @@ minutes: 9
 status: draft
 ---
 
-Die Angabe ist kein Java. Sie beschreibt Datenklassen in einem Diagramm und das Service in Pseudocode. Deine erste Aufgabe: beides sauber übersetzen, bevor du eine einzige Regel programmierst.
+Die Angabe ist kein Java. Sie beschreibt Datenklassen in einem Diagramm und den Service in Pseudocode. Deine erste Aufgabe: beides sauber übersetzen, bevor du eine einzige Regel programmierst.
 
 ## Datenklassen als Records
 
@@ -78,7 +78,7 @@ public Optional<LocalDate> returned() {
 }
 ```
 
-## Das Service aus dem Pseudocode
+## Der Service aus dem Pseudocode
 
 ```text
 klasse LateFeeService {
@@ -107,7 +107,7 @@ public class LateFeeService {
 }
 ```
 
-- Der Konstruktor speichert, was die Angabe „zu Beginn übergibt“. `List.copyOf` schützt das Service davor, dass jemand die Liste von außen ändert.
+- Der Konstruktor speichert, was die Angabe „zu Beginn übergibt“. `List.copyOf` schützt den Service davor, dass jemand die Liste von außen ändert.
 - Die Methodennamen übernimmst du aus der Angabe. Typen übersetzt du nach der Tabelle oben.
 - Das Seed-Projekt hat dafür das Subprojekt `Aufgabe2_BusinessService` mit dem Package `businessservice.service`.
 
@@ -117,7 +117,7 @@ public class LateFeeService {
 
 ## Erst kompilieren, dann Regeln
 
-Lege Datenklassen und Service mit leeren Methoden an und schreib den ersten Test, der nur ein Service erzeugt und eine Methode aufruft. Kompiliert das, hast du das Gerüst – und jeder weitere Schritt ist eine Regel mit ihrem Test.
+Lege Datenklassen und Service mit leeren Methoden an und schreib den ersten Test, der nur einen Service erzeugt und eine Methode aufruft. Kompiliert das, hast du das Gerüst – und jeder weitere Schritt ist eine Regel mit ihrem Test.
 
 :::merke
 - Datenklassen → Records, `Date` → `LocalDate`, `Liste` → `List`.

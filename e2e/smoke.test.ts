@@ -64,7 +64,7 @@ test('mock exam pages: full exam shows all four tasks, small exam renders its UM
 	await hydrated(page);
 	await expect(page.getByRole('heading', { level: 1, name: /Autowerkstatt und Fahrschule/ })).toBeVisible();
 	await expect(page.getByText('volle Probeprüfung', { exact: true })).toBeVisible();
-	await expect(page.getByRole('heading', { level: 2, name: /Aufgabe \d/ })).toHaveCount(4);
+	await expect(page.getByRole('heading', { level: 2, name: /Aufgabe (A1|A2|B|C) / })).toHaveCount(4);
 
 	await page.goto('/pruefungen/uebungen/immobilienmakler');
 	await expect(page.getByText('kleine Probeprüfung', { exact: true })).toBeVisible();

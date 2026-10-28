@@ -10,34 +10,34 @@ rubric:
     Geschäftsregeln und eigenen Tests, die REST-API mit Validierung, Fehlerbehandlung und
     `@WebMvcTest`-Tests.
   genuegend: >-
-    Beide Aufgaben sind angefangen; Grunddatenklassen und ein Endpunkt bzw. eine Regel
+    Beide Aufgaben sind angefangen; Datenklassen und ein Endpunkt bzw. eine Regel
     funktionieren, Tests fehlen meist.
   befriedigend: >-
     Eine Aufgabe brauchbar, die andere angefangen; Hauptfälle laufen, Exceptions und
     Fehlfälle fehlen noch.
   gut: >-
-    Beide Aufgaben weitgehend vollständig, eigene Tests vorhanden; Randfälle und Detail-
-    kriterien (Fehlerreferenzen, Payload-Tests) teilweise offen.
+    Beide Aufgaben weitgehend vollständig, eigene Tests vorhanden; Randfälle und
+    Detailkriterien (Fehlerreferenzen, Payload-Tests) teilweise offen.
   sehrGut: >-
-    Beide Aufgaben vollständig und auf die erwarteten Ergebnisse prüfbar, inklusive
+    Beide Aufgaben vollständig, alle erwarteten Ergebnisse erfüllt, inklusive
     Teststrategie (good, edge, exception) und sauberer Benennung.
 ---
 
 Diese mittlere Probeprüfung dauert **180 Minuten**: zwei unabhängige Aufgaben zu je 17 Punkten –
-wie Teil 2 und 3 der Matura. Du brauchst das Service-Modul (Einheiten 1–10) für Aufgabe 1 und
-das REST-Modul (Einheiten 1–15) für Aufgabe 2. Zeitplan-Vorschlag: 90 Minuten pro Aufgabe.
+wie Teil 2 und 3 der Matura. Du brauchst das Service-Modul (Einheiten 1–10) für Aufgabe B und
+das REST-Modul (Einheiten 1–15) für Aufgabe C. Zeitplan-Vorschlag: 90 Minuten pro Aufgabe.
 Der Ablauf steht in [So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 | Aufgabe | Thema | Punkte | Zeit |
 |---|---|---|---|
-| 1 | Business-Service: Parkhaus | 17 | 90 min |
-| 2 | REST-API: Projekt-Tasks | 17 | 90 min |
+| B | Business-Service: Parkhaus | 17 | 90 min |
+| C | REST-API: Projekt-Tasks | 17 | 90 min |
 
 Beide Aufgaben bearbeitest du in einem Projekt: `Aufgabe2_BusinessService` und
-`Aufgabe3_RestfulApi` – wie bei der Matura, nur ohne OR-Mapping. Bei jedem Push laufen die
-eigenen Tests: sind sie rot, zeigt das die Abgabe.
+`Aufgabe3_RestfulApi` – wie bei der Matura, nur ohne OR-Mapping. Bei jedem Push laufen deine
+eigenen Tests; schlagen sie fehl, siehst du das an der Abgabe.
 
-## Aufgabe 1 – Parkhaus (17 Punkte)
+## Aufgabe B – Parkhaus (17 Punkte)
 
 Ein Parkhaus berechnet die Gebühr aus Einfahrt und Ausfahrt: Tarif pro angefangene halbe Stunde,
 ein Tageshöchstbetrag, ein Nachttarif zwischen 22 und 6 Uhr. Eine Ausfahrt ohne gültigen
@@ -49,12 +49,12 @@ Erwartete Ergebnisse: Regeln korrekt und vollständig getestet (auch Tagesübers
 Mitternachtsgrenzen), Exceptions an den richtigen Stellen, keine Java-Datei außer Datenklassen,
 Service und Tests.
 
-## Aufgabe 2 – Projekt-Tasks-API (17 Punkte)
+## Aufgabe C – Projekt-Tasks-API (17 Punkte)
 
 Ein Team verwaltet Projekte mit Tasks in einer API: `GET`/`POST /api/projects`,
 `GET`/`POST /api/projects/{id}/tasks` und `PATCH /api/projects/{projectId}/tasks/{id}` für den
-Statuswechsel. Ungültige Eingaben werden mit Feldfehler-Details abgelehnt, eine unbekannte Id
-liefert ein `ProblemDetail` mit Referenz; die Projekt-ID im Pfad der Unterressource muss zur Id
+Statuswechsel. Ungültige Eingaben werden mit Feldfehler-Details abgelehnt, eine unbekannte ID
+liefert ein `ProblemDetail` mit Referenz; die Projekt-ID im Pfad der Unterressource muss zur ID
 des Task-Objekts passen (sonst 409). Der Service ist ein Stub und wird im Test mit
 `@MockitoBean` ersetzt; getestet wird mit `@WebMvcTest` und MockMvc – good, edge und exception
 cases für jeden Endpunkt.

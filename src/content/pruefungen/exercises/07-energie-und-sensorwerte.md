@@ -14,10 +14,10 @@ rubric:
   befriedigend: >-
     Eine Aufgabe weitgehend, die andere im Kern; Exceptions und Parameter-Fehlfälle offen.
   gut: >-
-    Beide Funktionen laufen; Teststrategie an den Rändern (leere Zeiträume, Default-Größen)
+    Beide Aufgaben laufen; Teststrategie an den Rändern (leere Zeiträume, Default-Größen)
     lückenhaft.
   sehrGut: >-
-    Vollständig mit sauberer Schichttrennung und vollständiger Teststrategie – alle
+    Vollständig mit sauberer Schichttrennung und lückenloser Teststrategie – alle
     erwarteten Ergebnisse erfüllt.
 ---
 
@@ -28,15 +28,15 @@ Du brauchst das Service-Modul (Einheiten 1–10, besonders `@Service`) und das R
 
 | Aufgabe | Thema | Punkte | Zeit |
 |---|---|---|---|
-| 1 | Business-Service: Energie-Abrechnung | 17 | 90 min |
-| 2 | REST-API: Sensorwerte | 17 | 90 min |
+| B | Business-Service: Energie-Abrechnung | 17 | 90 min |
+| C | REST-API: Sensorwerte | 17 | 90 min |
 
 Beide Aufgaben bearbeitest du in einem Projekt: `Aufgabe2_BusinessService` und
 `Aufgabe3_RestfulApi`. Bei jedem Push laufen deine eigenen Tests.
 
-## Aufgabe 1 – Energie-Abrechnung (17 Punkte)
+## Aufgabe B – Energie-Abrechnung (17 Punkte)
 
-Ein Versorger rechnet Haushaltsverbrauch ab: Zählerstände von und bis, Tarif je Kilowattstunde
+Ein Versorger rechnet Haushaltsverbrauch ab: Zählerstand zu Beginn und am Ende, Tarif je Kilowattstunde
 mit Grundgebühr, Einspeisung wird vergütet. Der Service ist eine Spring-`@Service`-Klasse mit
 einem Repository-Interface (im Test als `@MockitoBean` ersetzt), nimmt ein Request-DTO und
 liefert ein Response-DTO. Ungültige oder rückwärts laufende Zählerstände werfen typisierte
@@ -45,11 +45,11 @@ Exceptions. Wie in Aufgabe 2 der Matura, aber mit Spring: Testdaten selbst bauen
 Erwartete Ergebnisse: Schichten sauber getrennt, DTOs haben keine Geschäftslogik, alle Regeln
 und beide Exceptions getestet.
 
-## Aufgabe 2 – Sensorwerte-API (17 Punkte)
+## Aufgabe C – Sensorwerte-API (17 Punkte)
 
 Eine Wetterstation liefert Messwerte: `GET /api/measurements?sensorId=…&from=…&to=…`
 mit optionalem Zeitraum, `GET /api/measurements/latest?count=…` (Default 10), `POST` zum
-Melden. Parameterfehler (Datum vor Zeitraumende, `count` über 100) als 400 mit
+Melden. Parameterfehler (`to` vor `from`, `count` über 100) als 400 mit
 `ProblemDetail`; leerer Zeitraum als 204. Service gestubbt; getestet mit `@WebMvcTest`,
 MockMvc und `@MockitoBean` – good, edge (leere Ergebnisse, Grenzen) und exception cases.
 

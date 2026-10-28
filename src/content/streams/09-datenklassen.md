@@ -5,7 +5,7 @@ cheatsheet: 2
 status: draft
 ---
 
-Bei Aufgabe 2 baust du zuerst die **Datenklassen** aus der Angabe, dann das Service, das mit ihnen rechnet. Für Daten, die sich nach dem Anlegen nicht mehr ändern, ist ein **Record** die kürzeste und sicherste Form. Die Grundlagen – Kompakt-Konstruktor, Zugriffsmethoden, wann Record und wann Klasse – sind in [Moderne Java Features – Records](/modern-java/records) erklärt; hier geht es um die Feinheiten.
+Bei Aufgabe 2 baust du zuerst die **Datenklassen** aus der Angabe, dann den Service, der mit ihnen rechnet. Für Daten, die sich nach dem Anlegen nicht mehr ändern, ist ein **Record** die kürzeste und sicherste Form. Die Grundlagen – Kompakt-Konstruktor, Zugriffsmethoden, wann Record und wann Klasse – sind in [Moderne Java Features – Records](/modern-java/records) erklärt; hier geht es um die Feinheiten.
 
 ## Ein Record
 

@@ -18,7 +18,7 @@ rubric:
   gut: >-
     Drei Aufgaben vollständig, eine brauchbar; eigene Tests vorhanden, Randfälle teilweise geprüft.
   sehrGut: >-
-    Alle vier Aufgaben vollständig und auf die erwarteten Ergebnisse prüfbar, inklusive
+    Alle vier Aufgaben vollständig, alle erwarteten Ergebnisse erfüllt, inklusive
     Teststrategie (good, edge, exception) und sauberer Benennung.
 ---
 
@@ -38,30 +38,30 @@ Die vollständigen Angaben mit UML-Diagrammen, Attributlisten und exakten Namen 
 Diese Seite zeigt den Rahmen: Reihenfolge, Punkte und die Kriterien je Aufgabe.
 :::
 
-## Aufgabe 1 – Autowerkstatt (17 Punkte)
+## Aufgabe A1 – Autowerkstatt (17 Punkte)
 
 Kunden mit Adresse (Value Object) und E-Mail (Rich Type) bringen Fahrzeuge (Kennzeichen als Rich
-Type, nächste HU als Datum) in die Werkstatt; Mechaniker führen Aufträge mit Betrag
+Type, nächste §57a-Begutachtung („Pickerl“) als Datum) in die Werkstatt; Mechaniker führen Aufträge mit Betrag
 (`BigDecimal`) aus. Gefordert: Basis-Mapping der Einheiten 1–10 – Spalten-Constraints, benannte
 Foreign Keys, bidirektionale Beziehungen mit Hilfsmethoden, Repositories und Lifecycle-Tests.
 
 Erwartete Ergebnisse: alles gespeichert und wiederlesbar, Constraints sichtbar in der DDL,
 Tests grün.
 
-## Aufgabe 2 – Fahrschule (17 Punkte)
+## Aufgabe A2 – Fahrschule (17 Punkte)
 
-Schüler einer Fahrschule haben eine **Führerscheinklasse (A, B, BE, C), die als Code über einen
+Fahrschülerinnen und Fahrschüler haben eine **Führerscheinklasse (A, B, BE, C), die als Code über einen
 null-sicheren `AttributeConverter` gespeichert wird** – das ist die Besonderheit dieser Aufgabe.
 Dazu Fahrlehrer, Fahrstunden als bidirektionale Beziehung und abgeleitete Queries
-(`findBy…Klasse`).
+(`findByLicenseClass`).
 
-## Aufgabe 3 – Parkhaus (17 Punkte)
+## Aufgabe B – Parkhaus (17 Punkte)
 
-Ein Business-Service ohne Datenbank: Parkscheine mit Kommen und Gehen, Gebühren nach Regeln
-(Tageshöchstbetrag, angefangene Minuten werden aufgerufen), Exception bei fehlendem Schein.
+Ein Business-Service ohne Datenbank: Parkscheine mit Ein- und Ausfahrtszeit, Gebühren nach Regeln
+(Tageshöchstbetrag, angefangene Minuten werden aufgerundet), Exception bei fehlendem Schein.
 Datenklassen als Records, eigene Testdaten, AssertJ. Wie in Aufgabe 2 der Matura: reine Logik, nur JUnit.
 
-## Aufgabe 4 – Produktkatalog (17 Punkte)
+## Aufgabe C – Produktkatalog (17 Punkte)
 
 Eine REST-API für Produkte mit Pagination und HATEOAS-Links: `GET /api/products?page=…` mit
 `Pageable`, `PagedModel`, Link auf Details; `@WebMvcTest` mit `@MockitoBean`, `@JsonTest` für die

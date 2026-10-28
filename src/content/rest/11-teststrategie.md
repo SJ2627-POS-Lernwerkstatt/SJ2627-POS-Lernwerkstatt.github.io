@@ -61,7 +61,7 @@ void verify_delete_not_found() throws Exception {
 }
 ```
 
-Der Mock **wirft** die Exception, wie es das echte Service täte. Der Test prüft, dass der Controller (bzw. der `@RestControllerAdvice`) daraus den richtigen Status und ein `ProblemDetail` macht.
+Der Mock **wirft** die Exception, wie es der echte Service täte. Der Test prüft, dass der Controller (bzw. der `@RestControllerAdvice`) daraus den richtigen Status und ein `ProblemDetail` macht.
 
 :::pruefung
 Ein Test pro Endpunkt reicht für Befriedigend. Für Sehr gut braucht jeder Endpunkt, der scheitern kann, auch einen Fehlertest. Zähle am Ende nach: Gibt es für jeden Statuscode, den deine API liefern kann, einen Test?

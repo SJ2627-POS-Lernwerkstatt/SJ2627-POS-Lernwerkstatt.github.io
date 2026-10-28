@@ -5,7 +5,7 @@ cheatsheet: 20
 status: draft
 ---
 
-In Aufgabe 3 baust du eine **RESTful API**: Endpunkte, die JSON lesen und schreiben, mit den richtigen HTTP-Methoden und Statuscodes – und Tests, die das beweisen. Das Service dahinter ist nur ein Stub; im Test ersetzt du es durch einen Mock.
+In Aufgabe 3 baust du eine **RESTful API**: Endpunkte, die JSON lesen und schreiben, mit den richtigen HTTP-Methoden und Statuscodes – und Tests, die das beweisen. Der Service dahinter ist nur ein Stub; im Test ersetzt du ihn durch einen Mock.
 
 ## Ressourcen und Pfade
 

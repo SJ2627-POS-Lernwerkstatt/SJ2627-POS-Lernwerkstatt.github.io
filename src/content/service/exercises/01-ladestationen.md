@@ -21,7 +21,7 @@ rubric:
     parametrisierten Tests.
 ---
 
-Ein Verbund von Ladestationen für E-Autos rechnet seine Ladevorgänge ab. Du schreibst das Service, das für einen Betreiber den Umsatz und für eine Station die geladene Energie berechnet.
+Ein Verbund von Ladestationen für E-Autos rechnet seine Ladevorgänge ab. Du schreibst den Service, der für einen Betreiber den Umsatz und für eine Station die geladene Energie berechnet.
 
 Du brauchst dafür die Einheiten 1–6 im Modul Service-Schicht. Die Aufgabe hat die Größe von Aufgabe 2 der Matura: ohne Datenbank, ohne REST, nur Java und Tests.
 
@@ -61,7 +61,7 @@ ChargingSession ..> ChargingStation : stationId
 - Wer länger als **240 Minuten** an der Station steht, zahlt eine Blockiergebühr: **10 Cent pro angefangener Minute** danach, höchstens **12 €** pro Ladevorgang.
 - Der Preis eines Ladevorgangs ist Energiepreis plus Blockiergebühr. Alle Beträge in Cent.
 
-## Das Service (Pseudocode)
+## Der Service (Pseudocode)
 
 ```text
 klasse ChargingBillingService {
@@ -76,13 +76,13 @@ klasse ChargingBillingService {
 }
 ```
 
-Gibt es eine Station mit der angegebenen Id nicht – als Parameter oder in einem Ladevorgang –, wirft das Service eine `UnknownStationException`. Ungültige Daten (Ende vor Beginn, negative Energie, Leistung ≤ 0) werden schon beim Erzeugen der Datenklassen mit einer `IllegalArgumentException` abgelehnt.
+Gibt es eine Station mit der angegebenen Id nicht – als Parameter oder in einem Ladevorgang –, wirft der Service eine `UnknownStationException`. Ungültige Daten (Ende vor Beginn, negative Energie, Leistung ≤ 0) werden schon beim Erzeugen der Datenklassen mit einer `IllegalArgumentException` abgelehnt.
 
-Lege die Datenklassen im Package `businessservice.model` und das Service in `businessservice.service` an.
+Lege die Datenklassen im Package `businessservice.model` und den Service in `businessservice.service` an.
 
 ## Tests
 
-Stelle durch Tests sicher, dass jede Regel richtig umgesetzt ist – auch an ihren Grenzen (genau 2 Minuten, genau 22 kW, genau 240 Minuten, genau 12 €) – und dass das Service nur die Ladevorgänge des richtigen Betreibers bzw. der richtigen Station berücksichtigt.
+Stelle durch Tests sicher, dass jede Regel richtig umgesetzt ist – auch an ihren Grenzen (genau 2 Minuten, genau 22 kW, genau 240 Minuten, genau 12 €) – und dass der Service nur die Ladevorgänge des richtigen Betreibers bzw. der richtigen Station berücksichtigt.
 
 :::pruefung
 Bei jedem Push läuft `./gradlew test`. Ob deine Tests grün sind, siehst du im Repository; die Beurteilung macht deine Lehrkraft nach den Kriterien unten.

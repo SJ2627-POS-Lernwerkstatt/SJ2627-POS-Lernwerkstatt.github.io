@@ -30,7 +30,7 @@ public class BookController {
 - `@RestController` = `@Controller` + `@ResponseBody`: Was eine Methode zurückgibt, wird als JSON in den Body geschrieben.
 - `@RequestMapping("/api/books")` an der Klasse ist der gemeinsame Pfad aller Endpunkte. Die Angabe nennt ihn („Alle Endpunkte unter `/api/recipes`“).
 - `@GetMapping` ohne Pfad heißt: `GET /api/books`.
-- Das Service kommt über den Konstruktor (wie in der Service-Schicht, Einheit 9).
+- Der Service kommt über den Konstruktor (wie in der Service-Schicht, Einheit 9).
 
 ## `ResponseEntity`: Status und Header selbst bestimmen
 
@@ -54,10 +54,10 @@ public ResponseEntity<BookDto> findByIsbn(@PathVariable String isbn) {
 | `ResponseEntity.badRequest().build()` | `400` ohne Body |
 | `ResponseEntity.status(HttpStatus.CONFLICT).body(...)` | beliebiger Status |
 
-`Optional.map(ResponseEntity::ok).orElse(notFound)` ist das übliche Muster, wenn das Service ein `Optional` liefert.
+`Optional.map(ResponseEntity::ok).orElse(notFound)` ist das übliche Muster, wenn der Service ein `Optional` liefert.
 
-:::achtung Das Service ist ein Stub
-In der Prüfung gibt es kein echtes Service. Lege eine Klasse mit `@Service` an, deren Methoden leere Ergebnisse liefern. Mit `@Service` startet der Spring-Kontext, und der Test `contextLoads` aus dem Seed-Projekt läuft weiter. In den Controller-Tests ersetzt du das Service durch einen Mock (Einheit 9).
+:::achtung Der Service ist ein Stub
+In der Prüfung gibt es keinen echten Service. Lege eine Klasse mit `@Service` an, deren Methoden leere Ergebnisse liefern. Mit `@Service` startet der Spring-Kontext, und der Test `contextLoads` aus dem Seed-Projekt läuft weiter. In den Controller-Tests ersetzt du den Service durch einen Mock (Einheit 9).
 :::
 
 ```java
@@ -77,5 +77,5 @@ public class BookService {
 :::merke
 - `@RestController` + `@RequestMapping` an der Klasse, `@GetMapping` usw. an den Methoden.
 - Rückgabe eines Objekts = `200` mit JSON. Für alles andere `ResponseEntity`.
-- Das Service ist ein `@Service`-Stub mit leeren Ergebnissen.
+- Der Service ist ein `@Service`-Stub mit leeren Ergebnissen.
 :::

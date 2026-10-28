@@ -56,7 +56,7 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 4. Phase D1 after the review.
 5. Phase E – Probeprüfungen: E1+E2 done (pp-a-01..04 published). Next E3 (medium Angaben pp-bc-…;
    plan says 4, site has 5 medium pages 5–9 – decide), E4 (Seed 2× ORM, full exams), E5 (review).
-6. Language pass on modern-java and pruefungen (findings from 2026-10-28, see session notes) – apply after your OK.
+6. Language pass on modern-java and pruefungen done (2026-10-28). Conventions: „der Service“ (course-wide, 95 places changed), English identifiers in all exams (10–13 renamed), exam tasks labelled A1/A2/B/C (medium exams B/C), quotes „…“.
 
 ### Verified facts for JPA (Hibernate 7.4.5, H2, Spring Boot 4.1.1)
 

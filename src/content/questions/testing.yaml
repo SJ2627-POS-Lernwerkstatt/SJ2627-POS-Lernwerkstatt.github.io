@@ -671,7 +671,7 @@
       Die `MockitoExtension` meldet jedes Stubbing, das im Test nicht verwendet wurde. Lösch die Zeile – oder überleg, ob der Test eigentlich etwas anderes prüfen sollte.
   followUps:
     - kind: single
-      prompt: Wie ersetzt du das Service in einem `@WebMvcTest` (Aufgabe 3) durch einen Mock?
+      prompt: Wie ersetzt du den Service in einem `@WebMvcTest` (Aufgabe 3) durch einen Mock?
       options:
         - "`@Mock`"
         - "`@MockitoBean`"

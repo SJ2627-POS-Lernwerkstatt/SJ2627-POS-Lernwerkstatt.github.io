@@ -24,7 +24,7 @@ rubric:
 ---
 
 Eine kleine Probeprüfung, **eine OR-Mapping-Aufgabe, 90 Minuten, 17 Punkte**, automatisch
-bewertet. Die Besonderheit dieser Prüfung: ein **Enum, der als Code gespeichert wird**, und eine
+bewertet. Die Besonderheit dieser Prüfung: ein **Enum, das als Code gespeichert wird**, und eine
 **eingebettete Sammlung von Wertobjekten**. Du brauchst die Einheiten 1–13 aus dem JPA-Modul
 (insbesondere 12 OneToOne, 13 ElementCollection). Der Ablauf steht in
 [So läuft eine Probeprüfung](/pruefungen/ablauf).
@@ -32,8 +32,8 @@ bewertet. Die Besonderheit dieser Prüfung: ein **Enum, der als Code gespeichert
 ## Aufgabe 1 – Tiere, Boxen und Impfungen (17 Punkte)
 
 Ein Tierheim vermittelt Tiere. Jedes Tier hat einen Namen, ein Ankunftsdatum und eine Art.
-Jede **Box** hat eine Nummer und eine Beschreibung; ein Tier bewohnt höchstens eine Box –
-jeweils **genau eins pro Box**. Zu jedem Tier führt das Tierheim ein **Impf-Heft**: eine
+Jede **Box** hat eine Nummer und eine Beschreibung; ein Tier bewohnt höchstens eine Box, und
+in jeder Box wohnt **höchstens ein Tier**. Zu jedem Tier führt das Tierheim einen **Impfpass**: eine
 Sammlung von Einträgen mit Datum und Präparat.
 
 ```plantuml
@@ -71,7 +71,7 @@ Animal --> Species
 ```
 
 Regeln: `name` höchstens 60 Zeichen, `description` höchstens 120, `product` höchstens 60.
-Die Tier-Box-Beziehung ist **ein-seitig**: nur `Animal` kennt die Box; eine Box kann auch
+Die Tier-Box-Beziehung ist **einseitig**: nur `Animal` kennt die Box; eine Box kann auch
 ohne Tier existieren.
 Die **Art wird als Code gespeichert**: `Species` ist ein Enum mit `KATZE("K")`, `HUND("H")`,
 `MEERSCHWEINCHEN("M")`, `String getCode()` und `static Species fromCode(String)`
@@ -80,7 +80,7 @@ Die **Art wird als Code gespeichert**: `Species` ist ein Enum mit `KATZE("K")`, 
 Richtungen null-sicher**. Die Spalte `species` hat Länge 1.
 
 `Vaccination` ist ein **Record** mit den Komponenten `date` und `product`, als
-`@ElementCollection` in der Tabelle **`animal_vaccinations`** (Fremdspalte `animal_id`) – ohne
+`@ElementCollection` in der Tabelle **`animal_vaccinations`** (Fremdschlüsselspalte `animal_id`) – ohne
 eigene Entity und ohne eigenes Repository.
 
 Die Tier-Box-Beziehung: `@OneToOne` auf der `Animal`-Seite, Spalte `kennel_id`, Fremdschlüssel
@@ -99,12 +99,12 @@ eine **unveränderliche** Liste.
 ## Tests
 
 Ein `@DataJpaTest` pro Repository, der Speichern und Wiederlesen prüft. Die Bewertungstests
-prüfen zusätzlich: Codes in der Datenbank, null-sicherer Converter, Nummer eindeutig,
+prüfen zusätzlich: Codes in der Datenbank, null-sicherer Converter, eindeutige Boxnummer,
 Tabelle `animal_vaccinations`, benannter Fremdschlüssel, unveränderliche Impf-Liste.
 
 :::pruefung
-Erwartete Ergebnisse: Alle vier Klassen (Enum, Converter, Entity mit Collection-Table und
-One-to-one) korrekt abgebildet; die Box ist ohne Tier beschreibbar, das Tier auch ohne Box.
+Erwartete Ergebnisse: Alle Klassen (`Species`, `SpeciesConverter`, `Animal` mit Collection-Table,
+`Kennel`, `Vaccination`) korrekt abgebildet; die Box lässt sich ohne Tier speichern, das Tier auch ohne Box.
 Wer die Impfungen als eigene Entity statt `@ElementCollection` anlegt, verfehlt die
 erwarteten Ergebnisse dieser Angabe.
 :::

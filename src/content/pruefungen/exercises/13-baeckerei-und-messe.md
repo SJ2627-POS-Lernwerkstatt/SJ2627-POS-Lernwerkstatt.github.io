@@ -16,7 +16,7 @@ rubric:
   gut: >-
     Drei vollständig, eine brauchbar; m:n-Lifecycle und Teststrategie teilweise ungenau.
   sehrGut: >-
-    Vollständig und prüfbar: Join-Table gepflegt, Projektion als Record, Aggregate korrekt
+    Vollständig und prüfbar: Join-Tabelle gepflegt, Projektion als Record, Aggregate korrekt
     typisiert.
 ---
 
@@ -25,32 +25,32 @@ Vorgehen: [So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 | Aufgabe | Thema | Punkte | Zeit |
 |---|---|---|---|
-| 1 | OR-Mapping: Bäckereikette | 17 | 70 min |
-| 2 | OR-Mapping: Messe (m:n + Projektionen) | 17 | 80 min |
-| 3 | Business-Service: Bonusprogramm | 17 | 75 min |
-| 4 | REST-API: Sensorwerte | 17 | 75 min |
+| A1 | OR-Mapping: Bäckereikette | 17 | 70 min |
+| A2 | OR-Mapping: Messe (m:n + Projektionen) | 17 | 80 min |
+| B | Business-Service: Bonusprogramm | 17 | 75 min |
+| C | REST-API: Sensorwerte | 17 | 75 min |
 
 :::achtung Entwurf
-Die vollständigen Angaben mit UML-Diagrammen kommen in Phase E4. Aufgabe 3 und 4 sind die
-Themen der mittleren Probeprüfungen 8 und 7 – in neuer Paarung.
+Die vollständigen Angaben mit UML-Diagrammen kommen in Phase E4. Die Aufgaben B und C
+behandeln die Themen der mittleren Probeprüfungen 8 und 7 – in neuer Paarung.
 :::
 
-## Aufgabe 1 – Bäckereikette (17 Punkte)
+## Aufgabe A1 – Bäckereikette (17 Punkte)
 
-Filialen (Adresse VO, Eröffnungsdatum) verkaufen Produkte (Name unique, Preis
+Filialen (Adresse VO, Eröffnungsdatum) verkaufen Produkte (Name eindeutig, Preis
 `BigDecimal(6,2)`); Bestellungen (Bestelldatum, Abholzeit, Kundenname, `@ManyToOne` Filiale mit
-benanntem FK `fk_bestellung_filiale`) enthalten Positionen (Anzahl, Einzelpreis, `@ManyToOne`
+benanntem FK `fk_customer_order_branch`; Entity `CustomerOrder`, weil `order` in H2 reserviert ist) enthalten Positionen (Anzahl, Einzelpreis, `@ManyToOne`
 Produkt) als bidirektionale **Komposition** von der Bestellung aus: `cascade = ALL`,
-`orphanRemoval = true`. Position entfernen heißt aus der Collection entfernen.
+`orphanRemoval = true`. Eine Position wird entfernt, indem man sie aus der Collection der Bestellung nimmt.
 Lifecycle-Test auch für das Löschen einer Position.
 
-## Aufgabe 2 – Messe (17 Punkte)
+## Aufgabe A2 – Messe (17 Punkte)
 
-Messen (Name, von/bis, Adresse VO Gelände) haben Hallen (`@ManyToOne` Messe, bidirektional),
-Hallen haben Aussteller (Firma, `EmailAdresse` Rich Type). **Aussteller ↔ Produkte ist
-many-to-many**: Tabelle `messe_produkte` mit Spalten `aussteller_id`/`produkt_id`,
+Messen (Name, von/bis, Gelände-Adresse als VO) haben Hallen (`@ManyToOne` Messe, bidirektional),
+Hallen haben Aussteller (Firma, `EmailAddress` Rich Type). **Aussteller ↔ Produkte ist
+eine m:n-Beziehung**: Tabelle `exhibitor_products` mit Spalten `exhibitor_id`/`product_id`,
 Hilfsmethoden auf der Ausstellerseite. Projektionen als Record:
-`record AusstellerProdukt(String firma, String produktName, String hallenBezeichnung)` per
-JPQL-Dreifach-Join; dazu `count(distinct a.halle)` über die Produkte einer Messe und die
-Lebensdauer-Tests der m:n-Beziehung (nach clear vorhanden, Lösen in eine Richtung).
-Spiegel der Struktur aus Haupttermin 2026, Aufgabe 1.
+`record ExhibitorProduct(String company, String productName, String hallName)` per
+JPQL-Dreifach-Join; dazu `count(distinct e.hall)` über die Produkte einer Messe und die
+Lifecycle-Tests der m:n-Beziehung (nach clear vorhanden, Entfernen auf einer Seite).
+Die Struktur entspricht Haupttermin 2026, Aufgabe 1.

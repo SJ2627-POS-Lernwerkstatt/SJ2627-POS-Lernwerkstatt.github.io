@@ -20,7 +20,7 @@ rubric:
     Zusätzlich sind Punkte- und Abzeichenregeln in eine eigene Klasse ausgelagert und einzeln getestet.
 ---
 
-Beim Schulsportfest kann jede Schülerin und jeder Schüler das Sportabzeichen erwerben. Du schreibst das Service, das für ein Jahr alle Ergebnisse auswertet.
+Beim Schulsportfest kann jede Schülerin und jeder Schüler das Sportabzeichen erwerben. Du schreibst den Service, der für ein Jahr alle Ergebnisse auswertet.
 
 Du brauchst dafür die Einheiten 1–8 im Modul Service-Schicht, vor allem Einheit 4 (Ergebnisse zusammenfassen) und Einheit 7 (Datenzugriff).
 
@@ -75,7 +75,7 @@ Es ist eine Datenzugriffsschnittstelle `PerformanceRepository` anzunehmen, die a
 - Alle anderen bekommen **kein** Abzeichen.
 - Ergebnisse aus anderen Jahren werden ignoriert, auch wenn das Repository sie liefert.
 
-## Das Service
+## Der Service
 
 ```text
 klasse BadgeService {

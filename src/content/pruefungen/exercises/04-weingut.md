@@ -24,14 +24,14 @@ rubric:
 
 Eine kleine Probeprüfung, **eine OR-Mapping-Aufgabe, 90 Minuten, 17 Punkte**, automatisch
 bewertet. Die Besonderheit dieser Prüfung: **JPQL-Abfragen mit Aggregaten und einer Projektion**.
-Du brauchst die Einheiten 1–8, 9 und 16–18 aus dem JPA-Modul. Der Ablauf steht in
+Du brauchst die Einheiten 1–9 und 16–18 aus dem JPA-Modul. Der Ablauf steht in
 [So läuft eine Probeprüfung](/pruefungen/ablauf).
 
 ## Aufgabe 1 – Bestand und Verkäufe (17 Punkte)
 
 Ein Weingut lagert **Weine** (Name, Jahrgang, Flaschenpreis, Bestand in Flaschen) und notiert
-**Verkäufe**: jedes Verkauf hat ein Datum, eine Flaschenzahl und den erzielten Flaschenpreis –
-und gehört genau zu einem Wein.
+**Verkäufe**: jeder Verkauf hat ein Datum, eine Flaschenzahl und den erzielten Flaschenpreis –
+und gehört zu genau einem Wein.
 
 ```plantuml
 @startuml
@@ -56,14 +56,14 @@ Wine "1" -- "0..*" Sale : sold as
 @enduml
 ```
 
-Regeln: Weinname höchstens 80 Zeichen; `pricePerBottle` bei **beiden** Entities Precision 6
+Regeln: Weinname höchstens 80 Zeichen; `pricePerBottle` bei **beiden** Entities Precision 6,
 Scale 2; Fremdschlüssel-Spalte `wine_id`, benannt `fk_sale_wine`. Der Wein wird **zuerst
-gespeichert** und ist dann bereits vorhanden, wenn der Verkauf entsteht – auf diesem
-Verweis wird nicht kaskiert.
+gespeichert** und ist dann bereits vorhanden, wenn der Verkauf entsteht – dieser
+Verweis hat keine Kaskade.
 
 ## Abfragen
 
-In `WineRepository` und `SaleRepository` (Packages wie gehabt) sind drei `@Query`-Methoden
+In `WineRepository` und `SaleRepository` (Packages wie in den anderen Probeprüfungen) sind drei `@Query`-Methoden
 gefordert – exakt diese Signaturen:
 
 ```java
@@ -83,7 +83,7 @@ Double averagePriceByVintage(@Param("vintage") int vintage);
 (`String`) und `totalValue` (`BigDecimal`).
 
 :::merke
-- `sum` über **keine Zeilen** liefert ein Objekt und das ist `null` – der Rückgabetyp `Long`
+- `sum` über **keine Zeilen** liefert `null`, nicht 0 – der Rückgabetyp `Long`
   (nicht `long`) muss das aushalten.
 - `avg` über eine leere Auswahl liefert ebenfalls `null`.
 - Zahlen aus Aggregaten: `sum(int)` → `Long`, `avg` → `Double`.
@@ -93,7 +93,7 @@ Double averagePriceByVintage(@Param("vintage") int vintage);
 
 `Wine` und `Sale` wie üblich: `AbstractPersistable<Long>`, `protected` No-Args-Konstruktor,
 öffentlicher Konstruktor ohne `id` (Wine: name, vintage, pricePerBottle, quantity; Sale: soldAt,
-bottles, pricePerBottle, wine), Getter. Je ein `@DataJpaTest`, das Speichern und Wiederlesen
+bottles, pricePerBottle, wine), Getter. Je ein `@DataJpaTest`, der Speichern und Wiederlesen
 sowie eine der Abfragen prüft. Die Bewertungstests kontrollieren zusätzlich Precision-Werte,
 Pflichtfelder, benannten Fremdschlüssel und die drei Abfragen gegen bekannte Beispieldaten.
 

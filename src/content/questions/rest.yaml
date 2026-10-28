@@ -190,7 +190,7 @@
   unit: rest/fehlerbehandlung
   main:
     kind: single
-    prompt: Das Service wirft `BookNotFoundException`. Wie wird daraus in allen Controllern `404`?
+    prompt: Der Service wirft `BookNotFoundException`. Wie wird daraus in allen Controllern `404`?
     options:
       - "Ein `@RestControllerAdvice` mit `@ExceptionHandler(BookNotFoundException.class)`, der ein `ProblemDetail` mit 404 liefert"
       - "In jeder Controller-Methode `try … catch`"
@@ -300,7 +300,7 @@
   unit: rest/webmvctest
   main:
     kind: single
-    prompt: Womit ersetzt du das Service in einem `@WebMvcTest`?
+    prompt: Womit ersetzt du den Service in einem `@WebMvcTest`?
     options:
       - "`@MockitoBean private BookService bookService;`"
       - "`@Mock private BookService bookService;`"
@@ -319,7 +319,7 @@
         - Die Datenbank
       answer: [0, 1, 2]
       explanation: |
-        Nur die Web-Schicht. Das Service kommt als `@MockitoBean`, eine Datenbank gibt es nicht.
+        Nur die Web-Schicht. Der Service kommt als `@MockitoBean`, eine Datenbank gibt es nicht.
 
 - id: rest-mockmvc-expect
   unit: rest/mockmvc
@@ -335,7 +335,7 @@
       `$` ist das ganze JSON, `hasSize` kommt aus Hamcrest.
   followUps:
     - kind: single
-      prompt: "Ein Test schickt ungültige Daten. Wie beweist er, dass das Service gar nicht aufgerufen wurde?"
+      prompt: "Ein Test schickt ungültige Daten. Wie beweist er, dass der Service gar nicht aufgerufen wurde?"
       options:
         - "`verifyNoInteractions(bookService)`"
         - "`verify(bookService).create(any())`"
@@ -361,7 +361,7 @@
     options:
       - Ein Autor ohne Bücher → `200` mit `[]`
       - Ein Autor mit zwei Büchern → `200` mit zwei Einträgen
-      - Das Service wirft eine Exception → Fehlerstatus
+      - Der Service wirft eine Exception → Fehlerstatus
     answer: 0
     explanation: |
       Der normale Fall ist ein Good Case, die Exception ein Exception Case. Eine leere Liste liegt am Rand.

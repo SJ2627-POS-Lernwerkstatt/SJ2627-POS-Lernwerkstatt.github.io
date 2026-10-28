@@ -5,7 +5,7 @@ cheatsheet: 22
 status: draft
 ---
 
-Ein Controller-Test braucht weder Datenbank noch echtes Service. **`@WebMvcTest`** startet nur die Web-Schicht: Controller, `@RestControllerAdvice`, Jackson, Validierung. Das Service ersetzt ein Mock.
+Ein Controller-Test braucht weder Datenbank noch einen echten Service. **`@WebMvcTest`** startet nur die Web-Schicht: Controller, `@RestControllerAdvice`, Jackson, Validierung. Den Service ersetzt ein Mock.
 
 ## Der Aufbau
 
@@ -58,10 +58,10 @@ Für `void`-Methoden wie `delete` heißt es `doThrow(…).when(mock).methode(…
 | JSON lesen und schreiben | ja |
 | `@Valid` | ja |
 | `@RestControllerAdvice` | ja |
-| Service-Logik | nein – das Service ist ein Mock |
+| Service-Logik | nein – der Service ist ein Mock |
 
 :::merke
-- `@WebMvcTest(Controller.class)` + `@MockitoBean` für das Service.
+- `@WebMvcTest(Controller.class)` + `@MockitoBean` für den Service.
 - `MockMvc` und `ObjectMapper` mit `@Autowired`.
 - Mockito wie gewohnt: `when … thenReturn`, `doThrow … when`, `verify`.
 :::

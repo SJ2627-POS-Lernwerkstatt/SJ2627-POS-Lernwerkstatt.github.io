@@ -6,7 +6,7 @@ status: draft
 
 „Es ist eine Datenzugriffsschnittstelle anzunehmen, welche das gegebene Modell zur Verarbeitung zurückliefert. Die Datenzugriffsklassen sollen in den Tests gemockt oder durch Stubs ersetzt werden.“
 
-Das Service holt sich seine Daten dann nicht über den Konstruktor, sondern über ein **Interface**. Eine Implementierung mit Datenbank gibt es nicht – du brauchst sie auch nicht.
+Der Service holt sich seine Daten dann nicht über den Konstruktor, sondern über ein **Interface**. Eine Implementierung mit Datenbank gibt es nicht – du brauchst sie auch nicht.
 
 ## Das Interface
 
@@ -21,7 +21,7 @@ public interface LoanRepository {
 }
 ```
 
-Das Service bekommt das Interface im Konstruktor:
+Der Service bekommt das Interface im Konstruktor:
 
 ```java
 public class FeeReportService {
@@ -42,7 +42,7 @@ public class FeeReportService {
 }
 ```
 
-Das Service weiß nicht, woher die Daten kommen. Genau das macht es testbar.
+Der Service weiß nicht, woher die Daten kommen. Genau das macht ihn testbar.
 
 ## Variante 1: ein Stub
 
@@ -100,7 +100,7 @@ class FeeReportServiceTest {
 Beides erfüllt die Angabe. Mit Mockito bist du meist schneller.
 
 :::achtung Strikte Stubs
-`MockitoExtension` meldet ein `when(…)`, das im Test nie gebraucht wird, als `UnnecessaryStubbingException`. Lege nur fest, was das Service wirklich aufruft.
+`MockitoExtension` meldet ein `when(…)`, das im Test nie gebraucht wird, als `UnnecessaryStubbingException`. Lege nur fest, was der Service wirklich aufruft.
 :::
 
 :::merke

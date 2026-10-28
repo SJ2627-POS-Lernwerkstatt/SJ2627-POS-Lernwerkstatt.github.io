@@ -4,7 +4,7 @@ minutes: 8
 status: draft
 ---
 
-Was soll das Service tun, wenn die Eingabe keinen Sinn ergibt? Die Angabe sagt es nicht immer – aber eine gute Lösung entscheidet es und testet es.
+Was soll der Service tun, wenn die Eingabe keinen Sinn ergibt? Die Angabe sagt es nicht immer – aber eine gute Lösung entscheidet es und testet es.
 
 ## Ungültige Argumente
 
@@ -33,7 +33,7 @@ public record Loan(Member member, Book book, LocalDate borrowedOn, LocalDate ret
 | Ein Wert ist unsinnig (negativ, Ende vor Anfang) | `IllegalArgumentException` |
 | Etwas Gesuchtes gibt es nicht | eigene Exception, z. B. `MemberNotFoundException` |
 
-Prüfst du im kompakten Konstruktor des Records, kann es ein ungültiges Objekt gar nicht geben – das Service muss sich dann nicht mehr darum kümmern.
+Prüfst du im kompakten Konstruktor des Records, kann es ein ungültiges Objekt gar nicht geben – der Service muss sich dann nicht mehr darum kümmern.
 
 ## Eine eigene Exception
 

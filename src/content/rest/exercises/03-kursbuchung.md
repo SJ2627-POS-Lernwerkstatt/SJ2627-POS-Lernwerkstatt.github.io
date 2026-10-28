@@ -27,7 +27,7 @@ Eine Volkshochschule bietet Kurse an, für die man sich online anmeldet. Baue di
 
 Du brauchst dafür das ganze Modul REST-Controller, vor allem die Einheiten 6, 7, 8 und 15.
 
-Alle Endpunkte liegen unter **`/api/courses`**. Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, das Service und die Datenklassen nach `restfulapi.service`.
+Alle Endpunkte liegen unter **`/api/courses`**. Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, der Service und die Datenklassen nach `restfulapi.service`.
 
 ## Schnittstellenobjekte
 
@@ -89,7 +89,7 @@ Lehnt die API eine Eingabe ab, nennt die Antwort **jedes** fehlerhafte Feld, bei
 
 ## Konflikte
 
-Das Service (ein `@Service`-Stub) meldet mit eigenen Exceptions:
+Der Service (ein `@Service`-Stub) meldet mit eigenen Exceptions:
 
 | Situation | Status |
 |---|---|

@@ -4,7 +4,7 @@ minutes: 8
 status: draft
 ---
 
-Methoden, die nichts finden, geben `null` zurück – und der Aufrufer vergisst die Prüfung: `NullPointerException`. Ein **`Optional<T>`** ist eine Schachtel, die entweder genau einen Wert enthält oder leer ist. Der Compiler zwingt dich, beide Fälle hinzuschreiben.
+Geben Methoden, die nichts finden, `null` zurück, vergisst der Aufrufer leicht die Prüfung – und es kracht mit einer `NullPointerException`. Ein **`Optional<T>`** ist eine Schachtel, die entweder genau einen Wert enthält oder leer ist. Schon die Signatur zeigt, dass der Wert fehlen kann.
 
 ## Erzeugen
 
@@ -14,16 +14,16 @@ Optional<String> b = Optional.ofNullable(maybeNull);  // Wert oder leer
 Optional<String> c = Optional.empty();                // bewusst leer
 ```
 
-`Optional.of(null)` wirft sofort `NullPointerException` – Absicherung wäre es nicht. Für Werte, die `null` sein können, nimm `ofNullable`.
+`Optional.of(null)` wirft sofort eine `NullPointerException` – `of` ist also nur für Werte gedacht, die sicher nicht `null` sind. Für Werte, die `null` sein können, nimm `ofNullable`.
 
 ## Benutzen
 
-Der Inhalt kommt so heraus, dass der leere Fall **bewusst** behandelt wird:
+Beim Herausholen behandelst du den leeren Fall immer **bewusst** mit:
 
 ```java
 Optional<String> opt = findUserEmail(42);
 
-opt.ifPresent(email -> System.out.println(email));   // nur wenn was drin ist
+opt.ifPresent(email -> System.out.println(email));   // nur wenn etwas drin ist
 
 var e1 = opt.orElse("default@example.com");          // Ausweichwert
 var e2 = opt.orElseGet(() -> generateDefault());     // Ausweich-Logik nur im leeren Fall
@@ -53,7 +53,7 @@ Der leere Fall wandert einfach durch – kein Verschachteln von `if`.
 ## Best Practices
 
 :::merke
-- `Optional` ist ein **Rückgabetyp**: „das Finden kann daneben gehen" steht in der Signatur.
+- `Optional` ist ein **Rückgabetyp**: „die Suche kann scheitern“ steht in der Signatur.
 - Nicht als Feld, nicht als Methodenparameter, nicht zum Serialisieren – dort ist es nur eine teure Schachtel um `null`.
 - Werte eher umwandeln (`map`, `filter`) als auspacken (`get`).
 :::

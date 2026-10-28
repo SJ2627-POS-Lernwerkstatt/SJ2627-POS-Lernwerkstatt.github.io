@@ -76,7 +76,7 @@ public ResponseEntity<RecipeViewDto> create(@Valid @RequestBody RecipeCreateCmd 
 
 ## Wenn es die Ressource schon gibt
 
-Legt der Client ein Buch mit einer ISBN an, die es schon gibt, wirft das Service eine `BookAlreadyExistsException`. Der Controller (oder ein `@RestControllerAdvice`, Einheit 7) macht daraus `409 Conflict`.
+Legt der Client ein Buch mit einer ISBN an, die es schon gibt, wirft der Service eine `BookAlreadyExistsException`. Der Controller (oder ein `@RestControllerAdvice`, Einheit 7) macht daraus `409 Conflict`.
 
 :::merke
 - `@PostMapping` + `@Valid @RequestBody` mit einem Command (`…Cmd`), zurück ein `…Dto`.

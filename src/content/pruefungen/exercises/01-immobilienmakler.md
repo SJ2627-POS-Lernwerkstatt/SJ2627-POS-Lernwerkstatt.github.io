@@ -20,7 +20,7 @@ rubric:
     Mapping und Constraints sind korrekt, die eigenen Lifecycle-Tests laufen; einzelne
     Detailpunkte (Spaltennamen, Benennungen, Hilfsmethoden) fehlen noch.
   sehrGut: >-
-    Alles stimmt bis auf die letzten Details: benannte Constraints, abgeleitete Query,
+    Alles stimmt bis ins letzte Detail: benannte Constraints, abgeleitete Query,
     gekapselte Listen – alle Bewertungstests grün.
 ---
 
@@ -31,8 +31,8 @@ aus dem JPA-Modul. Der Ablauf steht in [So läuft eine Probeprüfung](/pruefunge
 ## Aufgabe 1 – Ein Maklermodell in die Datenbank (17 Punkte)
 
 Ein Immobilienmakler verwaltet **Objekte** und **Interessenten**. Zu jedem Objekt gehören eine
-Lage (Value Object), eine Fläche und ein Kaufpreis. Interessenten melden sich mit einer E-Mail-
-Adresse (Rich Type). Jede **Besichtigung** gehört genau zu einem Objekt und genau zu einem
+Lage (Value Object), eine Fläche und ein Kaufpreis. Interessenten melden sich mit einer
+E-Mail-Adresse (Rich Type). Jede **Besichtigung** gehört zu genau einem Objekt und genau einem
 Interessenten.
 
 ```plantuml
@@ -74,9 +74,9 @@ Buyer "1" -- "0..*" Viewing : wants
 @enduml
 ```
 
-Die Spalten gelten diese Regeln – wie in den Einheiten: `title` höchstens 80 Zeichen;
+Für die Spalten gelten diese Regeln: `title` höchstens 80 Zeichen;
 `areaSqm` Precision 6, Scale 2 (Fläche in m²); `price` Precision 10, Scale 2;
-die Lage wird als **embedded** in denselben Spalten wie das Objekt gespeichert (`street`
+die Lage wird **eingebettet** (`@Embedded`) in der Tabelle des Objekts gespeichert (`street`
 höchstens 60, `zip` höchstens 5, `city` höchstens 40 Zeichen, alle Pflicht);
 `name` höchstens 80; `email` wird über einen **null-sicheren `AttributeConverter`** als String
 mit höchstens 120 Zeichen gespeichert und ist eindeutig; `note` höchstens 200 Zeichen.
@@ -90,14 +90,14 @@ Lege alle Klassen im Package `ormapping.model` an, die Repositories in `ormappin
 `Address` und `EmailAddress` sind **Records**; `EmailAddress` hat die Komponente `value` und
 einen Converter `EmailAddressConverter` mit `@Converter(autoApply = true)`.
 Jedes Entity erbt von `AbstractPersistable<Long>` und hat einen `protected` No-Args-Konstruktor,
-einen öffentlichen Konstruktor ohne `id` (Attribute in Reihenfolge des Diagramms) und Getter.
+einen öffentlichen Konstruktor ohne `id` (Attribute in der Reihenfolge des Diagramms) und Getter.
 
-Hilfsmethoden für die Beziehungen – beide setzen **immer beide Seiten**:
+Hilfsmethoden für die Beziehungen – alle setzen **immer beide Seiten**:
 
 - `Property.addViewing(Viewing v)` / `removeViewing`, `Buyer.addViewing(Viewing v)` / `removeViewing`
 - `getViewings()` bei Property und Buyer: gekapselte (unveränderliche) Liste
-- Gespeichert wird über die Property: sie kaskiert `PERSIST` auf ihre Viewings. Der Buyer wird
-  **zuerst gespeichert** und dann dem Viewing zugeordnet – ein Viewing ohne Buyer und ohne
+- Gespeichert wird über die Property: sie kaskadiert `PERSIST` auf ihre Viewings. Der Buyer wird
+  **zuerst gespeichert** und dann dem Viewing zugeordnet – ein Viewing ohne Buyer oder ohne
   Property kann nicht gespeichert werden.
 
 Dazu eine abgeleitete Query in `PropertyRepository`:

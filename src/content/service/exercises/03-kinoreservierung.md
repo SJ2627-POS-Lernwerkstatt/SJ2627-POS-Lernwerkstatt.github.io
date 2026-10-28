@@ -22,7 +22,7 @@ rubric:
     und dass bei einem Fehler nichts gespeichert wird.
 ---
 
-Ein Kino nimmt Reservierungen online an. Du schreibst das Service dahinter, so wie es später ein REST-Controller (Aufgabe 3) verwendet.
+Ein Kino nimmt Reservierungen online an. Du schreibst den Service dahinter, so wie ihn später ein REST-Controller (Aufgabe 3) verwendet.
 
 Du brauchst dafür das ganze Modul Service-Schicht, vor allem die Einheiten 9 und 10.
 
@@ -65,7 +65,7 @@ Reservation ..> Screening : screeningId
 
 `save` liefert die gespeicherte Reservierung mit vergebener Id zurück; eine neue Reservierung hat noch keine Id (`null`).
 
-## Das Service
+## Der Service
 
 ```text
 @Service klasse ReservationService {
@@ -85,7 +85,7 @@ Reservation ..> Screening : screeningId
 ## Regeln
 
 - Eine Reservierung umfasst **1 bis 8** Plätze, und der Kunde darf nicht leer sein (Leerzeichen am Rand werden entfernt) – sonst `IllegalArgumentException`.
-- Reservieren ist bis **31 Minuten** vor Beginn möglich; ab 30 Minuten vor Beginn wirft das Service eine `ReservationClosedException`.
+- Reservieren ist bis **31 Minuten** vor Beginn möglich; ab 30 Minuten vor Beginn wirft der Service eine `ReservationClosedException`.
 - Es dürfen nicht mehr Plätze reserviert werden, als frei sind – sonst `NotEnoughSeatsException` mit einer Nachricht wie `requested 4 seats, only 3 free`.
 - Stornieren ist bis **mehr als 2 Stunden** vor Beginn möglich, danach `ReservationClosedException`.
 - Unbekannte Vorstellungen oder Reservierungen: `ScreeningNotFoundException` bzw. `ReservationNotFoundException`.
@@ -97,7 +97,7 @@ Reservation ..> Screening : screeningId
 
 ## Tests
 
-Teste das Service mit `@ExtendWith(MockitoExtension.class)` und Mocks für beide Repositories: gute Fälle, Randfälle (die letzten freien Plätze, die Zeitgrenzen) und jeden Fehlerfall. Prüfe mit `verify`, was gespeichert oder gelöscht wird.
+Teste den Service mit `@ExtendWith(MockitoExtension.class)` und Mocks für beide Repositories: gute Fälle, Randfälle (die letzten freien Plätze, die Zeitgrenzen) und jeden Fehlerfall. Prüfe mit `verify`, was gespeichert oder gelöscht wird.
 
 :::pruefung
 Bei jedem Push läuft `./gradlew test`. Ob deine Tests grün sind, siehst du im Repository; die Beurteilung macht deine Lehrkraft nach den Kriterien unten.

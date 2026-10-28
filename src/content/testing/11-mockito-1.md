@@ -96,7 +96,7 @@ Die `MockitoExtension` ist **streng**: Legst du mit `when(...)` ein Verhalten fe
 
 ## Mockito in Spring-Tests
 
-Bei Aufgabe 3 testest du einen REST-Controller mit `@WebMvcTest`. Dort ersetzt du das Service nicht mit `@Mock`, sondern mit **`@MockitoBean`** – das legt den Mock als Bean in den Spring-Kontext. `when … thenReturn` funktioniert genau gleich. Mehr dazu im Modul REST-Controller.
+Bei Aufgabe 3 testest du einen REST-Controller mit `@WebMvcTest`. Dort ersetzt du den Service nicht mit `@Mock`, sondern mit **`@MockitoBean`** – das legt den Mock als Bean in den Spring-Kontext. `when … thenReturn` funktioniert genau gleich. Mehr dazu im Modul REST-Controller.
 
 :::merke
 - `@ExtendWith(MockitoExtension.class)`, `@Mock` für Abhängigkeiten, `@InjectMocks` für das getestete Objekt.

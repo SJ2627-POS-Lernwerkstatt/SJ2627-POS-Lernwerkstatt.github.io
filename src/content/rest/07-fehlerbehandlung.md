@@ -5,7 +5,7 @@ cheatsheet: 22
 status: draft
 ---
 
-Das Service wirft Exceptions wie `BookNotFoundException`. Ohne Behandlung antwortet Spring mit `500` – das ist für die Beurteilung „Exceptions werden nicht korrekt behandelt“. Ein **`@RestControllerAdvice`** übersetzt jede Exception an einer Stelle in den passenden Statuscode.
+Der Service wirft Exceptions wie `BookNotFoundException`. Ohne Behandlung antwortet Spring mit `500` – das ist für die Beurteilung „Exceptions werden nicht korrekt behandelt“. Ein **`@RestControllerAdvice`** übersetzt jede Exception an einer Stelle in den passenden Statuscode.
 
 ## `ProblemDetail`
 

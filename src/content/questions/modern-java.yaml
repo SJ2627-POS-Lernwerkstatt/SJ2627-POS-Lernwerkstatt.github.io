@@ -10,14 +10,14 @@
       - "Nur in Schleifen"
     answer: 0
     explanation: |
-      `var` leitet den Typ vom Startwert ab. Sinnvoll ist es, wenn der Typ rechts dasteht (`new …`, Literale).
+      `var` leitet den Typ aus dem Startwert ab. Sinnvoll ist es, wenn der Typ rechts dasteht (`new …`, Literale).
       Findest du den Typ nur in der Signatur einer Methode wie `liesDaten()`, verdeckt `var` wichtige Information.
 
 - id: modern-java-var-restrictions
   unit: modern-java/var
   main:
     kind: single
-    prompt: "Welche Deklarationen kompiliert der Compiler mit `var`?"
+    prompt: "Welche Deklarationen mit `var` kompilieren?"
     code: |
       // A
       var count = 42;
@@ -36,7 +36,7 @@
     answer: 0
     explanation: |
       `var` braucht einen Startwert, aus dem der Typ ableitbar ist – `null` allein reicht nicht
-      („Typ … kann nicht abgeleitet wird"). Erlaubt sind lokale Variablen, Schleifenvariablen und for-each-Elemente,
+      („Typ … kann nicht abgeleitet werden“). Erlaubt sind lokale Variablen, Schleifenvariablen und for-each-Elemente,
       nicht Felder, Parameter oder Rückgabetypen.
 
 - id: modern-java-var-collections
@@ -58,7 +58,7 @@
       - "var"
     explanation: |
       `new HashMap<String, List<Integer>>()` nennt den Typ rechts – der typische Fall für `var`.
-      In der for-each-Zeile steht `var entry : map.entrySet()`; der Typ `Map.Entry<String, List<Integer>>` bleibt im Kopf erhalten.
+      In der for-each-Zeile steht `var entry : map.entrySet()`; der Compiler kennt den Typ `Map.Entry<String, List<Integer>>` trotzdem.
 
 - id: modern-java-records-generated
   unit: modern-java/records
@@ -104,7 +104,7 @@
           }
       }
     options:
-      - "Eine `IllegalArgumentException` – der kompakte Konstruktor prüft vor der Anlage"
+      - "Eine `IllegalArgumentException` – der kompakte Konstruktor prüft, bevor das Objekt entsteht"
       - "Ein Objekt mit `value = 6`; die Prüfung läuft erst beim Ausgeben"
       - "Die Prüfung entfällt, weil das Feld `final` ist"
       - "Compilerfehler – Records dürfen nicht prüfen"
@@ -122,10 +122,10 @@
       - "Datenklassen mit Geschäftsregeln in Aufgabe 2"
       - "Ergebnis-Typ (DTO) für eine Query"
       - "JPA-Entity in Aufgabe 1"
-      - "Ein Zähler, den das Service hochzählt"
+      - "Ein Zähler, den der Service hochzählt"
     answer: [0, 1]
     explanation: |
-      Records sind für unveränderliche Daten. Entities braucht JPA veränderlich mit No-Args-Konstruktor –
+      Records sind für unveränderliche Daten. JPA braucht Entities veränderlich und mit No-Args-Konstruktor –
       ein `persist` auf einem Record schlägt fehl (`Can not set final …`). Veränderlicher Zustand bleibt eine normale Klasse.
 
 - id: modern-java-optional-create
@@ -140,7 +140,7 @@
       - "`new Optional(ergebnis)`"
     answer: 0
     explanation: |
-      `of` verlangt einen nicht-null-Wert und wirft sofort `NullPointerException`, wenn `null` ankommt.
+      `of` verlangt einen Wert, der nicht `null` ist, und wirft sofort `NullPointerException`, wenn `null` ankommt.
       Für alles, was fehlen darf, ist `ofNullable` da; `empty()` wäre ein leeres Optional ohne Wert.
   followUps:
     - kind: single
@@ -159,20 +159,20 @@
   unit: modern-java/optional
   main:
     kind: single
-    prompt: "`vorhanden` enthält einen Wert. Wie oft läuft `lief()` – die Methode mit der teuren Datenbankabfrage?"
+    prompt: "`vorhanden` enthält einen Wert. Wie oft läuft `loadDefault()` – die Methode mit der teuren Datenbankabfrage?"
     code: |
       var vorhanden = Optional.of("anna@example.com");
-      var a = vorhanden.orElse(lief());
-      var b = vorhanden.orElseGet(OptionalDemo::lief);
+      var a = vorhanden.orElse(loadDefault());
+      var b = vorhanden.orElseGet(OptionalDemo::loadDefault);
     options:
-      - "Einmal – `orElse` wertet seinen Startwert immer aus, `orElseGet` nur im leeren Fall"
+      - "Einmal – `orElse` wertet sein Argument immer aus, `orElseGet` nur im leeren Fall"
       - "Keinmal – in beiden Fällen ist ja ein Wert vorhanden"
-      - "Zweimal – beide Varianten rufen `lief()` auf"
+      - "Zweimal – beide Varianten rufen `loadDefault()` auf"
       - "Einmal, aber durch `orElseGet`, nicht durch `orElse`"
     answer: 0
     explanation: |
       Das Argument von `orElse` wird ausgewertet, egal ob etwas in der Schachtel ist. `orElseGet` bekommt
-      einen Supplier und ruft ihn nur, wenn das Optional leer ist – bei vorhandenen Werten bleibt die Arbeit aus.
+      einen Supplier und ruft ihn nur auf, wenn das Optional leer ist – bei vorhandenen Werten bleibt die Arbeit aus.
 
 - id: modern-java-optional-practice
   unit: modern-java/optional
@@ -198,7 +198,7 @@
         - "`students.stream().toList()`"
       answer: 0
       explanation: |
-        `findFirst` (wie `min`, `max`, `findAny`) kann nichts finden – das Ergebnis ist ein `Optional`.
+        `findFirst` (wie `min`, `max`, `findAny`) findet eventuell nichts – deshalb ist das Ergebnis ein `Optional`.
         Ausführlich ist das im [Stream-Modul](/streams/finden) erklärt.
 
 - id: modern-java-switch-arrow
@@ -225,7 +225,7 @@
     reusable:
       - "->"
     explanation: |
-      `switch` wird hier als Ausdruck verwendet und weist einem `var` einen Wert zu – deshalb braucht es
+      `switch` wird hier als Ausdruck verwendet und weist einer `var`-Variablen einen Wert zu – deshalb braucht es
       weder `break` noch `yield`. Pro Regel steht ein `->`, mehrere Fälle werden mit Komma getrennt.
 
 - id: modern-java-switch-exhaustive
@@ -244,8 +244,8 @@
       - "Weil `r` eine normale Klasse sein muss"
     answer: 0
     explanation: |
-      „Der Switch-Ausdruck deckt nicht alle möglichen Eingabewerte ab" – bei enum heißt das: alle Werte
-      durchdecken oder `default`. Ein bewusst leeres `default` passt eher, wenn nichts anderes geben kann.
+      „Der Switch-Ausdruck deckt nicht alle möglichen Eingabewerte ab“ – bei enum heißt das: alle Werte
+      abdecken oder `default`. Ein `default` passt, wenn alle übrigen Werte gleich behandelt werden.
 
 - id: modern-java-switch-sealed
   unit: modern-java/switch
@@ -271,14 +271,14 @@
     - kind: single
       prompt: "Was leistet `case null` in einem Pattern-switch?"
       options:
-        - "Der leere Fall wird Teil des Ausdrucks – keine Vorprüfung nötig"
+        - "Der `null`-Fall wird Teil des Ausdrucks – keine Vorprüfung nötig"
         - "Es verhält sich exakt wie `default`"
         - "Es erlaubt nur `null` als einzigen Fall"
         - "Es bricht bei `null` ab, ohne die restlichen Fälle zu prüfen"
       answer: 0
       explanation: |
         Seit Java 21 darf `null` ein eigener Fall sein (`case null`, oft `case null, default`).
-        Ohne `case null` wirft der switch bei `null` – wie der klassische, nur jetzt mit explizitem Ausweg.
+        Ohne `case null` wirft der switch bei `null` eine `NullPointerException` – wie der klassische; `case null` ist der ausdrückliche Ausweg.
 
 - id: modern-java-git-commit-push
   unit: modern-java/git
@@ -304,7 +304,7 @@
         - "Das Repo ist voll, Git räumt auf"
       answer: 0
       explanation: |
-        Git verbindet, was eindeutig ist. Haben beide Zweige dieselbe Zeile geändert, stoppt es und lässt dich
+        Git führt zusammen, was eindeutig ist. Haben beide Zweige dieselbe Zeile geändert, stoppt es und lässt dich
         wählen. Nichts geht verloren – es ist nur Handarbeit.
 
 - id: modern-java-git-classroom

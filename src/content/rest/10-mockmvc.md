@@ -91,7 +91,7 @@ void verify_create_invalid() throws Exception {
 ```
 
 - `verify(bookService).create(CREATE_MALINA)` beweist, dass das JSON richtig in ein `BookCreateCmd` umgewandelt wurde – Records vergleichen mit `equals`.
-- `verifyNoInteractions` beweist, dass bei ungültigen Daten das Service gar nicht aufgerufen wurde.
+- `verifyNoInteractions` beweist, dass bei ungültigen Daten der Service gar nicht aufgerufen wurde.
 
 :::merke
 - `perform(get/post/put/patch/delete(...))`, beim Body `contentType` und `content`.

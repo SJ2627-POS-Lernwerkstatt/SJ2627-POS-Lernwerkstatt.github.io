@@ -9,7 +9,7 @@ rubric:
     Alle Endpunkte liefern HAL mit den geforderten Links. Listen von Fahrrädern sind seitenweise
     abrufbar, mit Default-Werten, Sortierung und Links auf die Nachbarseiten. Ausleihen werden mit
     `201` und `Location` angelegt, Fehler mit dem passenden Status beantwortet. Die Tests prüfen Links,
-    Seitenangaben und die an das Service übergebenen `Pageable`s.
+    Seitenangaben und die an den Service übergebenen `Pageable`s.
   genuegend: >-
     Die Endpunkte liefern die Daten, aber Links oder Pagination fehlen weitgehend. Tests sind nur
     rudimentär vorhanden.
@@ -27,7 +27,7 @@ Der Fahrradverleih aus dem JPA-Modul bekommt eine REST-API. Sie liefert Fahrräd
 
 Du brauchst dafür das ganze Modul REST-Controller, vor allem die Einheiten 12–14.
 
-Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, das Service und die Datenklassen nach `restfulapi.service`.
+Controller und Fehlerbehandlung gehören ins Package `restfulapi.presentation`, der Service und die Datenklassen nach `restfulapi.service`.
 
 ## Schnittstellenobjekte
 
@@ -77,7 +77,7 @@ Das eingehende Objekt ist ein Command: `RentalCreateCmd`. Was die API zurücksch
 - Seiten haben die Links `self`, `first`, `last` und, wo es sie gibt, `prev` und `next`, dazu die Angabe `page` mit `size`, `number`, `totalElements` und `totalPages`.
 - In HAL heißen die Listen `bikes` und `stations` (nicht `bikeViewList`).
 
-## Das Service
+## Der Service
 
 Ein `BikeService` mit `@Service` als Stub. Seiten liefert es als `Page<…>`. Fehler meldet es mit eigenen Exceptions: Fahrrad, Station oder Ausleihe nicht gefunden (`404`), Fahrrad schon ausgeliehen (`409`).
 

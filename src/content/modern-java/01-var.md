@@ -5,7 +5,7 @@ cheatsheet: 2
 status: draft
 ---
 
-Seit Java 10 schreibt man `var`, wenn der Typ rechts ohnehin dasteht. Das ist **keine dynamische Typisierung**: Die Variable behält ihren Typ, `var` nimmt ihn nur vom Startwert ab.
+Seit Java 10 schreibt man `var`, wenn der Typ rechts ohnehin dasteht. Das ist **keine dynamische Typisierung**: Die Variable behält ihren Typ, `var` leitet ihn nur aus dem Startwert ab.
 
 ```java
 // mit explizitem Typ
@@ -27,7 +27,7 @@ Wo der Typ nicht sofort sichtbar ist, schreibst du ihn aus – ein `var` vor ein
 
 ## Grenzen von var
 
-`var` funktioniert **nur für lokale Variablen** – nicht für Felder, Parameter und Rückgabetypen. Außerdem muss der Startwert sofort da sein:
+`var` funktioniert **nur für lokale Variablen** – nicht für Felder, Parameter oder Rückgabetypen. Außerdem braucht die Variable sofort einen Startwert:
 
 ```java
 var count = 42;      // ok: int
@@ -37,11 +37,11 @@ var x;               // Fehler: muss initialisiert werden
 var y = null;        // Fehler: Typ für lokale Variable y kann nicht abgeleitet werden
 ```
 
-Und als Feld einer Klasse? „var ist hier nicht zulässig" – sagt der Compiler.
+Als Feld einer Klasse meldet der Compiler: „var ist hier nicht zulässig“.
 
 ## var und Collections
 
-Beim Iterieren bleibt der Code kurz, ohne dass man zweimal nachdenkt:
+Beim Iterieren erspart dir `var` lange generische Typen:
 
 ```java
 var map = new HashMap<String, List<Integer>>();
