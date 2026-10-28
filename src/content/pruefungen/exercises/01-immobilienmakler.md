@@ -2,6 +2,7 @@
 title: Probeprüfung 1 – Immobilienmakler
 minutes: 90
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-a-01-immobilienmakler/accept
 size: small
 status: draft
 rubric:

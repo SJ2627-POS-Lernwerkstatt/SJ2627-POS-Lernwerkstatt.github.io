@@ -2,6 +2,7 @@
 title: Probeprüfung 4 – Weingut
 minutes: 90
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-a-04-weingut/accept
 size: small
 status: draft
 rubric:

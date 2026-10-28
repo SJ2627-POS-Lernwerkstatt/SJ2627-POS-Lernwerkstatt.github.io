@@ -2,6 +2,7 @@
 title: Probeprüfung 3 – Sportverein
 minutes: 90
 grading: auto
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-a-03-sportverein/accept
 size: small
 status: draft
 rubric:
