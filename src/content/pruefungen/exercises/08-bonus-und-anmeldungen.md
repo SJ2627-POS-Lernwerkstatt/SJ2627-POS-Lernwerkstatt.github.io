@@ -2,6 +2,7 @@
 title: Probeprüfung 8 – Bonusprogramm und Feriencamp-Anmeldungen
 minutes: 180
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-bc-04-bonus-und-anmeldungen/accept
 size: medium
 status: draft
 rubric:

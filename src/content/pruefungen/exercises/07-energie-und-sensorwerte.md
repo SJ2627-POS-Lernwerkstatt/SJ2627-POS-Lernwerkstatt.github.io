@@ -2,6 +2,7 @@
 title: Probeprüfung 7 – Energie-Abrechnung und Sensorwerte
 minutes: 180
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-bc-03-energie-und-sensorwerte/accept
 size: medium
 status: draft
 rubric:

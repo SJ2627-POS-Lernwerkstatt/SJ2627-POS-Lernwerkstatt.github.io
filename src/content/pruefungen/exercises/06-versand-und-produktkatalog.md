@@ -2,6 +2,7 @@
 title: Probeprüfung 6 – Versandkosten und Produktkatalog
 minutes: 180
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-bc-02-versand-und-produktkatalog/accept
 size: medium
 status: draft
 rubric:

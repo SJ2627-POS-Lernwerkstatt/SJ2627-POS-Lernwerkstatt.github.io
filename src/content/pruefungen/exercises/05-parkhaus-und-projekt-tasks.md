@@ -2,6 +2,7 @@
 title: Probeprüfung 5 – Parkhaus und Projekt-Tasks
 minutes: 180
 grading: teacher
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-bc-01-parkhaus-und-projekt-tasks/accept
 size: medium
 status: draft
 rubric:
