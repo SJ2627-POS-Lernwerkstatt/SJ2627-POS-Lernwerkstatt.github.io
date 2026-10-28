@@ -41,9 +41,9 @@ Sammlung von Einträgen mit Datum und Präparat.
 hide empty methods
 
 enum Species <<Enumeration>> {
-  KATZE("K")
-  HUND("H")
-  MEERSCHWEINCHEN("M")
+  CAT("C")
+  DOG("D")
+  GUINEA_PIG("G")
 }
 
 class Vaccination <<(V) ValueObject>> {
@@ -75,8 +75,8 @@ Animal --> "1" Species : species
 Regeln: `name` höchstens 60 Zeichen, `description` höchstens 120, `product` höchstens 60.
 Die Tier-Box-Beziehung ist **einseitig**: nur `Animal` kennt die Box; eine Box kann auch
 ohne Tier existieren.
-Die **Art wird als Code gespeichert**: `Species` ist ein Enum mit `KATZE("K")`, `HUND("H")`,
-`MEERSCHWEINCHEN("M")`, `String getCode()` und `static Species fromCode(String)`
+Die **Art wird als Code gespeichert**: `Species` ist ein Enum mit `CAT("C")`, `DOG("D")`,
+`GUINEA_PIG("G")`, `String getCode()` und `static Species fromCode(String)`
 (wirft `IllegalArgumentException` für unbekannte Codes). Der `SpeciesConverter` implementiert
 `AttributeConverter<Species, String>` mit `@Converter(autoApply = true)` und ist in **beiden
 Richtungen null-sicher**. Die Spalte `species` hat Länge 1.
