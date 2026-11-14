@@ -15,6 +15,7 @@ ihn einmal durch und legst ihn bei jeder Probeprüfung neben dich.
 | Kleine Probeprüfung | 1 × OR-Mapping | ~90 min | 17 | automatisch, per Release im Repo |
 | Mittlere Probeprüfung | Service + REST | ~180 min | 2 × 17 | Feedback der Lehrkraft |
 | Volle Probeprüfung | 2 × OR-Mapping + Service + REST | 300 min | 4 × 17 | Feedback der Lehrkraft |
+| Probeprüfung vor Ort | OR-Mapping + REST, ein Szenario | 150 min | 2 × 17 | Feedback der Lehrkraft |
 
 Die volle Prüfung entspricht dem Haupttermin: **beide OR-Mapping-Aufgaben sind zu lösen**,
 die zweite bringt eine Besonderheit mit (Enum-Codes, eingebettete Sammlungen, Vererbung oder
@@ -33,6 +34,7 @@ der Nummern durch:
 | 1 bis 4 | Kleine Probeprüfung (nur JPA) | je 90 min |
 | 5 bis 8 | Mittlere Probeprüfung (Service + REST) | je 180 min |
 | 9 bis 12 | Volle Probeprüfung (beide JPA + Service + REST) | je 300 min |
+| 13 | Probeprüfung vor Ort in der Lernwerkstatt (JPA + REST) | 150 min |
 
 Die kleinen Prüfungen (1–4) üben genau den einen Teil, der bei den vollen Prüfungen am meisten
 Zeit kostet: das OR-Mapping. Die mittleren (5–8) bestehen aus den Aufgaben B und C – dieselben Themen kommen in den vollen
