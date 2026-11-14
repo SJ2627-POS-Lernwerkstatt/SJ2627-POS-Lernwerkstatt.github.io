@@ -4,6 +4,7 @@ minutes: 150
 grading: teacher
 size: medium
 status: draft
+classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/pp-ac-01-escape-rooms/accept
 rubric:
   erwartet: >-
     Beide Aufgaben sind selbstständig und vollständig umgesetzt: das OR-Mapping mit Value Object,
