@@ -47,19 +47,15 @@ public class FeeRules {
 ```
 
 ```java
+@RequiredArgsConstructor
 public class FeeReportService {
 
     private final LoanRepository loanRepository;
     private final FeeRules rules;
-
-    public FeeReportService(LoanRepository loanRepository, FeeRules rules) {
-        this.loanRepository = loanRepository;
-        this.rules = rules;
-    }
 }
 ```
 
-Der Service bekommt die Regeln im Konstruktor – genau wie das Repository. Im Test übergibst du `new FeeRules()`.
+Der Service bekommt die Regeln im Konstruktor – genau wie das Repository. `@RequiredArgsConstructor` erzeugt `FeeReportService(LoanRepository loanRepository, FeeRules rules)`, in der Reihenfolge der Felder. Im Test übergibst du `new FeeRules()`.
 
 ## Tests passend aufteilen
 

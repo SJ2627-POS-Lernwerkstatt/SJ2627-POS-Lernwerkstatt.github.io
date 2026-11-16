@@ -171,12 +171,12 @@
   unit: jpa/konstruktoren
   main:
     kind: single
-    prompt: Welcher Konstruktor gehört für JPA in jedes Entity?
+    prompt: Welche Annotation erzeugt den Konstruktor, den JPA in jedem Entity braucht?
     options:
-      - "`public Book() {}`, damit jeder Code leere Bücher erzeugen kann"
-      - "`protected Book() {}`, für JPA, aber nicht für deinen eigenen Code"
-      - "`private Book() {}`, damit niemand ihn verwendet"
-      - Keiner, Hibernate braucht keinen Konstruktor
+      - "`@NoArgsConstructor`, damit jeder Code leere Bücher erzeugen kann"
+      - "`@NoArgsConstructor(access = AccessLevel.PROTECTED)`, für JPA, aber nicht für deinen eigenen Code"
+      - "`@AllArgsConstructor`, weil Hibernate alle Felder übergibt"
+      - Keine, Hibernate braucht keinen Konstruktor
     answer: 1
     explanation: |
       Hibernate erzeugt beim Lesen erst ein leeres Objekt und füllt dann die Felder. Dafür braucht es einen Konstruktor ohne Parameter, `public` oder `protected`. `protected` verhindert, dass dein Code halbfertige Objekte baut.
@@ -196,24 +196,45 @@
   unit: jpa/konstruktoren
   main:
     kind: template
-    prompt: Kapsle die Liste der Bücher einer Filiale.
+    prompt: "`Branch` hat eine Beziehung zu `Book`. Ergänze Lombok, den fachlichen Konstruktor und den Getter der Liste."
     template: |
-      private List<Book> books = {{new ArrayList<>()}};
+      @Entity
+      {{~@Getter}} {{@Setter}}
+      @NoArgsConstructor(access = AccessLevel.{{PROTECTED}})
+      public class Branch extends AbstractPersistable<Long> {
 
-      public List<Book> getBooks() {
-          return {{Collections.unmodifiableList(books)}};
-      }
+          @NotNull
+          private String name;
+          @OneToMany(mappedBy = "branch")
+          private List<Book> books = {{new ArrayList<>()}};
 
-      public void {{addBook}}(Book book) {
-          books.add(book);
+          public Branch({{String name}}) {
+              this.name = name;
+          }
+
+          public List<Book> getBooks() {
+              return {{Collections.unmodifiableList(books)}};
+          }
       }
     redHerrings:
+      - "@AllArgsConstructor"
+      - "@Data"
+      - PRIVATE
       - "null"
+      - "String name, List<Book> books"
       - books
-      - setBooks
     explanation: |
-      Die Liste wird beim Feld angelegt (nie `null`), nach außen nur unveränderlich herausgegeben und über eine eigene Methode geändert. Gibt der Getter `books` direkt zurück, kann jeder die Liste an der Filiale vorbei ändern.
+      Mit einer Beziehung gibt es kein `@AllArgsConstructor`: Der fachliche Konstruktor nimmt nur die Attribute, hier `name`. Die Liste wird beim Feld angelegt (nie `null`) und über einen eigenen Getter unveränderlich herausgegeben – Lombok erzeugt `getBooks()` dann nicht mehr. Gibt der Getter `books` direkt zurück, kann jeder die Liste an der Filiale vorbei ändern.
   followUps:
+    - kind: single
+      prompt: Warum bekommt `Branch` kein `@AllArgsConstructor`?
+      options:
+        - Weil Lombok keine Listen kennt
+        - "Er würde `Branch(String name, List<Book> books)` erzeugen – der fachliche Konstruktor soll aber nur die Attribute nehmen, so wie die Tests ihn aufrufen"
+        - Weil `@AllArgsConstructor` und `@NoArgsConstructor` nicht zusammen erlaubt sind
+      answer: 1
+      explanation: |
+        `@AllArgsConstructor` nimmt jedes Feld der eigenen Klasse, auch Listen und Beziehungen. Die Tests der Beurteilung rufen den Konstruktor nur mit den Attributen auf, z. B. `new Station("Westbahnhof", address, 24)`. Beide Lombok-Konstruktoren zusammen sind erlaubt – das machst du bei jedem Entity ohne Beziehungen.
     - kind: single
       prompt: Kann ein Entity ein Record sein, z. B. `@Entity public record Book(@Id @GeneratedValue Long id, String title) {}`?
       options:
@@ -648,7 +669,9 @@
     prompt: Was passiert beim Flush?
     code: |
       Branch branch = new Branch("Hauptbücherei", address);
-      bookRepository.save(new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn, branch));
+      Book book = new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn);
+      book.setBranch(branch);
+      bookRepository.save(book);
       entityManager.flush();
     options:
       - Buch und Filiale werden gespeichert

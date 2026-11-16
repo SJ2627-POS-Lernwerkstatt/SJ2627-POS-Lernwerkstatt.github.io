@@ -21,16 +21,13 @@ public interface LoanRepository {
 }
 ```
 
-Der Service bekommt das Interface im Konstruktor:
+Der Service bekommt das Interface im Konstruktor. Den schreibt Lombok: `@RequiredArgsConstructor` erzeugt einen Konstruktor mit allen `final` Feldern, hier `FeeReportService(LoanRepository loanRepository)` ([Entities mit Lombok](/jpa/konstruktoren)).
 
 ```java
+@RequiredArgsConstructor
 public class FeeReportService {
 
     private final LoanRepository loanRepository;
-
-    public FeeReportService(LoanRepository loanRepository) {
-        this.loanRepository = loanRepository;
-    }
 
     public int feeFor(String memberName, LocalDate today) {
         List<Loan> loans = loanRepository.findByMemberName(memberName);

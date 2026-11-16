@@ -69,7 +69,7 @@ Der Spickzettel (S. 2, „Java types“ und „Data Classes“) listet beides. A
 | Datenstruktur | Record? |
 |---|---|
 | Ergebnis einer Query, DTO in der REST-API, Datenklasse in Aufgabe 2 | ja |
-| Entity in Aufgabe 1 (JPA) | nein – JPA braucht veränderliche Felder und einen No-Args-Konstruktor, siehe [Entity-Klassen richtig bauen](/jpa/konstruktoren) |
+| Entity in Aufgabe 1 (JPA) | nein – JPA braucht veränderliche Felder und einen No-Args-Konstruktor, siehe [Entities mit Lombok](/jpa/konstruktoren) |
 | Objekt mit veränderlichem Zustand (Zähler, Puffer) | nein |
 
 Vertiefung: Im [Stream-Modul](/streams/datenklassen) geht es weiter – mit gekapselten Listen (`List.copyOf`) und Klassen, die Sammlungen sicher herausgeben.

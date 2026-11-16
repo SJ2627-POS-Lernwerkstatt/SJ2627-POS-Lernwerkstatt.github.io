@@ -44,7 +44,7 @@ public class Book {
     private String title;
     private LocalDate publishedOn;
 
-    // Konstruktoren und Getter: Einheit 3
+    // Konstruktoren, Getter und Setter erzeugt Lombok: Einheit 3
 }
 ```
 

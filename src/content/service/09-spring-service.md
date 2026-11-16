@@ -11,20 +11,16 @@ In Aufgabe 2 ist der Service reines Java. In einer echten Anwendung – und in A
 
 ```java
 @Service
+@RequiredArgsConstructor
 public class FeeReportService {
 
     private final LoanRepository loanRepository;
     private final FeeRules rules;
-
-    public FeeReportService(LoanRepository loanRepository, FeeRules rules) {
-        this.loanRepository = loanRepository;
-        this.rules = rules;
-    }
 }
 ```
 
 - `@Service` macht die Klasse zu einer **Bean**: Spring erzeugt genau ein Objekt davon.
-- Hat die Klasse genau einen Konstruktor, übergibt Spring dort die passenden Beans. Ein `@Autowired` ist nicht nötig.
+- `@RequiredArgsConstructor` (Lombok) erzeugt den Konstruktor mit allen `final` Feldern. Hat die Klasse genau einen Konstruktor, übergibt Spring dort die passenden Beans. Ein `@Autowired` ist nicht nötig.
 - Die Felder sind `final`: Nach dem Konstruktor ändert sich nichts mehr.
 
 :::achtung Jede Abhängigkeit braucht eine Bean

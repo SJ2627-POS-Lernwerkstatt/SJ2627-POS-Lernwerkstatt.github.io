@@ -55,21 +55,15 @@ end note
 @enduml
 ```
 
-Im Diagramm stehen oft Codes neben den Werten, z. B. `FICTION("F")`. Das Enum bekommt dafür ein Feld und eine Methode, die zu einem Code den Wert findet:
+Im Diagramm stehen oft Codes neben den Werten, z. B. `FICTION("F")`. Das Enum bekommt dafür ein Feld und eine Methode, die zu einem Code den Wert findet. Konstruktor und Getter erzeugt Lombok – `@AllArgsConstructor` macht den Konstruktor eines Enums automatisch `private`:
 
 ```java
+@Getter
+@AllArgsConstructor
 public enum Genre {
     FICTION("F"), NON_FICTION("N"), COMIC("C");
 
     private final String code;
-
-    Genre(String code) {
-        this.code = code;
-    }
-
-    public String getCode() {
-        return code;
-    }
 
     public static Genre fromCode(String code) {
         for (Genre genre : values()) {

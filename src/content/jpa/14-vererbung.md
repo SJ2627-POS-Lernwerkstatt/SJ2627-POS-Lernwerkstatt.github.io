@@ -36,30 +36,27 @@ In Java ist das normale Vererbung. JPA muss zusätzlich wissen, wie die Hierarch
 ```java
 @Entity
 @Table(name = "library_events")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public abstract class LibraryEvent extends AbstractPersistable<Long> {
 
     private String title;
     private LocalDate heldOn;
-
-    protected LibraryEvent() {
-    }
-
-    protected LibraryEvent(String title, LocalDate heldOn) {
-        this.title = title;
-        this.heldOn = heldOn;
-    }
 }
 ```
 
 ```java
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Reading extends LibraryEvent {
 
     private String authorName;
 
-    protected Reading() {
-    }
-
+    // selbst geschrieben: @AllArgsConstructor kennt nur authorName, nicht title und heldOn
     public Reading(String title, LocalDate heldOn, String authorName) {
         super(title, heldOn);
         this.authorName = authorName;
@@ -163,7 +160,7 @@ public class Notice extends Stamped {
 `Stamped` hat keine Tabelle und kein Repository. `notice` bekommt die Spalten `id`, `created_at` und `text`. `AbstractPersistable` selbst ist genau so eine `@MappedSuperclass`.
 
 :::pruefung
-Steht im Diagramm `<|--` zwischen zwei `«Entity»`s, ist das Vererbung mit `@Entity` auf beiden Seiten. Hat eine Unterklasse keine eigenen Attribute, braucht sie trotzdem einen `protected` Konstruktor ohne Parameter – und Lombok hilft dann nicht (Einheit 3).
+Steht im Diagramm `<|--` zwischen zwei `«Entity»`s, ist das Vererbung mit `@Entity` auf beiden Seiten. Den fachlichen Konstruktor einer Unterklasse schreibst du selbst und rufst `super(...)` auf – `@AllArgsConstructor` kennt nur die eigenen Felder (Einheit 3).
 :::
 
 :::merke

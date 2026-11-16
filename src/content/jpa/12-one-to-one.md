@@ -30,6 +30,9 @@ Member "1" -- "0,1" LibraryCard
 ```java
 @Entity
 @Table(name = "members")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends AbstractPersistable<Long> {
 
     private String name;
@@ -37,6 +40,10 @@ public class Member extends AbstractPersistable<Long> {
     @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "card_id", foreignKey = @ForeignKey(name = "fk_member_card"))
     private LibraryCard card;
+
+    public Member(String name) {
+        this.name = name;
+    }
 }
 ```
 
@@ -60,6 +67,9 @@ Soll auch der Ausweis sein Mitglied kennen, bekommt `LibraryCard` die Gegenseite
 ```java
 @Entity
 @Table(name = "library_cards")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class LibraryCard extends AbstractPersistable<Long> {
 
     @Column(unique = true)
@@ -69,14 +79,15 @@ public class LibraryCard extends AbstractPersistable<Long> {
     @OneToOne(mappedBy = "card")
     private Member member;
 
-    void setMember(Member member) {
-        this.member = member;
+    public LibraryCard(String number, LocalDate validUntil) {
+        this.number = number;
+        this.validUntil = validUntil;
     }
 }
 ```
 
 ```java
-// in Member
+// in Member – selbst geschrieben, damit beide Seiten gesetzt werden; Lombok erzeugt dann kein eigenes setCard
 public void setCard(LibraryCard card) {
     this.card = card;
     card.setMember(this);

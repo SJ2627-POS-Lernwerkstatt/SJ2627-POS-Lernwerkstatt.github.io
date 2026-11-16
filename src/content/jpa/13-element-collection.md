@@ -64,7 +64,7 @@ public record OpeningHours(@Enumerated(EnumType.STRING) DayOfWeek weekday,
 ```
 
 ```java
-// in Branch
+// in Branch – mit einer Collection gibt es kein @AllArgsConstructor (Einheit 3)
 @ElementCollection
 @CollectionTable(name = "opening_hours", joinColumns = @JoinColumn(name = "branch_id"))
 private List<OpeningHours> openingHours = new ArrayList<>();

@@ -12,13 +12,10 @@ package restfulapi.presentation;
 
 @RestController
 @RequestMapping("/api/books")
+@RequiredArgsConstructor
 public class BookController {
 
     private final BookService bookService;
-
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
 
     @GetMapping
     public List<BookDto> findAll() {
@@ -30,7 +27,7 @@ public class BookController {
 - `@RestController` = `@Controller` + `@ResponseBody`: Was eine Methode zurückgibt, wird als JSON in den Body geschrieben.
 - `@RequestMapping("/api/books")` an der Klasse ist der gemeinsame Pfad aller Endpunkte. Die Angabe nennt ihn („Alle Endpunkte unter `/api/recipes`“).
 - `@GetMapping` ohne Pfad heißt: `GET /api/books`.
-- Der Service kommt über den Konstruktor (wie in der Service-Schicht, Einheit 9).
+- Der Service kommt über den Konstruktor, den `@RequiredArgsConstructor` erzeugt (wie in der Service-Schicht, Einheit 9).
 
 ## `ResponseEntity`: Status und Header selbst bestimmen
 

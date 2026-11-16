@@ -32,9 +32,12 @@ Eine Spalte `author_id` in `books` reicht dafür nicht: Ein Buch hätte dann nur
 ```java
 @Entity
 @Table(name = "books")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends AbstractPersistable<Long> {
 
-    // isbn, title, price, ...
+    // isbn, title, price, publishedOn und der fachliche Konstruktor ohne authors
 
     @ManyToMany
     @JoinTable(name = "book_authors",
@@ -67,12 +70,19 @@ Ist die Beziehung bidirektional, bekommt `Author` eine Menge `books` – mit `ma
 ```java
 @Entity
 @Table(name = "authors")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Author extends AbstractPersistable<Long> {
 
     private String name;
 
     @ManyToMany(mappedBy = "authors")
     private Set<Book> books = new HashSet<>();
+
+    public Author(String name) {
+        this.name = name;
+    }
 }
 ```
 
@@ -85,7 +95,7 @@ Fügst du ein Buch nur in `author.books` ein, schreibt Hibernate **keine** Zeile
 Die Hilfsmethoden setzen daher wie in Einheit 10 immer beide Seiten:
 
 ```java
-// in Book
+// in Book – selbst geschrieben, wie in Einheit 3
 public Set<Author> getAuthors() {
     return Collections.unmodifiableSet(authors);
 }

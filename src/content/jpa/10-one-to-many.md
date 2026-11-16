@@ -30,6 +30,9 @@ Book "n" -- "1" Branch
 ```java
 @Entity
 @Table(name = "branches")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Branch extends AbstractPersistable<Long> {
 
     // name, address, ...
@@ -53,7 +56,12 @@ Fehlt `mappedBy`, hält Hibernate die Liste für eine eigene Beziehung und legt 
 Hibernate schaut beim Speichern nur auf die besitzende Seite, also auf `book.branch`. Dein Java-Code sieht aber beide Seiten. Damit sie zusammenpassen, ändert man die Beziehung nur über Hilfsmethoden, die **beide** Seiten setzen:
 
 ```java
-// in Branch
+// in Branch – selbst geschrieben; die übrigen Getter und Setter kommen von Lombok
+public Branch(String name, Address address) {
+    this.name = name;
+    this.address = address;
+}
+
 public List<Book> getBooks() {
     return Collections.unmodifiableList(books);
 }
@@ -69,14 +77,7 @@ public void removeBook(Book book) {
 }
 ```
 
-```java
-// in Book
-void setBranch(Branch branch) {
-    this.branch = branch;
-}
-```
-
-`setBranch` ist package-private (ohne `public`): Nur Klassen im selben Package, also `Branch`, können sie aufrufen.
+`book.setBranch(...)` erzeugt `@Setter` in `Book`. Die Liste selbst kann von außen niemand ändern: `getBooks()` gibt eine unveränderliche Sicht heraus, `getBooks().add(...)` wirft eine `UnsupportedOperationException`.
 
 Was ohne Hilfsmethode schiefgeht:
 

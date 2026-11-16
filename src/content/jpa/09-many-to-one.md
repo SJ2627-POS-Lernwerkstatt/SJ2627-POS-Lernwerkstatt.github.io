@@ -31,12 +31,17 @@ Der Pfeil zeigt: Nur `Book` kennt `Branch`. Die Multiplizität `"1"` bei `Branch
 ```java
 @Entity
 @Table(name = "books")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends AbstractPersistable<Long> {
 
-    // isbn, title, ...
+    // isbn, title, genre, price, publishedOn
 
     @ManyToOne
     private Branch branch;
+
+    // fachlicher Konstruktor nur mit den Attributen, ohne branch (Einheit 3)
 }
 ```
 
@@ -71,9 +76,12 @@ Statt `nullable = false` kannst du auch `@NotNull` an das Feld schreiben: Die Sp
 
 ```java
 Branch branch = branchRepository.save(new Branch("Hauptbücherei", address));
-Book book = new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn, branch);
+Book book = new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn);
+book.setBranch(branch);
 bookRepository.save(book);
 ```
+
+Die Beziehung ist kein Parameter des fachlichen Konstruktors. Du setzt sie mit dem Setter, den `@Setter` erzeugt.
 
 Speicherst du ein Buch mit einer **neuen**, noch nicht gespeicherten Filiale, scheitert der Flush:
 
@@ -101,7 +109,9 @@ Beim Lesen eines Buchs lädt Hibernate die Filiale standardmäßig gleich mit (`
 @Test
 void verify_book_with_branch() {
     Branch branch = branchRepository.save(new Branch("Hauptbücherei", address));
-    Book saved = bookRepository.save(new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn, branch));
+    Book book = new Book(isbn, "Der Process", Genre.FICTION, price, publishedOn);
+    book.setBranch(branch);
+    Book saved = bookRepository.save(book);
 
     entityManager.flush();
     entityManager.clear();
