@@ -82,16 +82,24 @@ const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main'
 		base: 'restfulapi',
 		sourceSet: 'main',
 		imports: [
-			'jakarta.persistence.*',
+			'com.fasterxml.jackson.annotation.JsonProperty',
 			'jakarta.validation.*',
 			'jakarta.validation.constraints.*',
 			'java.net.URI',
 			'java.util.*',
+			'java.util.stream.*',
+			'lombok.RequiredArgsConstructor',
+			'org.springframework.data.domain.*',
+			// Single-type import wins over org.springframework.hateoas.PagedModel from the wildcard below.
+			'org.springframework.data.web.PagedModel',
+			'org.springframework.data.web.PageableDefault',
+			'org.springframework.hateoas.*',
+			'static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*',
 			'org.springframework.http.*',
+			'org.springframework.stereotype.Service',
 			'org.springframework.web.bind.annotation.*',
-			'org.springframework.web.servlet.support.ServletUriComponentsBuilder',
-			'org.springframework.data.jpa.domain.AbstractPersistable',
-			'org.springframework.data.jpa.repository.JpaRepository'
+			'org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler',
+			'org.springframework.web.servlet.support.ServletUriComponentsBuilder'
 		]
 	}
 };
@@ -116,7 +124,17 @@ const TEST_IMPORTS: Record<string, string[]> = {
 		'org.springframework.boot.jpa.test.autoconfigure.TestEntityManager',
 		'static org.assertj.core.api.Assertions.*'
 	],
-	service: ['org.junit.jupiter.api.Test', 'static org.assertj.core.api.Assertions.*']
+	service: ['org.junit.jupiter.api.Test', 'static org.assertj.core.api.Assertions.*'],
+	rest: [
+		'org.junit.jupiter.api.Test',
+		'org.springframework.beans.factory.annotation.Autowired',
+		'org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest',
+		'org.springframework.context.annotation.Import',
+		'org.springframework.test.web.servlet.MockMvc',
+		'static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*',
+		'static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*',
+		'static org.hamcrest.Matchers.*'
+	]
 };
 
 function dedent(code: string): string {
@@ -224,7 +242,8 @@ for (const [key, all] of bySub) {
 	const rootOf = (set: string) => join(scratch, sp.dir, 'src', set, 'java', sp.base, 'puzzles');
 	const clean = () => ['main', 'test'].forEach((set) => rmSync(rootOf(set), { recursive: true, force: true }));
 	const results = join(scratch, sp.dir, 'build/test-results/test');
-	const groups = batches(all, key === 'jpa');
+	// Hibernate needs unique entity names, Spring unique bean names and routes: such puzzles go into separate runs.
+	const groups = batches(all, key === 'jpa' || key === 'rest');
 	for (const [n, units] of groups.entries()) {
 		clean();
 		for (const p of units) {

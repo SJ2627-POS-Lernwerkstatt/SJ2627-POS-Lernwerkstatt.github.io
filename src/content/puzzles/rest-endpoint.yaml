@@ -1,0 +1,666 @@
+# Puzzles "REST-Endpunkte". Format: src/lib/content/schema.ts (puzzle).
+# Most puzzles share the book API below (&bookApi): DTOs, exceptions and an in-memory service stub.
+# Every puzzle has a hidden `check` that calls the endpoint with MockMvc; where a puzzle shows only part
+# of the API (a DTO, the exception handler), the controller it needs lives in the check.
+# Verify: node scripts/verify-puzzles.ts rest-endpoint
+
+- id: rest-controller-skeleton
+  kind: lines
+  title: Bücher – der Controller
+  prompt: |
+    Schreib den Controller für `/api/books`. Der Service kommt über den Konstruktor (Lombok). `GET /api/books` liefert alle Bücher.
+  given: &bookApi |
+    public record BookDto(String isbn, String title, String author) {
+    }
+
+    public record BookCreateCmd(@NotBlank String isbn, @NotBlank String title, @NotBlank String author) {
+    }
+
+    public record BookReplaceCmd(@NotBlank String title, @NotBlank String author) {
+    }
+
+    public class BookNotFoundException extends RuntimeException {
+
+        public BookNotFoundException(String isbn) {
+            super("no book with isbn " + isbn);
+        }
+    }
+
+    public class BookAlreadyExistsException extends RuntimeException {
+
+        public BookAlreadyExistsException(String isbn) {
+            super("book with isbn " + isbn + " already exists");
+        }
+    }
+
+    /** Stub für die Prüfung: hält die Bücher im Speicher. */
+    @Service
+    public class BookService {
+
+        private final Map<String, BookDto> books = new LinkedHashMap<>();
+
+        public BookService() {
+            books.put("9783518365000", new BookDto("9783518365000", "Malina", "Ingeborg Bachmann"));
+            books.put("9783421000000", new BookDto("9783421000000", "Mohn und Gedächtnis", "Paul Celan"));
+        }
+
+        public List<BookDto> findAll() {
+            return List.copyOf(books.values());
+        }
+
+        public List<BookDto> findAll(String author) {
+            return books.values().stream().filter(b -> author == null || b.author().equals(author)).toList();
+        }
+
+        public Optional<BookDto> findByIsbn(String isbn) {
+            return Optional.ofNullable(books.get(isbn));
+        }
+
+        public BookDto get(String isbn) {
+            return findByIsbn(isbn).orElseThrow(() -> new BookNotFoundException(isbn));
+        }
+
+        public BookDto create(BookCreateCmd cmd) {
+            if (books.containsKey(cmd.isbn())) {
+                throw new BookAlreadyExistsException(cmd.isbn());
+            }
+            BookDto book = new BookDto(cmd.isbn(), cmd.title(), cmd.author());
+            books.put(book.isbn(), book);
+            return book;
+        }
+
+        public BookDto replace(String isbn, BookReplaceCmd cmd) {
+            get(isbn);
+            BookDto book = new BookDto(isbn, cmd.title(), cmd.author());
+            books.put(isbn, book);
+            return book;
+        }
+
+        public void delete(String isbn) {
+            if (books.remove(isbn) == null) {
+                throw new BookNotFoundException(isbn);
+            }
+        }
+
+        public Page<BookDto> findPage(Pageable pageable) {
+            List<BookDto> all = findAll();
+            int from = (int) Math.min(pageable.getOffset(), all.size());
+            int to = Math.min(from + pageable.getPageSize(), all.size());
+            return new PageImpl<>(all.subList(from, to), pageable, all.size());
+        }
+    }
+  solution: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+        private final BookService bookService;
+        @GetMapping
+        public List<BookDto> findAll() {
+            return bookService.findAll();
+        }
+    }
+  redHerrings:
+    - "@Controller"
+    - "    @GetMapping(\"/api/books\")"
+    - "    private BookService bookService;"
+  explanation: |
+    `@RestController` schreibt den Rückgabewert als JSON in den Body; ein reiner `@Controller` würde einen View-Namen erwarten. `@RequestMapping` an der Klasse ist der gemeinsame Pfad – ein `@GetMapping("/api/books")` darunter ergäbe `/api/books/api/books`. `@RequiredArgsConstructor` nimmt nur `final` Felder in den Konstruktor.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class ControllerSkeletonCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)))
+                    .andExpect(jsonPath("$[0].title").value("Malina"));
+        }
+    }
+
+- id: rest-path-variable
+  kind: template
+  title: Bücher – eines über den Pfad
+  prompt: |
+    `GET /api/books/{isbn}` liefert ein Buch mit `200`, oder `404` ohne Body, wenn es die ISBN nicht gibt.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @{{GetMapping}}("/{isbn}")
+        public ResponseEntity<BookDto> findByIsbn({{@PathVariable}} String isbn) {
+            return bookService.findByIsbn(isbn)
+                    .map({{ResponseEntity::ok}})
+                    .orElse({{ResponseEntity.notFound().build()}});
+        }
+    }
+  redHerrings: [PostMapping, "@RequestParam", "@RequestBody", "ResponseEntity.ok().build()", "null"]
+  explanation: |
+    `@PathVariable` holt den Teil `{isbn}` aus dem Pfad. `Optional.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build())` ist das übliche Muster: mit Buch `200` und Body, ohne `404` ohne Body. `null` zurückzugeben ergäbe `200` mit leerem Body.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class PathVariableCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books/9783518365000"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.title").value("Malina"));
+            mockMvc.perform(get("/api/books/0000000000000"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().string(""));
+        }
+    }
+
+- id: rest-request-param
+  kind: template
+  title: Bücher – optionaler Filter
+  prompt: |
+    `GET /api/books?author=Paul Celan` filtert nach Autor. Ohne den Parameter kommen alle Bücher.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @GetMapping
+        public List<BookDto> findAll(@{{RequestParam}}({{required = false}}) String author) {
+            return bookService.findAll(author);
+        }
+    }
+  redHerrings: [PathVariable, "required = true", RequestBody, "defaultValue = null"]
+  explanation: |
+    Query-Parameter (`?author=…`) holt `@RequestParam`. Standardmäßig ist er Pflicht – fehlt er, antwortet Spring mit `400`. `required = false` macht ihn optional, dann ist `author` `null`.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class RequestParamCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books").param("author", "Paul Celan"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].title").value("Mohn und Gedächtnis"));
+            mockMvc.perform(get("/api/books")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+        }
+    }
+
+- id: rest-post-created
+  kind: template
+  title: Bücher – anlegen mit 201
+  prompt: |
+    `POST /api/books` legt ein Buch an. Der Body wird validiert. Die Antwort ist `201 Created` mit dem neuen Buch im Body und seiner Adresse im `Location`-Header.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @{{PostMapping}}
+        public ResponseEntity<BookDto> create({{~@Valid}} {{@RequestBody}} BookCreateCmd book) {
+            BookDto created = bookService.create(book);
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{isbn}").buildAndExpand(created.isbn()).toUri();
+            return ResponseEntity.{{created(location)}}.body(created);
+        }
+    }
+  redHerrings: [PutMapping, "ok(location)", "@RequestParam", "@PathVariable"]
+  explanation: |
+    `@RequestBody` liest das JSON in den Record, `@Valid` prüft dessen Annotationen – ohne `@Valid` würden `@NotBlank` & Co. ignoriert. `ResponseEntity.created(uri)` setzt Status `201` und den `Location`-Header in einem.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class PostCreatedCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"isbn\":\"9783100000000\",\"title\":\"Hiob\",\"author\":\"Joseph Roth\"}"))
+                    .andExpect(status().isCreated())
+                    .andExpect(header().string("Location", endsWith("/api/books/9783100000000")))
+                    .andExpect(jsonPath("$.title").value("Hiob"));
+            mockMvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"isbn\":\"9783100000001\",\"title\":\"\",\"author\":\"Joseph Roth\"}"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+- id: rest-delete
+  kind: lines
+  title: Bücher – löschen mit 204
+  prompt: |
+    Schreib den Controller mit `DELETE /api/books/{isbn}`. Die Antwort ist `204 No Content`.
+  given: *bookApi
+  solution: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+        private final BookService bookService;
+        @DeleteMapping("/{isbn}")
+        public ResponseEntity<Void> delete(@PathVariable String isbn) {
+            bookService.delete(isbn);
+            return ResponseEntity.noContent().build();
+        }
+    }
+  redHerrings:
+    - "        return ResponseEntity.ok().build();"
+    - "    public void delete(@RequestBody String isbn) {"
+    - "    @DeleteMapping"
+  explanation: |
+    Nach dem Löschen gibt es nichts zurückzugeben: `204 No Content`, als `ResponseEntity<Void>` mit `noContent().build()`. `ok()` wäre `200`. Die ISBN steht im Pfad, nicht im Body – ein `DELETE` hat in der Regel keinen Body.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class DeleteCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(delete("/api/books/9783518365000"))
+                    .andExpect(status().isNoContent())
+                    .andExpect(content().string(""));
+        }
+    }
+
+- id: rest-put-replace
+  kind: template
+  title: Bücher – ersetzen mit PUT
+  prompt: |
+    `PUT /api/books/{isbn}` ersetzt Titel und Autor eines Buchs. Der Body wird validiert, die Antwort ist das geänderte Buch mit `200`.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @{{PutMapping}}("/{isbn}")
+        public BookDto replace({{@PathVariable}} String isbn, {{~@Valid}} {{@RequestBody}} BookReplaceCmd book) {
+            return bookService.replace(isbn, book);
+        }
+    }
+  redHerrings: [PostMapping, PatchMapping, "@RequestParam"]
+  explanation: |
+    `PUT` ersetzt eine bestehende Ressource an ihrer Adresse: ISBN aus dem Pfad, neue Daten aus dem Body. `PATCH` wäre eine teilweise Änderung, `POST` legt Neues an. Ein Rückgabewert ohne `ResponseEntity` wird mit `200` beantwortet.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class PutReplaceCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(put("/api/books/9783518365000").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"title\":\"Malina (Neuauflage)\",\"author\":\"Ingeborg Bachmann\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.title").value("Malina (Neuauflage)"));
+            mockMvc.perform(put("/api/books/9783518365000").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"title\":\" \",\"author\":\"Ingeborg Bachmann\"}"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+- id: rest-validation
+  kind: template
+  title: Mitglieder – Eingaben validieren
+  prompt: |
+    Name und E-Mail dürfen nicht leer sein, die E-Mail muss eine gültige Adresse sein, Mitglieder sind mindestens 14 Jahre alt. Ungültige Eingaben beantwortet Spring dann mit `400`.
+  template: |
+    public record MemberCreateCmd(
+            {{@NotBlank}} String name,
+            {{~@NotBlank}} {{@Email}} String email,
+            {{@Min(14)}} int age) {
+    }
+  reusable: ["@NotBlank"]
+  redHerrings: ["@NotNull", "@Size(min = 14)", "@Max(14)", "@Positive"]
+  explanation: |
+    `@NotBlank` lehnt `null`, `""` und `" "` ab – `@NotNull` ließe den leeren Text durch. `@Email` prüft das Format, `@Min(14)` die Untergrenze einer Zahl (`@Size` gilt für Längen von Texten und Listen). Wirksam werden sie erst mit `@Valid` am Parameter im Controller.
+  check: |
+    @RestController
+    @RequestMapping("/api/members")
+    class MemberController {
+        @PostMapping
+        ResponseEntity<MemberCreateCmd> create(@Valid @RequestBody MemberCreateCmd member) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(member);
+        }
+    }
+
+    @WebMvcTest(MemberController.class)
+    class ValidationCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        void expect(String json, int status) throws Exception {
+            mockMvc.perform(post("/api/members").contentType(MediaType.APPLICATION_JSON).content(json))
+                    .andExpect(status().is(status));
+        }
+
+        @Test
+        void check() throws Exception {
+            expect("{\"name\":\"Anna\",\"email\":\"anna@example.org\",\"age\":14}", 201);
+            expect("{\"name\":\"\",\"email\":\"anna@example.org\",\"age\":14}", 400);
+            expect("{\"name\":\"Anna\",\"email\":\" \",\"age\":14}", 400);
+            expect("{\"name\":\"Anna\",\"email\":\"anna\",\"age\":14}", 400);
+            expect("{\"name\":\"Anna\",\"email\":\"anna@example.org\",\"age\":13}", 400);
+        }
+    }
+
+- id: rest-nested-valid
+  kind: template
+  title: Rezepte – verschachtelt validieren
+  prompt: |
+    Ein Rezept braucht einen Namen und eine Liste von Zutaten. Jede Zutat hat einen Namen und eine Menge über 0 – und das soll auch **innerhalb** der Liste geprüft werden.
+  template: |
+    public record IngredientDto({{@NotBlank}} String name, {{@Positive}} int amount) {
+    }
+
+    public record RecipeCreateCmd(
+            @NotBlank String name,
+            {{~@NotNull}} {{@Valid}} List<IngredientDto> ingredients) {
+    }
+  redHerrings: ["@Min(0)", "@PositiveOrZero", "@Embedded", "@Size"]
+  explanation: |
+    Bean Validation prüft verschachtelte Objekte nur mit `@Valid`: Ohne `@Valid` an der Liste würde eine Zutat mit Menge `0` durchgelassen. `@NotNull` verlangt, dass die Liste überhaupt mitgeschickt wird. „Über 0“ ist `@Positive`; `@Min(0)` und `@PositiveOrZero` ließen `0` zu.
+  check: |
+    @RestController
+    @RequestMapping("/api/recipes")
+    class RecipeController {
+        @PostMapping
+        ResponseEntity<RecipeCreateCmd> create(@Valid @RequestBody RecipeCreateCmd recipe) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(recipe);
+        }
+    }
+
+    @WebMvcTest(RecipeController.class)
+    class NestedValidCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        void expect(String json, int status) throws Exception {
+            mockMvc.perform(post("/api/recipes").contentType(MediaType.APPLICATION_JSON).content(json))
+                    .andExpect(status().is(status));
+        }
+
+        @Test
+        void check() throws Exception {
+            expect("{\"name\":\"Pancakes\",\"ingredients\":[{\"name\":\"Mehl\",\"amount\":200}]}", 201);
+            expect("{\"name\":\"Pancakes\",\"ingredients\":[{\"name\":\"Mehl\",\"amount\":0}]}", 400);
+            expect("{\"name\":\"Pancakes\",\"ingredients\":[{\"name\":\"\",\"amount\":2}]}", 400);
+            expect("{\"name\":\"Pancakes\"}", 400);
+        }
+    }
+
+- id: rest-exception-handler
+  kind: template
+  title: Bücher – Fehler als ProblemDetail
+  prompt: |
+    Eine unbekannte ISBN wird zu `404 Not Found`, eine ISBN, die es schon gibt, zu `409 Conflict` – jeweils als `ProblemDetail` mit der Nachricht der Exception. Spring's eigene Fehler (z. B. `400` bei ungültigen Eingaben) sollen erhalten bleiben.
+  given: *bookApi
+  template: |
+    @{{RestControllerAdvice}}
+    public class ApiExceptionHandler extends {{ResponseEntityExceptionHandler}} {
+
+        @{{ExceptionHandler}}(BookNotFoundException.class)
+        ProblemDetail notFound(BookNotFoundException e) {
+            return ProblemDetail.forStatusAndDetail(HttpStatus.{{NOT_FOUND}}, e.getMessage());
+        }
+
+        @ExceptionHandler(BookAlreadyExistsException.class)
+        ProblemDetail conflict(BookAlreadyExistsException e) {
+            return ProblemDetail.forStatusAndDetail(HttpStatus.{{CONFLICT}}, e.getMessage());
+        }
+    }
+  redHerrings: [RestController, BAD_REQUEST, Exception, ExceptionHandlerExceptionResolver]
+  explanation: |
+    `@RestControllerAdvice` gilt für alle Controller, `@ExceptionHandler` ordnet eine Exception einer Methode zu. Ein zurückgegebenes `ProblemDetail` bestimmt Status und Body. `extends ResponseEntityExceptionHandler` sorgt dafür, dass Spring's eigene Fehler wie `400` bei `@Valid` weiter sauber beantwortet werden.
+  check: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    class BookController {
+        private final BookService bookService;
+
+        @GetMapping("/{isbn}")
+        BookDto get(@PathVariable String isbn) {
+            return bookService.get(isbn);
+        }
+
+        @PostMapping
+        BookDto create(@Valid @RequestBody BookCreateCmd book) {
+            return bookService.create(book);
+        }
+    }
+
+    @WebMvcTest(BookController.class)
+    @Import({BookService.class, ApiExceptionHandler.class})
+    class ExceptionHandlerCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books/0000000000000"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.detail").value("no book with isbn 0000000000000"));
+            mockMvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"isbn\":\"9783518365000\",\"title\":\"Malina\",\"author\":\"Ingeborg Bachmann\"}"))
+                    .andExpect(status().isConflict());
+            mockMvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"isbn\":\"\",\"title\":\"Malina\",\"author\":\"Ingeborg Bachmann\"}"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+- id: rest-sub-resource
+  kind: template
+  title: Rezensionen – eine Unterressource
+  prompt: |
+    Die Rezensionen eines Buchs liegen unter `/api/books/{isbn}/reviews`. Schreib den Controller dafür: `GET` liefert alle Rezensionen des Buchs.
+  given: |
+    public record ReviewDto(int stars, String text) {
+    }
+
+    /** Stub für die Prüfung. */
+    @Service
+    public class ReviewService {
+
+        public List<ReviewDto> reviewsOf(String isbn) {
+            return isbn.equals("9783518365000") ? List.of(new ReviewDto(5, "Großartig")) : List.of();
+        }
+    }
+  template: |
+    @RestController
+    @RequestMapping("{{/api/books/{isbn}/reviews}}")
+    @RequiredArgsConstructor
+    public class ReviewController {
+
+        private final ReviewService reviewService;
+
+        @GetMapping
+        public List<ReviewDto> findAll({{@PathVariable}} String isbn) {
+            return reviewService.reviewsOf(isbn);
+        }
+    }
+  redHerrings: ["/api/reviews/{isbn}", "/api/books/reviews", "@RequestParam", "/api/reviews"]
+  explanation: |
+    Eine Unterressource hängt am Pfad ihrer Elternressource: `/api/books/{isbn}/reviews`. Der Platzhalter darf auch im `@RequestMapping` der Klasse stehen – jede Methode holt ihn mit `@PathVariable`. So ist im Pfad sichtbar, zu welchem Buch die Rezensionen gehören.
+  check: |
+    @WebMvcTest(ReviewController.class)
+    @Import(ReviewService.class)
+    class SubResourceCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books/9783518365000/reviews"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].stars").value(5));
+            mockMvc.perform(get("/api/books/9783421000000/reviews"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+        }
+    }
+
+- id: rest-hateoas-links
+  kind: template
+  title: Bücher – Links mit HATEOAS
+  prompt: |
+    `GET /api/books/{isbn}` liefert das Buch mit zwei Links: `self` auf sich selbst und `books` auf die Liste aller Bücher.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @GetMapping("/{isbn}")
+        public ResponseEntity<EntityModel<BookDto>> findByIsbn(@PathVariable String isbn) {
+            return bookService.findByIsbn(isbn)
+                    .map(book -> {{EntityModel.of}}(book,
+                            {{linkTo(methodOn(BookController.class).findByIsbn(isbn))}}.{{withSelfRel()}},
+                            linkTo(methodOn(BookController.class).findAll()).{{withRel("books")}}))
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        }
+
+        @GetMapping
+        public ResponseEntity<List<BookDto>> findAll() {
+            return ResponseEntity.ok(bookService.findAll());
+        }
+    }
+  redHerrings: ["EntityModel.from", "withRel(\"book\")", "linkTo(BookController.class)", "withSelfRel"]
+  explanation: |
+    `EntityModel.of(inhalt, links…)` hängt Links an. `linkTo(methodOn(Controller.class).methode(…))` baut die URL aus dem Mapping der Methode – ändert sich der Pfad, stimmen die Links trotzdem. Im JSON erscheinen sie unter `_links`. Die verlinkten Methoden geben `ResponseEntity` zurück: Mit einem Record als Rückgabetyp scheitert `methodOn` („Could not generate CGLIB subclass“).
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class HateoasCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books/9783518365000"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.title").value("Malina"))
+                    .andExpect(jsonPath("$._links.self.href").value("http://localhost/api/books/9783518365000"))
+                    .andExpect(jsonPath("$._links.books.href").value("http://localhost/api/books"));
+        }
+    }
+
+- id: rest-pagination
+  kind: template
+  title: Bücher – seitenweise
+  prompt: |
+    `GET /api/books` liefert die Bücher seitenweise, standardmäßig 20 pro Seite. Seite und Größe kommen aus `?page=…&size=…`.
+  given: *bookApi
+  template: |
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @GetMapping
+        public PagedModel<BookDto> findAll({{@PageableDefault(size = 20)}} {{Pageable}} pageable) {
+            return {{new PagedModel<>}}(bookService.findPage(pageable));
+        }
+    }
+  redHerrings: ["@RequestParam int page", "Page<BookDto>", "new PageImpl<>", "@PathVariable"]
+  explanation: |
+    Spring füllt einen `Pageable`-Parameter selbst aus `page`, `size` und `sort`; `@PageableDefault` legt die Werte fest, wenn sie fehlen. Eine `Page` direkt zurückzugeben liefert ein instabiles JSON (Spring warnt im Log) – `new PagedModel<>(page)` (aus `org.springframework.data.web`) gibt `content` und `page` mit Nummer, Größe und Gesamtzahl aus.
+  check: |
+    @WebMvcTest(BookController.class)
+    @Import(BookService.class)
+    class PaginationCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/books").param("page", "1").param("size", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)))
+                    .andExpect(jsonPath("$.content[0].title").value("Mohn und Gedächtnis"))
+                    .andExpect(jsonPath("$.page.totalElements").value(2));
+            mockMvc.perform(get("/api/books"))
+                    .andExpect(jsonPath("$.page.size").value(20));
+        }
+    }
+
+- id: rest-json-names
+  kind: template
+  title: Filme – JSON-Namen mit Bindestrich
+  prompt: |
+    Laut Angabe heißen die Felder im JSON `release-year` und `running-time`, in Java `releaseYear` und `runningTime`.
+  template: |
+    public record MovieDto(
+            String title,
+            {{@JsonProperty("release-year")}} int releaseYear,
+            {{@JsonProperty("running-time")}} int runningTime) {
+    }
+  redHerrings: ["@JsonProperty(\"releaseYear\")", "@Column(name = \"release-year\")", "@JsonIgnore", "@JsonProperty(\"running_time\")"]
+  explanation: |
+    Java-Namen dürfen keinen Bindestrich enthalten. `@JsonProperty("release-year")` legt den Namen im JSON fest – beim Schreiben und beim Lesen. `@Column` gilt für die Datenbank, nicht für JSON. Die Namen schreibst du genau wie in der Angabe, sonst schlagen die Tests der Beurteilung fehl.
+  check: |
+    @RestController
+    @RequestMapping("/api/movies")
+    class MovieController {
+        @GetMapping
+        List<MovieDto> findAll() {
+            return List.of(new MovieDto("Heat", 1995, 170));
+        }
+
+        @PostMapping
+        MovieDto create(@RequestBody MovieDto movie) {
+            return movie;
+        }
+    }
+
+    @WebMvcTest(MovieController.class)
+    class JsonNamesCheck {
+        @Autowired
+        MockMvc mockMvc;
+
+        @Test
+        void check() throws Exception {
+            mockMvc.perform(get("/api/movies"))
+                    .andExpect(jsonPath("$[0]['release-year']").value(1995))
+                    .andExpect(jsonPath("$[0]['running-time']").value(170));
+            mockMvc.perform(post("/api/movies").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"title\":\"Alien\",\"release-year\":1979,\"running-time\":117}"))
+                    .andExpect(jsonPath("$['release-year']").value(1979));
+        }
+    }
