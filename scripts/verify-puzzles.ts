@@ -134,27 +134,58 @@ for (const file of files) {
 	}
 }
 
+/** Class and table names a puzzle declares; two puzzles sharing one cannot boot in the same Hibernate context. */
+function namesOf(source: string): string[] {
+	const classes = [...source.matchAll(/\b(?:class|record|enum|interface) (\w+)/g)].map((m) => `class:${m[1]}`);
+	const tables = [...source.matchAll(/@(?:Table|CollectionTable|JoinTable)\(name = "(\w+)"/g)].map((m) => `table:${m[1]}`);
+	return [...classes, ...tables];
+}
+
+/** Greedy split into batches whose puzzles share no names. */
+function batches<T extends { source: string }>(puzzles: T[]): T[][] {
+	const out: { items: T[]; names: Set<string> }[] = [];
+	for (const p of puzzles) {
+		const names = namesOf(p.source);
+		let batch = out.find((b) => names.every((n) => !b.names.has(n)));
+		if (!batch) out.push((batch = { items: [], names: new Set() }));
+		batch.items.push(p);
+		names.forEach((n) => batch.names.add(n));
+	}
+	return out.map((b) => b.items);
+}
+
 let failed = false;
-for (const [key, puzzles] of bySub) {
+for (const [key, all] of bySub) {
 	const sp = SUBPROJECTS[key]!;
 	const pkgRoot = join(scratch, sp.dir, 'src', sp.sourceSet, 'java', sp.base, 'puzzles');
+	const groups = batches(all);
+	for (const [n, puzzles] of groups.entries()) {
+		rmSync(pkgRoot, { recursive: true, force: true });
+		for (const p of puzzles) {
+			const pkg = p.id.replace(/-/g, '_');
+			const dir = join(pkgRoot, pkg);
+			mkdirSync(dir, { recursive: true });
+			// One file per puzzle: top-level types lose `public` so they can share it.
+			const body = p.source.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '');
+			const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...sp.imports.map((i) => `import ${i};`), ''].join('\n');
+			writeFileSync(join(dir, 'Puzzle.java'), `${header}\n${body}\n`);
+		}
+		console.log(`\n${sp.dir} batch ${n + 1}/${groups.length}: ${puzzles.map((p) => p.id).join(', ')}`);
+		try {
+			execFileSync('./gradlew', [`:${sp.dir}:test`, '--console=plain', '-q'], { cwd: scratch, stdio: ['ignore', 'ignore', 'inherit'] });
+			// Keep the report (with Hibernate's DDL) per batch: <scratch>/reports/<subproject>-<n>.xml
+			const results = join(scratch, sp.dir, 'build/test-results/test');
+			mkdirSync(join(scratch, 'reports'), { recursive: true });
+			for (const f of readdirSync(results).filter((f) => f.endsWith('.xml'))) {
+				cpSync(join(results, f), join(scratch, 'reports', `${sp.dir}-${n + 1}-${f}`));
+			}
+			console.log('OK');
+		} catch {
+			failed = true;
+			console.error(`FAILED (sources in ${pkgRoot}, report in ${join(scratch, sp.dir, 'build/test-results')})`);
+			break;
+		}
+	}
 	rmSync(pkgRoot, { recursive: true, force: true });
-	for (const p of puzzles) {
-		const pkg = p.id.replace(/-/g, '_');
-		const dir = join(pkgRoot, pkg);
-		mkdirSync(dir, { recursive: true });
-		// One file per puzzle: top-level types lose `public` so they can share it.
-		const body = p.source.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '');
-		const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...sp.imports.map((i) => `import ${i};`), ''].join('\n');
-		writeFileSync(join(dir, 'Puzzle.java'), `${header}\n${body}\n`);
-	}
-	console.log(`\n${sp.dir}: ${puzzles.length} puzzles → ./gradlew :${sp.dir}:test`);
-	try {
-		execFileSync('./gradlew', [`:${sp.dir}:test`, '--console=plain', '-q'], { cwd: scratch, stdio: 'inherit' });
-		console.log('OK');
-	} catch {
-		failed = true;
-		console.error(`FAILED (sources in ${pkgRoot})`);
-	}
 }
 process.exit(failed ? 1 : 0);

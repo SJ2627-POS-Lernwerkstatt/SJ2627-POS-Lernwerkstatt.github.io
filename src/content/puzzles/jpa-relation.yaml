@@ -1,0 +1,820 @@
+# Puzzles "Beziehungen". Format: src/lib/content/schema.ts (puzzle).
+# Convention (JPA unit 3): entities with a relation get @Getter @Setter @NoArgsConstructor(access = PROTECTED),
+# no @AllArgsConstructor, a hand-written constructor with the attributes only, and own unmodifiable list getters.
+# Verify: node scripts/verify-puzzles.ts jpa-relation
+
+- id: rel-player-team-fk
+  kind: template
+  title: Spieler und Team – der Fremdschlüssel
+  prompt: |
+    Jeder Spieler gehört zu genau einem Team, das Team kennt seine Spieler nicht. Die Fremdschlüssel-Spalte heißt `team_id`, der Constraint `fk_players_team`.
+  uml: |
+    hide empty methods
+    class Player <<(E) Entity>> {
+      - name : String {nn}
+    }
+    class Team <<(E) Entity>> {
+      - name : String {nn}
+    }
+    Player "n" -right-> "1" Team
+  given: |
+    @Entity
+    @Table(name = "teams")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Team extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+    }
+  template: |
+    @Entity
+    @Table(name = "players")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Player extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @{{ManyToOne}}
+        @JoinColumn(name = "{{team_id}}", {{nullable = false}},
+                foreignKey = @ForeignKey(name = "{{fk_players_team}}"))
+        private {{Team}} team;
+
+        public Player(String name) {
+            this.name = name;
+        }
+    }
+  redHerrings: [OneToMany, "nullable = true", "List<Team>", player_id, fk_teams_player]
+  explanation: |
+    Viele Spieler gehören zu einem Team: `@ManyToOne` auf der „viele“-Seite. Die Multiplizität `"1"` heißt Pflicht, also `nullable = false`. `@ForeignKey(name = …)` ersetzt den generierten Constraint-Namen durch einen sprechenden. `team` ist eine Beziehung und deshalb nicht im fachlichen Konstruktor.
+
+- id: rel-vehicle-constructor
+  kind: lines
+  title: Fahrzeug – Entity mit Beziehung
+  prompt: |
+    Schreib das Entity `Vehicle` für die Tabelle `vehicles` mit der Beziehung zur Werkstatt. Felder in der Reihenfolge des Diagramms, die Beziehung zuletzt, dann der fachliche Konstruktor.
+  uml: |
+    hide empty methods
+    class Vehicle <<(E) Entity>> {
+      - plate : String {nn}
+      - mileage : int
+    }
+    class Garage <<(E) Entity>> {
+      - name : String {nn}
+    }
+    Vehicle "n" -right-> "0,1" Garage
+  given: |
+    @Entity
+    @Table(name = "garages")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Garage extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+    }
+  solution: |
+    @Entity
+    @Table(name = "vehicles")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Vehicle extends AbstractPersistable<Long> {
+        @NotNull
+        private String plate;
+        private Integer mileage;
+        @ManyToOne
+        private Garage garage;
+        public Vehicle(String plate, Integer mileage) {
+            this.plate = plate;
+            this.mileage = mileage;
+        }
+    }
+  redHerrings:
+    - "@AllArgsConstructor"
+    - "    public Vehicle(String plate, Integer mileage, Garage garage) {"
+    - "        this.garage = garage;"
+  explanation: |
+    Mit einer Beziehung gibt es kein `@AllArgsConstructor` – er würde `garage` als Parameter aufnehmen. Der fachliche Konstruktor nimmt nur die Attribute, so wie ihn die Tests aufrufen: `new Vehicle("W-123AB", 42000)`. Die Werkstatt setzt du danach mit `vehicle.setGarage(garage)` (von `@Setter`). `"0,1"` heißt: Die Werkstatt darf fehlen, also kein `nullable = false`.
+
+- id: rel-truck-driver-cascade
+  kind: template
+  title: LKW und Fahrer – Cascade
+  prompt: |
+    Ein LKW hat genau einen Fahrer. Ein neuer, noch nicht gespeicherter Fahrer soll beim Speichern des LKWs **mitgespeichert** werden. Gelöscht wird nichts mit.
+  given: |
+    @Entity
+    @Table(name = "drivers")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Driver extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+    }
+  template: |
+    @Entity
+    @Table(name = "trucks")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Truck extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String plate;
+
+        @{{ManyToOne}}({{cascade}} = CascadeType.{{PERSIST}})
+        @JoinColumn(name = "driver_id", nullable = false)
+        private Driver driver;
+
+        public Truck(String plate) {
+            this.plate = plate;
+        }
+    }
+  redHerrings: [ALL, REMOVE, fetch, OneToOne, orphanRemoval]
+  explanation: |
+    `CascadeType.PERSIST` gibt nur das Speichern weiter – so machen es die Musterlösungen. `ALL` würde auch das Löschen weitergeben: Ein gelöschter LKW nähme seinen Fahrer mit, obwohl der vielleicht noch andere LKWs fährt. Ohne Cascade scheitert der Flush mit `TransientPropertyValueException`.
+
+- id: rel-album-songs-mapped-by
+  kind: template
+  title: Album und Songs – beide Seiten
+  prompt: |
+    Album und Song kennen einander. Der Fremdschlüssel `album_id` liegt in der Tabelle `songs`; es darf **keine** Zwischentabelle entstehen.
+  uml: |
+    hide empty methods
+    class Album <<(E) Entity>> {
+      - title : String {nn}
+      - songs : Song[*]
+    }
+    class Song <<(E) Entity>> {
+      - title : String {nn}
+      - album : Album
+    }
+    Album "1" -right- "n" Song
+  template: |
+    @Entity
+    @Table(name = "albums")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Album extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @{{OneToMany}}(mappedBy = "{{album}}")
+        private List<Song> songs = {{new ArrayList<>()}};
+
+        public Album(String title) {
+            this.title = title;
+        }
+
+        // getSongs(), addSong(...), removeSong(...): Puzzle „Album – Hilfsmethoden“
+    }
+
+    @Entity
+    @Table(name = "songs")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Song extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @{{ManyToOne}}
+        @JoinColumn(name = "album_id")
+        private Album album;
+
+        public Song(String title) {
+            this.title = title;
+        }
+    }
+  redHerrings: [ManyToMany, songs, albums, "null"]
+  explanation: |
+    Die besitzende Seite ist `Song` mit `@ManyToOne` – dort liegt der Fremdschlüssel. `mappedBy = "album"` nennt das **Feld** in `Song`, nicht die Tabelle. Ohne `mappedBy` hielte Hibernate die Liste für eine zweite Beziehung und legte `albums_songs` an. Die Liste wird beim Feld angelegt und ist so nie `null`.
+
+- id: rel-album-helpers
+  kind: lines
+  title: Album – Hilfsmethoden
+  prompt: |
+    Schreib in `Album` den fachlichen Konstruktor, den Getter der Liste und die Hilfsmethoden `addSong` und `removeSong` – in dieser Reihenfolge. In den Hilfsmethoden zuerst die eigene Liste ändern, dann die Gegenseite.
+  given: |
+    @Entity
+    @Table(name = "albums")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Album extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @OneToMany(mappedBy = "album")
+        private List<Song> songs = new ArrayList<>();
+
+        // ✎ Konstruktor, Getter, Hilfsmethoden
+    }
+
+    @Entity
+    @Table(name = "songs")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Song extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @ManyToOne
+        @JoinColumn(name = "album_id")
+        private Album album;
+
+        public Song(String title) {
+            this.title = title;
+        }
+    }
+  solution: |
+    public Album(String title) {
+        this.title = title;
+    }
+    public List<Song> getSongs() {
+        return Collections.unmodifiableList(songs);
+    }
+    public void addSong(Song song) {
+        songs.add(song);
+        song.setAlbum(this);
+    }
+    public void removeSong(Song song) {
+        songs.remove(song);
+        song.setAlbum(null);
+    }
+  redHerrings:
+    - "    return songs;"
+    - "    song.setAlbum(album);"
+    - "public Album(String title, List<Song> songs) {"
+  explanation: |
+    Der Getter gibt eine unveränderliche Sicht heraus – sonst könnte jeder mit `getSongs().add(...)` an `addSong` vorbei die Liste ändern. Die Hilfsmethoden setzen **beide** Seiten: Hibernate speichert nur `song.album` (die besitzende Seite), dein Java-Code sieht aber auch die Liste. `setAlbum` erzeugt Lombok in `Song`.
+
+- id: rel-recipe-ingredients-composition
+  kind: template
+  title: Rezept und Zutaten – Komposition
+  prompt: |
+    Zutaten gehören zu genau einem Rezept. Speichern und Löschen eines Rezepts wirken auch auf seine Zutaten, und eine Zutat, die aus der Liste entfernt wird, wird gelöscht.
+  uml: |
+    hide empty methods
+    class Recipe <<(E) Entity>> {
+      - name : String {nn}
+      - ingredients : Ingredient[*]
+    }
+    class Ingredient <<(E) Entity>> {
+      - name : String {nn}
+      - grams : int {nn}
+    }
+    Recipe "1" *-right- "n" Ingredient
+  given: |
+    @Entity
+    @Table(name = "ingredients")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Ingredient extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+        private int grams;
+
+        @ManyToOne
+        @JoinColumn(name = "recipe_id", nullable = false)
+        private Recipe recipe;
+
+        public Ingredient(String name, int grams) {
+            this.name = name;
+            this.grams = grams;
+        }
+    }
+  template: |
+    @Entity
+    @Table(name = "recipes")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Recipe extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @OneToMany(mappedBy = "recipe", {{cascade}} = CascadeType.{{ALL}}, {{orphanRemoval}} = {{true}})
+        private List<Ingredient> ingredients = new ArrayList<>();
+
+        public Recipe(String name) {
+            this.name = name;
+        }
+
+        // getIngredients(), addIngredient(...), removeIngredient(...) wie bei Album
+    }
+  redHerrings: [PERSIST, REMOVE, "false", fetch, mappedBy]
+  explanation: |
+    Die ausgefüllte Raute im Diagramm ist eine **Komposition**: Zutaten leben nicht ohne ihr Rezept. `CascadeType.ALL` gibt Speichern und Löschen weiter, `orphanRemoval = true` löscht eine Zutat, sobald sie aus der Liste entfernt wird. Bei einer losen Beziehung (Filiale – Buch) passt das nicht.
+
+- id: rel-playlist-tracks-unidirectional
+  kind: template
+  title: Playlist – einseitig zu vielen
+  prompt: |
+    Nur die Playlist kennt ihre Tracks, ein Track hat kein Feld für seine Playlist. Trotzdem soll der Fremdschlüssel `playlist_id` in der Tabelle `tracks` liegen – ohne Zwischentabelle.
+  uml: |
+    hide empty methods
+    class Playlist <<(E) Entity>> {
+      - name : String {nn}
+      - tracks : Track[*]
+    }
+    class Track <<(E) Entity>> {
+      - title : String {nn}
+    }
+    Playlist -right-> "*" Track
+  given: |
+    @Entity
+    @Table(name = "tracks")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Track extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+    }
+  template: |
+    @Entity
+    @Table(name = "playlists")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Playlist extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @{{OneToMany}}
+        @{{JoinColumn}}(name = "{{playlist_id}}")
+        private List<Track> tracks = new ArrayList<>();
+
+        public Playlist(String name) {
+            this.name = name;
+        }
+
+        public List<Track> getTracks() {
+            return Collections.unmodifiableList(tracks);
+        }
+    }
+  redHerrings: [ManyToOne, JoinTable, track_id, ManyToMany]
+  explanation: |
+    Ohne Gegenseite gibt es kein `mappedBy`. Damit Hibernate keine Zwischentabelle `playlists_tracks` anlegt, steht `@JoinColumn` direkt an der Liste: Die Spalte `playlist_id` landet trotzdem in `tracks`. `Track` hat hier keine Beziehung und darf deshalb `@AllArgsConstructor` verwenden.
+
+- id: rel-seminar-participants-join-table
+  kind: template
+  title: Seminar und Teilnehmer – Zwischentabelle
+  prompt: |
+    Ein Seminar hat viele Teilnehmer, ein Teilnehmer besucht viele Seminare. Die Zwischentabelle heißt `seminar_participants` mit den Spalten `seminar_id` und `participant_id`. Dieselbe Person darf nicht zweimal im selben Seminar sein.
+  uml: |
+    hide empty methods
+    class Seminar <<(E) Entity>> {
+      - title : String {nn}
+      - participants : Participant[*]
+    }
+    class Participant <<(E) Entity>> {
+      - name : String {nn}
+    }
+    Seminar "n" -right-> "n" Participant
+  given: |
+    @Entity
+    @Table(name = "participants")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Participant extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+    }
+  template: |
+    @Entity
+    @Table(name = "seminars")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Seminar extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @{{ManyToMany}}
+        @JoinTable(name = "{{seminar_participants}}",
+                joinColumns = @JoinColumn(name = "{{seminar_id}}"),
+                inverseJoinColumns = @JoinColumn(name = "{{participant_id}}"))
+        private {{Set<Participant>}} participants = {{new HashSet<>()}};
+
+        public Seminar(String title) {
+            this.title = title;
+        }
+
+        // getParticipants(), addParticipant(...), removeParticipant(...)
+    }
+  redHerrings: [OneToMany, "List<Participant>", "new ArrayList<>()", participants_id, seminars_participants]
+  explanation: |
+    `joinColumns` zeigt auf die **eigene** Klasse (`seminar_id`), `inverseJoinColumns` auf die andere (`participant_id`). Mit einem `Set` wird das Paar zum Primary Key der Zwischentabelle – dieselbe Person kann nicht zweimal drinstehen. Mit `List` gäbe es keinen Primary Key.
+
+- id: rel-participant-inverse-side
+  kind: lines
+  title: Teilnehmer – die Gegenseite
+  prompt: |
+    Jetzt soll auch der Teilnehmer seine Seminare kennen. Schreib `Participant` für die Tabelle `participants`: Annotationen, Felder, fachlicher Konstruktor, dann der Getter der Menge.
+  uml: |
+    hide empty methods
+    class Seminar <<(E) Entity>> {
+      - title : String {nn}
+      - participants : Participant[*]
+    }
+    class Participant <<(E) Entity>> {
+      - name : String {nn}
+      - seminars : Seminar[*]
+    }
+    Seminar "n" -right- "n" Participant
+  given: |
+    @Entity
+    @Table(name = "seminars")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Seminar extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @ManyToMany
+        @JoinTable(name = "seminar_participants",
+                joinColumns = @JoinColumn(name = "seminar_id"),
+                inverseJoinColumns = @JoinColumn(name = "participant_id"))
+        private Set<Participant> participants = new HashSet<>();
+
+        public Seminar(String title) {
+            this.title = title;
+        }
+    }
+  solution: |
+    @Entity
+    @Table(name = "participants")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Participant extends AbstractPersistable<Long> {
+        @NotNull
+        private String name;
+        @ManyToMany(mappedBy = "participants")
+        private Set<Seminar> seminars = new HashSet<>();
+        public Participant(String name) {
+            this.name = name;
+        }
+        public Set<Seminar> getSeminars() {
+            return Collections.unmodifiableSet(seminars);
+        }
+    }
+  redHerrings:
+    - "@AllArgsConstructor"
+    - "    @ManyToMany(mappedBy = \"seminars\")"
+    - "    @JoinTable(name = \"seminar_participants\")"
+  explanation: |
+    Die Gegenseite bekommt `mappedBy` mit dem **Feldnamen** der besitzenden Seite: `participants` in `Seminar`. Eine zweite `@JoinTable` wäre eine zweite, unabhängige Beziehung. Mit der Menge hat `Participant` jetzt eine Beziehung – also kein `@AllArgsConstructor` mehr, sondern ein eigener Konstruktor und ein unveränderlicher Getter.
+
+- id: rel-seminar-helpers
+  kind: lines
+  title: Seminar – Hilfsmethoden für n:m
+  prompt: |
+    Schreib in `Seminar` den Getter der Menge, dann `addParticipant` und `removeParticipant`. Zuerst die eigene Menge ändern, dann die Gegenseite über die Methoden, die `Participant` dafür anbietet.
+  given: |
+    @Entity
+    @Table(name = "seminars")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Seminar extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @ManyToMany
+        @JoinTable(name = "seminar_participants",
+                joinColumns = @JoinColumn(name = "seminar_id"),
+                inverseJoinColumns = @JoinColumn(name = "participant_id"))
+        private Set<Participant> participants = new HashSet<>();
+
+        public Seminar(String title) {
+            this.title = title;
+        }
+
+        // ✎ Getter und Hilfsmethoden
+    }
+
+    @Entity
+    @Table(name = "participants")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Participant extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @ManyToMany(mappedBy = "participants")
+        private Set<Seminar> seminars = new HashSet<>();
+
+        public Participant(String name) {
+            this.name = name;
+        }
+
+        public Set<Seminar> getSeminars() {
+            return Collections.unmodifiableSet(seminars);
+        }
+
+        // package-private: nur Seminar ruft sie auf
+        void addSeminarInternal(Seminar seminar) {
+            seminars.add(seminar);
+        }
+
+        void removeSeminarInternal(Seminar seminar) {
+            seminars.remove(seminar);
+        }
+    }
+  solution: |
+    public Set<Participant> getParticipants() {
+        return Collections.unmodifiableSet(participants);
+    }
+    public void addParticipant(Participant participant) {
+        participants.add(participant);
+        participant.addSeminarInternal(this);
+    }
+    public void removeParticipant(Participant participant) {
+        participants.remove(participant);
+        participant.removeSeminarInternal(this);
+    }
+  redHerrings:
+    - "    participant.getSeminars().add(this);"
+    - "    return participants;"
+    - "    participants.add(this);"
+  explanation: |
+    `participant.getSeminars().add(this)` sieht richtig aus, wirft aber eine `UnsupportedOperationException`: Der Getter gibt eine unveränderliche Sicht heraus. Deshalb bietet `Participant` package-private Methoden an, die nur `Seminar` aufruft. Gespeichert wird nur, was in `participants` steht – der besitzenden Seite.
+
+- id: rel-student-locker-one-to-one
+  kind: template
+  title: Schüler und Spind – 1:1
+  prompt: |
+    Jeder Schüler hat höchstens einen Spind, und jeder Spind gehört höchstens einem Schüler. Der Fremdschlüssel `locker_id` liegt in `students`, der Constraint heißt `fk_students_locker`.
+  uml: |
+    hide empty methods
+    class Student <<(E) Entity>> {
+      - name : String {nn}
+    }
+    class Locker <<(E) Entity>> {
+      - number : String {nn, unique}
+    }
+    Student "0,1" -right-> "0,1" Locker
+  given: |
+    @Entity
+    @Table(name = "lockers")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Locker extends AbstractPersistable<Long> {
+
+        @NotNull
+        @Column(unique = true)
+        private String number;
+    }
+  template: |
+    @Entity
+    @Table(name = "students")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Student extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @{{OneToOne}}
+        @JoinColumn(name = "{{locker_id}}", foreignKey = @ForeignKey(name = "{{fk_students_locker}}"))
+        private Locker locker;
+
+        public Student(String name) {
+            this.name = name;
+        }
+    }
+  redHerrings: [ManyToOne, OneToMany, student_id, fk_lockers_student]
+  explanation: |
+    `@OneToOne` mit `@JoinColumn` sieht aus wie `@ManyToOne` – Hibernate legt die Spalte `locker_id` aber zusätzlich als `unique` an. So kann derselbe Spind nicht zwei Schülern gehören. Mit `@ManyToOne` fehlte diese Regel.
+
+- id: rel-locker-student-both-sides
+  kind: template
+  title: Spind kennt Schüler – beide Seiten setzen
+  prompt: |
+    Jetzt kennt auch der Spind seinen Schüler. Ergänze die Gegenseite und den Setter in `Student`, der beide Seiten setzt.
+  template: |
+    @Entity
+    @Table(name = "lockers")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Locker extends AbstractPersistable<Long> {
+
+        @NotNull
+        @Column(unique = true)
+        private String number;
+
+        @OneToOne(mappedBy = "{{locker}}")
+        private Student student;
+
+        public Locker(String number) {
+            this.number = number;
+        }
+    }
+
+    @Entity
+    @Table(name = "students")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Student extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @OneToOne
+        @JoinColumn(name = "locker_id")
+        private Locker locker;
+
+        public Student(String name) {
+            this.name = name;
+        }
+
+        // selbst geschrieben: Lombok erzeugt dann kein eigenes setLocker
+        public void setLocker(Locker locker) {
+            this.locker = {{locker}};
+            locker.{{setStudent}}({{this}});
+        }
+    }
+  redHerrings: [student, lockers, setLocker, "null", "getStudent"]
+  explanation: |
+    `mappedBy = "locker"` nennt das Feld in `Student`, das den Fremdschlüssel besitzt. Der eigene `setLocker` setzt beide Seiten, damit `locker.getStudent()` sofort stimmt und nicht erst nach dem nächsten Lesen. Schreibst du eine Methode selbst, erzeugt Lombok sie nicht – `setStudent` in `Locker` kommt weiter von `@Setter`.
+
+- id: rel-article-keywords
+  kind: template
+  title: Artikel – Schlagwörter als Collection
+  prompt: |
+    Ein Artikel hat eine Menge von Schlagwörtern (einfache Strings, höchstens 30 Zeichen). Sie kommen in die Tabelle `article_keywords` mit den Spalten `article_id` und `keyword`.
+  uml: |
+    hide empty methods
+    class Article <<(E) Entity>> {
+      - title : String {nn}
+      - keywords : Set<String>
+    }
+  template: |
+    @Entity
+    @Table(name = "articles")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Article extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @{{ElementCollection}}
+        @{{CollectionTable}}(name = "article_keywords", joinColumns = @JoinColumn(name = "{{article_id}}"))
+        @Column(name = "keyword", length = 30)
+        private Set<{{String}}> keywords = new HashSet<>();
+
+        public Article(String title) {
+            this.title = title;
+        }
+
+        public Set<String> getKeywords() {
+            return Collections.unmodifiableSet(keywords);
+        }
+    }
+  redHerrings: [OneToMany, JoinTable, keyword_id, Keyword, ManyToMany]
+  explanation: |
+    Schlagwörter sind keine Entities, sondern einfache Werte: `@ElementCollection` statt `@OneToMany`. `@CollectionTable` benennt die Tabelle und die Spalte, die auf den Artikel zeigt; `@Column` die Spalte für den Wert. Auch eine Collection zählt als Beziehung: kein `@AllArgsConstructor`.
+
+- id: rel-ward-shifts-embeddable
+  kind: template
+  title: Station – Dienste als Value Objects
+  prompt: |
+    Eine Krankenhausstation hat eine Liste von Diensten. Ein Dienst (Wochentag, Beginn, Ende) ist ein Value Object ohne eigene Id. Die Dienste kommen in die Tabelle `ward_shifts`.
+  uml: |
+    hide empty methods
+    class Ward <<(E) Entity>> {
+      - name : String {nn}
+      - shifts : Shift[*]
+    }
+    class Shift <<(V) ValueObject>> {
+      - weekday : DayOfWeek
+      - starts : Time
+      - ends : Time
+    }
+    Ward *-right- "*" Shift
+  template: |
+    @{{Embeddable}}
+    public record Shift(@Enumerated(EnumType.STRING) DayOfWeek weekday, LocalTime starts, LocalTime ends) {
+    }
+
+    @Entity
+    @Table(name = "wards")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Ward extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @{{ElementCollection}}
+        @CollectionTable(name = "ward_shifts", joinColumns = @JoinColumn(name = "ward_id"))
+        private List<{{Shift}}> shifts = new ArrayList<>();
+
+        public Ward(String name) {
+            this.name = name;
+        }
+    }
+  redHerrings: [Entity, OneToMany, Embedded, LocalDate]
+  explanation: |
+    Ein Value Object ist `@Embeddable` – ein Record passt, weil es unveränderlich ist. Eine **Liste** von Value Objects braucht `@ElementCollection` (eine einzelne Adresse wäre `@Embedded`). Jede Zeile in `ward_shifts` hat `ward_id`, `weekday`, `starts` und `ends`.
+
+- id: rel-song-owning-side
+  kind: lines
+  title: Song – die besitzende Seite komplett
+  prompt: |
+    Schreib das ganze Entity `Song` für die Tabelle `songs`: Felder in der Reihenfolge des Diagramms, dann die Beziehung zum Album mit der Spalte `album_id` und dem Constraint `fk_songs_album`, zuletzt der fachliche Konstruktor.
+  uml: |
+    hide empty methods
+    class Song <<(E) Entity>> {
+      - title : String {nn}
+      - seconds : int {nn}
+    }
+    class Album <<(E) Entity>> {
+      - title : String {nn}
+      - songs : Song[*]
+    }
+    Album "1" -right- "n" Song
+  given: |
+    @Entity
+    @Table(name = "albums")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Album extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @OneToMany(mappedBy = "album")
+        private List<Song> songs = new ArrayList<>();
+
+        public Album(String title) {
+            this.title = title;
+        }
+    }
+  solution: |
+    @Entity
+    @Table(name = "songs")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Song extends AbstractPersistable<Long> {
+        @NotNull
+        private String title;
+        private int seconds;
+        @ManyToOne
+        @JoinColumn(name = "album_id", nullable = false, foreignKey = @ForeignKey(name = "fk_songs_album"))
+        private Album album;
+        public Song(String title, int seconds) {
+            this.title = title;
+            this.seconds = seconds;
+        }
+    }
+  redHerrings:
+    - "@AllArgsConstructor"
+    - "    @OneToMany(mappedBy = \"songs\")"
+    - "    public Song(String title, int seconds, Album album) {"
+  explanation: |
+    `Song` besitzt die Beziehung: `@ManyToOne` mit `@JoinColumn`. Jeder Song gehört zu genau einem Album (`"1"`), also `nullable = false`. Mit der Beziehung gibt es kein `@AllArgsConstructor`; der fachliche Konstruktor nimmt nur `title` und `seconds`, das Album setzt `album.addSong(song)`.
