@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { parseTemplate } from '../src/lib/puzzle/template.ts';
 
-type Raw = { id: string; kind: 'lines' | 'template'; given?: string; solution?: string; template?: string };
+type Raw = { id: string; kind: 'lines' | 'template'; given?: string; solution?: string; template?: string; check?: string };
 
 const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main' | 'test'; imports: string[] }> = {
 	jpa: {
@@ -40,7 +40,15 @@ const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main'
 		dir: 'Aufgabe2_BusinessService',
 		base: 'businessservice',
 		sourceSet: 'main',
-		imports: ['java.math.*', 'java.time.*', 'java.util.*', 'java.util.stream.*', 'org.springframework.stereotype.Service']
+		imports: [
+			'java.math.*',
+			'java.time.*',
+			'java.time.temporal.ChronoUnit',
+			'java.util.*',
+			'java.util.function.*',
+			'java.util.stream.*',
+			'lombok.RequiredArgsConstructor'
+		]
 	},
 	test: {
 		dir: 'Aufgabe2_BusinessService',
@@ -94,7 +102,8 @@ const TEST_IMPORTS: Record<string, string[]> = {
 		'org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest',
 		'org.springframework.boot.jpa.test.autoconfigure.TestEntityManager',
 		'static org.assertj.core.api.Assertions.*'
-	]
+	],
+	service: ['org.junit.jupiter.api.Test', 'static org.assertj.core.api.Assertions.*']
 };
 
 function dedent(code: string): string {
@@ -109,8 +118,13 @@ function solutionOf(p: Raw): string {
 		.join('\n');
 }
 
-/** The given code with the solution at the ✎ marker, or given + solution. */
+/** The given code with the solution at the ✎ marker (or given + solution), plus the hidden check. */
 function sourceOf(p: Raw): string {
+	const code = codeOf(p);
+	return p.check ? `${code}\n\n${p.check.trimEnd()}` : code;
+}
+
+function codeOf(p: Raw): string {
 	const solution = solutionOf(p);
 	if (!p.given) return solution;
 	const m = MARKER.exec(p.given);

@@ -111,6 +111,8 @@ const puzzleBase = {
 	given: z.string().min(1).optional(),
 	/** Markdown, shown once the puzzle is solved or the solution is revealed. */
 	explanation: z.string().min(1),
+	/** Hidden JUnit test class that scripts/verify-puzzles.ts runs against the solution. Never sent to the browser. */
+	check: z.string().min(1).optional(),
 	/** auto = side by side on wide screens when the puzzle is long (see puzzleLayout), else stacked. */
 	layout: z.enum(['auto', 'stacked', 'split']).default('auto'),
 	status

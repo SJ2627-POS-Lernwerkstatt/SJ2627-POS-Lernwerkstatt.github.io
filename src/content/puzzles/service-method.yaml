@@ -1,0 +1,588 @@
+# Puzzles "Service-Methoden". Format: src/lib/content/schema.ts (puzzle).
+# Running example: bike rental. Rules: 7 days included, 2 days grace, then 50 cents per day, at most 15 €, students pay half.
+# `check` is a hidden JUnit test run against the solution by scripts/verify-puzzles.ts (never shown to students).
+# Verify: node scripts/verify-puzzles.ts service-method
+
+- id: svc-record-validation
+  kind: lines
+  title: Buchung – Record mit Prüfungen
+  prompt: |
+    `Booking` ist ein Record. Prüfe im kompakten Konstruktor in der Reihenfolge der Komponenten, dass keine fehlt, und danach, dass `to` nicht vor `from` liegt.
+  solution: |
+    public record Booking(String guest, LocalDate from, LocalDate to) {
+        public Booking {
+            Objects.requireNonNull(guest, "guest");
+            Objects.requireNonNull(from, "from");
+            Objects.requireNonNull(to, "to");
+            if (to.isBefore(from)) {
+                throw new IllegalArgumentException("to before from");
+            }
+        }
+    }
+  redHerrings:
+    - "    public Booking(String guest, LocalDate from, LocalDate to) {"
+    - "        this.guest = guest;"
+    - "        if (from.isBefore(to)) {"
+  explanation: |
+    Der **kompakte** Konstruktor hat keine Parameterliste und keine Zuweisungen – die macht Java danach selbst. `Objects.requireNonNull` wirft eine `NullPointerException` mit dem Namen als Nachricht, unsinnige Werte eine `IllegalArgumentException`. `from.isBefore(to)` wäre genau der **gültige** Fall.
+  check: |
+    class BookingCheck {
+        @Test
+        void check() {
+            LocalDate d = LocalDate.of(2026, 3, 1);
+            assertThat(new Booking("Anna", d, d.plusDays(2)).guest()).isEqualTo("Anna");
+            assertThat(new Booking("Anna", d, d).to()).isEqualTo(d);
+            assertThatThrownBy(() -> new Booking(null, d, d)).isInstanceOf(NullPointerException.class).hasMessage("guest");
+            assertThatThrownBy(() -> new Booking("Anna", d, d.minusDays(1))).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+- id: svc-constructor-copy
+  kind: template
+  title: Verleih – Daten im Konstruktor sichern
+  prompt: |
+    Der Service bekommt zu Beginn die Liste der Ausleihen. Speichere sie so, dass `null` sofort auffällt und spätere Änderungen an der übergebenen Liste den Service nicht verändern.
+  given: &rentalModel |
+    public record Customer(String name, boolean student) {
+    }
+
+    /** returnedOn ist null, solange das Rad unterwegs ist. */
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+
+        public Optional<LocalDate> returned() {
+            return Optional.ofNullable(returnedOn);
+        }
+    }
+  template: |
+    public class RentalFeeService {
+
+        private final List<Rental> rentals;
+
+        public RentalFeeService(List<Rental> rentals) {
+            this.rentals = {{List.copyOf}}({{Objects.requireNonNull}}(rentals, "rentals"));
+        }
+
+        int count() {
+            return rentals.size();
+        }
+    }
+  redHerrings: [Collections.unmodifiableList, new ArrayList<>, Optional.of, rentals]
+  explanation: |
+    `List.copyOf` legt eine eigene, unveränderliche Kopie an. `Collections.unmodifiableList` wäre nur eine **Sicht** auf die übergebene Liste – fügt der Aufrufer später etwas hinzu, sieht es der Service trotzdem. `Objects.requireNonNull` macht aus `null` sofort eine verständliche Exception.
+  check: |
+    class ConstructorCopyCheck {
+        @Test
+        void check() {
+            List<Rental> list = new ArrayList<>(List.of(new Rental(new Customer("Anna", false), "B1", LocalDate.of(2026, 3, 1), null)));
+            RentalFeeService service = new RentalFeeService(list);
+            list.add(new Rental(new Customer("Ben", true), "B2", LocalDate.of(2026, 3, 2), null));
+            assertThat(service.count()).isEqualTo(1);
+            assertThatThrownBy(() -> new RentalFeeService(null)).hasMessage("rentals");
+        }
+    }
+
+- id: svc-days-overdue
+  kind: lines
+  title: Verleih – Tage über der Frist
+  prompt: |
+    Schreib `daysOverdue`: die Tage nach den 7 inkludierten Leihtagen. Ein Rad, das noch unterwegs ist, zählt bis heute. Nie negativ.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    /** returnedOn ist null, solange das Rad unterwegs ist. */
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+
+        public Optional<LocalDate> returned() {
+            return Optional.ofNullable(returnedOn);
+        }
+    }
+
+    public class RentalFeeService {
+
+        static final int RENTAL_DAYS = 7;
+
+        // ✎ daysOverdue
+    }
+  solution: |
+    static long daysOverdue(Rental rental, LocalDate today) {
+        LocalDate end = rental.returned().orElse(today);
+        long days = ChronoUnit.DAYS.between(rental.start(), end);
+        return Math.max(0, days - RENTAL_DAYS);
+    }
+  redHerrings:
+    - "    long days = ChronoUnit.DAYS.between(end, rental.start());"
+    - "    return Math.min(0, days - RENTAL_DAYS);"
+    - "    LocalDate end = rental.returnedOn();"
+  explanation: |
+    `returned().orElse(today)` nimmt das Rückgabedatum oder – solange das Rad fehlt – heute. `ChronoUnit.DAYS.between(a, b)` zählt von `a` bis `b`; vertauscht wird es negativ. `Math.max(0, …)` verhindert negative Werte, `Math.min` würde **alles** auf höchstens 0 drücken. `returnedOn()` allein wäre bei offenen Ausleihen `null`.
+  check: |
+    class DaysOverdueCheck {
+        @Test
+        void check() {
+            Customer anna = new Customer("Anna", false);
+            LocalDate start = LocalDate.of(2026, 3, 1);
+            assertThat(RentalFeeService.daysOverdue(new Rental(anna, "B1", start, start.plusDays(10)), start.plusDays(30))).isEqualTo(3);
+            assertThat(RentalFeeService.daysOverdue(new Rental(anna, "B1", start, null), start.plusDays(9))).isEqualTo(2);
+            assertThat(RentalFeeService.daysOverdue(new Rental(anna, "B1", start, start.plusDays(3)), start.plusDays(30))).isZero();
+        }
+    }
+
+- id: svc-fee-rule
+  kind: template
+  title: Verleih – die Gebühr
+  prompt: |
+    Bis einschließlich 2 Tage Verspätung kosten nichts. Danach 50 Cent pro Tag, höchstens 15 €. Studierende zahlen die Hälfte. Beträge in Cent.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    /** returnedOn ist null, solange das Rad unterwegs ist. */
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+
+        public Optional<LocalDate> returned() {
+            return Optional.ofNullable(returnedOn);
+        }
+    }
+
+    public class RentalFeeService {
+
+        static final int RENTAL_DAYS = 7;
+        static final int GRACE_DAYS = 2;
+        static final int CENTS_PER_DAY = 50;
+        static final int MAX_CENTS = 1500;
+
+        static long daysOverdue(Rental rental, LocalDate today) {
+            LocalDate end = rental.returned().orElse(today);
+            return Math.max(0, ChronoUnit.DAYS.between(rental.start(), end) - RENTAL_DAYS);
+        }
+
+        // ✎ fee
+    }
+  template: |
+    static int fee(Rental rental, LocalDate today) {
+        long late = daysOverdue(rental, today);
+        if (late {{<=}} GRACE_DAYS) {
+            return 0;
+        }
+        int cents = (int) {{Math.min}}(late * CENTS_PER_DAY, {{MAX_CENTS}});
+        return rental.customer().{{student()}} ? cents {{/ 2}} : cents;
+    }
+  redHerrings: ["<", Math.max, CENTS_PER_DAY, isStudent(), "* 2"]
+  explanation: |
+    „Bis einschließlich 2 Tage“ heißt `<=` – mit `<` kostete schon der zweite Tag. `Math.min(…, MAX_CENTS)` deckelt den Betrag; `Math.max` würde **mindestens** 15 € verlangen. Ein Record-Accessor heißt wie die Komponente: `student()`, nicht `isStudent()`.
+  check: |
+    class FeeRuleCheck {
+        static int feeAfter(int days, boolean student) {
+            LocalDate start = LocalDate.of(2026, 3, 1);
+            return RentalFeeService.fee(new Rental(new Customer("X", student), "B1", start, start.plusDays(days)), start.plusDays(100));
+        }
+
+        @Test
+        void check() {
+            assertThat(feeAfter(9, false)).isZero();      // 2 Tage zu spät
+            assertThat(feeAfter(10, false)).isEqualTo(150);
+            assertThat(feeAfter(10, true)).isEqualTo(75);
+            assertThat(feeAfter(60, false)).isEqualTo(1500);
+        }
+    }
+
+- id: svc-stream-sum
+  kind: template
+  title: Verleih – Summe pro Kunde
+  prompt: |
+    `feeFor` liefert die Summe der Gebühren aller Ausleihen eines Kunden.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+    }
+
+    public class RentalFeeService {
+
+        private final List<Rental> rentals;
+
+        public RentalFeeService(List<Rental> rentals) {
+            this.rentals = List.copyOf(rentals);
+        }
+
+        /** Gebühr einer Ausleihe in Cent (siehe Puzzle „Die Gebühr“). */
+        static int fee(Rental rental, LocalDate today) {
+            return rental.returnedOn() == null ? 100 : 0;
+        }
+
+        // ✎ feeFor
+    }
+  template: |
+    public int feeFor(Customer customer, LocalDate today) {
+        return rentals.stream()
+                .{{filter}}(rental -> rental.customer().equals(customer))
+                .{{mapToInt}}(rental -> fee(rental, today))
+                .{{sum}}();
+    }
+  redHerrings: [map, count, collect, anyMatch]
+  explanation: |
+    `filter` behält nur die Ausleihen des Kunden, `mapToInt` macht aus jeder ihre Gebühr als `int`, `sum` addiert. Mit `map` entstünde ein `Stream<Integer>` ohne `sum()`. `count` würde die Ausleihen zählen statt die Beträge zu addieren.
+  check: |
+    class StreamSumCheck {
+        @Test
+        void check() {
+            Customer anna = new Customer("Anna", false);
+            Customer ben = new Customer("Ben", false);
+            LocalDate d = LocalDate.of(2026, 3, 1);
+            RentalFeeService service = new RentalFeeService(List.of(
+                    new Rental(anna, "B1", d, null), new Rental(anna, "B2", d, null), new Rental(ben, "B3", d, null)));
+            assertThat(service.feeFor(anna, d)).isEqualTo(200);
+            assertThat(service.feeFor(new Customer("Zoe", true), d)).isZero();
+        }
+    }
+
+- id: svc-percent-rule
+  kind: template
+  title: Streaming – Prozent ohne Kommazahlen
+  prompt: |
+    Unter 5 gehörten Sekunden wird nichts abgerechnet. Wer **mindestens 85 %** eines Songs gehört hat, zahlt den ganzen Song, sonst die gehörten Sekunden.
+  template: |
+    public class StreamingRules {
+
+        static int billedSeconds(int streamed, int songLength) {
+            if (streamed {{<}} 5) {
+                return 0;
+            }
+            return {{streamed * 100 >= songLength * 85}} ? songLength : streamed;
+        }
+    }
+  redHerrings: ["<=", "streamed / songLength >= 0.85", "streamed * 85 >= songLength * 100"]
+  explanation: |
+    Prozent mit ganzen Zahlen: beide Seiten multiplizieren statt zu dividieren. `streamed / songLength` ist eine **Ganzzahl-Division** und ergibt fast immer `0`. „Unter 5“ heißt `< 5` – genau 5 Sekunden werden schon abgerechnet.
+  check: |
+    class PercentRuleCheck {
+        @Test
+        void check() {
+            assertThat(StreamingRules.billedSeconds(4, 200)).isZero();
+            assertThat(StreamingRules.billedSeconds(5, 200)).isEqualTo(5);
+            assertThat(StreamingRules.billedSeconds(170, 200)).isEqualTo(200);
+            assertThat(StreamingRules.billedSeconds(169, 200)).isEqualTo(169);
+        }
+    }
+
+- id: svc-fee-level
+  kind: template
+  title: Gebühren – Stufen mit Enum
+  prompt: |
+    Ordne einen Betrag einer Stufe zu: keine Gebühr → `NONE`, unter 5 € → `LOW`, ab 5 € → `HIGH`. Beträge in Cent.
+  given: |
+    public enum FeeLevel {
+        NONE, LOW, HIGH
+    }
+  template: |
+    public class FeeLevels {
+
+        static FeeLevel level(int cents) {
+            if (cents {{== 0}}) {
+                return FeeLevel.{{NONE}};
+            }
+            return cents {{< 500}} ? FeeLevel.{{LOW}} : FeeLevel.{{HIGH}};
+        }
+    }
+  redHerrings: ["<= 500", "> 500", "== null", MEDIUM]
+  explanation: |
+    „Ab 5 €“ gehört zu `HIGH`, also ist `LOW` alles **unter** 500 Cent: `< 500`. Mit `<= 500` landete genau 5 € in der falschen Stufe – genau solche Grenzen prüfen die Tests. Ein `int` kann nicht `null` sein.
+  check: |
+    class FeeLevelCheck {
+        @Test
+        void check() {
+            assertThat(FeeLevels.level(0)).isEqualTo(FeeLevel.NONE);
+            assertThat(FeeLevels.level(499)).isEqualTo(FeeLevel.LOW);
+            assertThat(FeeLevels.level(500)).isEqualTo(FeeLevel.HIGH);
+        }
+    }
+
+- id: svc-overview-enum-map
+  kind: lines
+  title: Gebühren – Übersicht als Map
+  prompt: |
+    `overview` gruppiert die (schon sortierten) Gebühren nach Stufe. **Alle** Stufen sollen im Ergebnis stehen, auch ohne Einträge. Leg zuerst die Map an, belege jede Stufe mit einer leeren Liste und füge dann die gruppierten Gebühren hinzu.
+  given: |
+    public enum FeeLevel {
+        NONE, LOW, HIGH
+    }
+
+    public record CustomerFee(String name, int cents) {
+    }
+
+    @RequiredArgsConstructor
+    public class FeeOverview {
+
+        /** Schon absteigend nach Betrag sortiert. */
+        private final List<CustomerFee> fees;
+
+        static FeeLevel level(int cents) {
+            if (cents == 0) {
+                return FeeLevel.NONE;
+            }
+            return cents < 500 ? FeeLevel.LOW : FeeLevel.HIGH;
+        }
+
+        // ✎ overview
+    }
+  solution: |
+    public Map<FeeLevel, List<CustomerFee>> overview() {
+        Map<FeeLevel, List<CustomerFee>> result = new EnumMap<>(FeeLevel.class);
+        for (FeeLevel level : FeeLevel.values()) {
+            result.put(level, List.of());
+        }
+        result.putAll(fees.stream()
+                .collect(Collectors.groupingBy(fee -> level(fee.cents()))));
+        return result;
+    }
+  redHerrings:
+    - "        result.put(level, null);"
+    - "            .collect(Collectors.toMap(fee -> level(fee.cents()), fee -> fee)));"
+    - "    return fees.stream().collect(Collectors.groupingBy(fee -> level(fee.cents())));"
+  explanation: |
+    `groupingBy` allein liefert nur Stufen, die vorkommen – deshalb wird die `EnumMap` vorher mit leeren Listen belegt und `putAll` überschreibt die vorhandenen. `groupingBy` behält die Reihenfolge des Streams, die Listen bleiben also sortiert. `toMap` könnte pro Stufe nur **einen** Eintrag speichern.
+  check: |
+    class OverviewCheck {
+        @Test
+        void check() {
+            assertThat(new FeeOverview(List.of()).overview()).containsOnlyKeys(FeeLevel.values())
+                    .allSatisfy((level, list) -> assertThat(list).isEmpty());
+            var result = new FeeOverview(List.of(new CustomerFee("Dora", 700), new CustomerFee("Anna", 300), new CustomerFee("Carla", 300))).overview();
+            assertThat(result.get(FeeLevel.HIGH)).extracting(CustomerFee::name).containsExactly("Dora");
+            assertThat(result.get(FeeLevel.LOW)).extracting(CustomerFee::name).containsExactly("Anna", "Carla");
+            assertThat(result.get(FeeLevel.NONE)).isEmpty();
+        }
+    }
+
+- id: svc-sort-comparator
+  kind: template
+  title: Gebühren – sortieren mit Comparator
+  prompt: |
+    Sortiere die Gebühren absteigend nach Betrag, bei gleichem Betrag alphabetisch nach Name.
+  given: |
+    public record CustomerFee(String name, int cents) {
+    }
+  template: |
+    public class FeeSorting {
+
+        static List<CustomerFee> sorted(List<CustomerFee> fees) {
+            return fees.stream()
+                    .sorted(Comparator.{{comparingInt}}(CustomerFee::{{cents}}).{{reversed()}}
+                            .{{thenComparing}}(CustomerFee::{{name}}))
+                    .toList();
+        }
+    }
+  redHerrings: ["reverse()", thenComparingInt, max, "naturalOrder"]
+  explanation: |
+    `comparingInt(CustomerFee::cents)` sortiert aufsteigend, `.reversed()` dreht das um. `thenComparing` gilt nur bei Gleichstand und bleibt aufsteigend. Achtung: Mit einem Lambda statt der Methodenreferenz (`comparingInt(f -> f.cents()).reversed()`) kompiliert das nicht – Java kennt den Typ von `f` dann nicht.
+  check: |
+    class SortCheck {
+        @Test
+        void check() {
+            assertThat(FeeSorting.sorted(List.of(new CustomerFee("Carla", 300), new CustomerFee("Dora", 700), new CustomerFee("Anna", 300))))
+                    .extracting(CustomerFee::name).containsExactly("Dora", "Anna", "Carla");
+        }
+    }
+
+- id: svc-distinct-customers
+  kind: template
+  title: Verleih – jeder Kunde einmal
+  prompt: |
+    Erzeuge pro Kunde **einen** Eintrag mit Name und Gebühr – auch wenn er mehrere Räder geliehen hat.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+    }
+
+    public record CustomerFee(String name, int cents) {
+    }
+
+    public class RentalFeeService {
+
+        private final List<Rental> rentals;
+
+        public RentalFeeService(List<Rental> rentals) {
+            this.rentals = List.copyOf(rentals);
+        }
+
+        public int feeFor(Customer customer, LocalDate today) {
+            return (int) rentals.stream().filter(r -> r.customer().equals(customer)).count() * 100;
+        }
+
+        // ✎ fees
+    }
+  template: |
+    public List<CustomerFee> fees(LocalDate today) {
+        return rentals.stream()
+                .map({{Rental::customer}})
+                .{{distinct}}()
+                .map(customer -> new CustomerFee(customer.{{name()}}, feeFor(customer, today)))
+                .toList();
+    }
+  redHerrings: [Customer::name, sorted, getName(), "Rental::bike"]
+  explanation: |
+    `map(Rental::customer)` macht aus den Ausleihen ihre Kunden, `distinct()` lässt jeden nur einmal durch – das funktioniert, weil Records `equals` vergleichen. Danach wird aus jedem Kunden ein `CustomerFee`. Ein Record-Accessor heißt `name()`, nicht `getName()`.
+  check: |
+    class DistinctCheck {
+        @Test
+        void check() {
+            Customer anna = new Customer("Anna", false);
+            LocalDate d = LocalDate.of(2026, 3, 1);
+            var fees = new RentalFeeService(List.of(new Rental(anna, "B1", d, null), new Rental(anna, "B2", d, null),
+                    new Rental(new Customer("Ben", true), "B3", d, null))).fees(d);
+            assertThat(fees).containsExactly(new CustomerFee("Anna", 200), new CustomerFee("Ben", 100));
+        }
+    }
+
+- id: svc-exception-class
+  kind: lines
+  title: Eigene Exception
+  prompt: |
+    Schreib `CustomerNotFoundException`. Niemand soll sie deklarieren müssen, die Nachricht lautet `no rentals for customer <name>`.
+  solution: |
+    public class CustomerNotFoundException extends RuntimeException {
+        public CustomerNotFoundException(String name) {
+            super("no rentals for customer " + name);
+        }
+    }
+  redHerrings:
+    - "public class CustomerNotFoundException extends Exception {"
+    - "        this.message = \"no rentals for customer \" + name;"
+    - "        throw new RuntimeException(\"no rentals for customer \" + name);"
+  explanation: |
+    `extends RuntimeException` macht sie *unchecked*: Kein `throws`, kein Pflicht-`catch`. Die Nachricht gibst du mit `super(…)` an den Konstruktor von `RuntimeException` weiter – ein eigenes Feld `message` gibt es nicht. Ein `throw` im Konstruktor würde die eigene Exception nie entstehen lassen.
+  check: |
+    class ExceptionCheck {
+        @Test
+        void check() {
+            assertThat(new CustomerNotFoundException("Zoe")).isInstanceOf(RuntimeException.class).hasMessage("no rentals for customer Zoe");
+        }
+    }
+
+- id: svc-repository-service
+  kind: lines
+  title: Verleih – Repository und Service
+  prompt: |
+    Die Ausleihen kommen jetzt aus einem Repository. Schreib zuerst das Interface mit `findByCustomerName`, dann den Service, der Repository und `RentalFees` im Konstruktor bekommt – den erzeugt Lombok.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+    }
+
+    public class RentalFees {
+
+        int fee(Rental rental, LocalDate today) {
+            return rental.returnedOn() == null ? 100 : 0;
+        }
+    }
+  solution: |
+    public interface RentalRepository {
+        List<Rental> findByCustomerName(String name);
+    }
+    @RequiredArgsConstructor
+    public class RentalReportService {
+        private final RentalRepository rentalRepository;
+        private final RentalFees fees;
+    }
+  redHerrings:
+    - "    private RentalRepository rentalRepository;"
+    - "public class RentalRepository {"
+    - "    public RentalReportService() {"
+  explanation: |
+    Der Datenzugriff ist ein **Interface** – der Service weiß nicht, woher die Daten kommen, und im Test übergibst du einen Stub oder Mock. `@RequiredArgsConstructor` erzeugt einen Konstruktor mit allen `final` Feldern: `RentalReportService(RentalRepository, RentalFees)`. Ohne `final` wäre das Feld nicht dabei.
+  check: |
+    class RepositoryServiceCheck {
+        @Test
+        void check() {
+            RentalRepository stub = name -> List.of();
+            assertThat(new RentalReportService(stub, new RentalFees())).isNotNull();
+        }
+    }
+
+- id: svc-not-found
+  kind: template
+  title: Verleih – unbekannter Kunde
+  prompt: |
+    Hat ein Kunde keine Ausleihen, wirf `CustomerNotFoundException`. Sonst liefere die Summe seiner Gebühren.
+  given: |
+    public record Customer(String name, boolean student) {
+    }
+
+    public record Rental(Customer customer, String bike, LocalDate start, LocalDate returnedOn) {
+    }
+
+    public class CustomerNotFoundException extends RuntimeException {
+        public CustomerNotFoundException(String name) {
+            super("no rentals for customer " + name);
+        }
+    }
+
+    public interface RentalRepository {
+        List<Rental> findByCustomerName(String name);
+    }
+
+    public class RentalFees {
+        int fee(Rental rental, LocalDate today) {
+            return rental.returnedOn() == null ? 100 : 0;
+        }
+    }
+  template: |
+    @RequiredArgsConstructor
+    public class RentalReportService {
+
+        private final RentalRepository rentalRepository;
+        private final RentalFees fees;
+
+        public int feeFor(String name, LocalDate today) {
+            List<Rental> rentals = rentalRepository.{{findByCustomerName}}(name);
+            if (rentals.{{isEmpty()}}) {
+                {{throw}} new CustomerNotFoundException(name);
+            }
+            return rentals.stream().mapToInt(rental -> fees.fee(rental, today)).sum();
+        }
+    }
+  redHerrings: [findAll, "== null", return, "size() == 1"]
+  explanation: |
+    Das Repository liefert für einen unbekannten Namen eine **leere Liste**, nicht `null`. Daraus macht der Service eine sprechende Exception – in Aufgabe 3 wird sie zum Statuscode `404`. Mit `return` statt `throw` würde der Code nicht kompilieren: Eine Exception ist kein `int`.
+  check: |
+    class NotFoundCheck {
+        @Test
+        void check() {
+            Rental open = new Rental(new Customer("Anna", false), "B1", LocalDate.of(2026, 3, 1), null);
+            RentalReportService service = new RentalReportService(name -> name.equals("Anna") ? List.of(open, open) : List.of(), new RentalFees());
+            assertThat(service.feeFor("Anna", LocalDate.of(2026, 3, 9))).isEqualTo(200);
+            assertThatThrownBy(() -> service.feeFor("Zoe", LocalDate.of(2026, 3, 9)))
+                    .isInstanceOf(CustomerNotFoundException.class).hasMessage("no rentals for customer Zoe");
+        }
+    }
+
+- id: svc-big-decimal
+  kind: template
+  title: Hotel – Geld mit BigDecimal
+  prompt: |
+    Der Preis eines Aufenthalts ist der Preis pro Nacht mal die Anzahl der Nächte, kaufmännisch auf zwei Nachkommastellen gerundet.
+  template: |
+    public class HotelPrices {
+
+        static BigDecimal price(BigDecimal perNight, int nights) {
+            return perNight.{{multiply}}({{BigDecimal.valueOf(nights)}})
+                    .{{setScale}}(2, {{RoundingMode.HALF_UP}});
+        }
+    }
+  redHerrings: [add, nights, RoundingMode.DOWN, round, "new BigDecimal(nights * 1.0)"]
+  explanation: |
+    `BigDecimal` rechnet mit Methoden statt Operatoren: `multiply`, `add`, … Der Faktor muss selbst ein `BigDecimal` sein – `BigDecimal.valueOf(nights)`. `setScale(2, RoundingMode.HALF_UP)` rundet kaufmännisch auf zwei Stellen; `DOWN` würde abschneiden.
+  check: |
+    class BigDecimalCheck {
+        @Test
+        void check() {
+            assertThat(HotelPrices.price(new BigDecimal("89.90"), 3)).isEqualTo(new BigDecimal("269.70"));
+            assertThat(HotelPrices.price(new BigDecimal("33.335"), 1)).isEqualTo(new BigDecimal("33.34"));
+        }
+    }
