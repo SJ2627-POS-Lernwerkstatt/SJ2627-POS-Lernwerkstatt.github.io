@@ -75,6 +75,9 @@ function zodErrors(file: string, error: z.ZodError): string[] {
 }
 
 function checkPuzzle(p: Puzzle, where: string, errors: string[]) {
+	for (const [i, m] of p.mutants.entries()) {
+		if (!p.given?.includes(m.find)) errors.push(`${where}: mutant ${i + 1}: "${m.find}" does not occur in given`);
+	}
 	if (p.kind === 'template') {
 		checkQuestion(p, where, errors);
 		return;

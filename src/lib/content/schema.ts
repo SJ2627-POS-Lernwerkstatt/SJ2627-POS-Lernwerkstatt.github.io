@@ -113,6 +113,8 @@ const puzzleBase = {
 	explanation: z.string().min(1),
 	/** Hidden JUnit test class that scripts/verify-puzzles.ts runs against the solution. Never sent to the browser. */
 	check: z.string().min(1).optional(),
+	/** Bugs planted in `given` (first occurrence of `find`); the solution's tests must fail on each. Never sent to the browser. */
+	mutants: z.array(z.strictObject({ find: z.string().min(1), replace: z.string() })).default([]),
 	/** auto = side by side on wide screens when the puzzle is long (see puzzleLayout), else stacked. */
 	layout: z.enum(['auto', 'stacked', 'split']).default('auto'),
 	status

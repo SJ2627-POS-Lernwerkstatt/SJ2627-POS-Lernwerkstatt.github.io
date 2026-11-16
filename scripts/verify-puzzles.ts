@@ -13,7 +13,18 @@ import { join, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { parseTemplate } from '../src/lib/puzzle/template.ts';
 
-type Raw = { id: string; kind: 'lines' | 'template'; given?: string; solution?: string; template?: string; check?: string };
+type Mutant = { find: string; replace: string };
+type Raw = {
+	id: string;
+	kind: 'lines' | 'template';
+	given?: string;
+	solution?: string;
+	template?: string;
+	check?: string;
+	mutants?: Mutant[];
+};
+/** One compiled unit: a puzzle, or a copy of it with a mutated `given` whose tests must fail. */
+type Unit = { id: string; pkg: string; source: string; mutant: boolean };
 
 const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main' | 'test'; imports: string[] }> = {
 	jpa: {
@@ -61,6 +72,8 @@ const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main'
 			'org.junit.jupiter.api.*',
 			'org.junit.jupiter.params.ParameterizedTest',
 			'org.junit.jupiter.params.provider.*',
+			'java.util.stream.*',
+			'static org.junit.jupiter.params.provider.Arguments.*',
 			'static org.assertj.core.api.Assertions.*'
 		]
 	},
@@ -147,7 +160,7 @@ if (!existsSync(join(scratch, 'gradlew'))) {
 
 const wanted = process.argv.slice(2);
 const files = readdirSync(join(root, 'src/content/puzzles')).filter((f) => f.endsWith('.yaml'));
-const bySub = new Map<string, { id: string; source: string }[]>();
+const bySub = new Map<string, Unit[]>();
 for (const file of files) {
 	const topic = file.replace(/\.yaml$/, '');
 	if (wanted.length && !wanted.includes(topic)) continue;
@@ -156,7 +169,14 @@ for (const file of files) {
 	const puzzles = parse(readFileSync(join(root, 'src/content/puzzles', file), 'utf8')) as Raw[];
 	for (const p of puzzles ?? []) {
 		const list = bySub.get(sub) ?? [];
-		list.push({ id: p.id, source: sourceOf(p) });
+		const pkg = p.id.replace(/-/g, '_');
+		list.push({ id: p.id, pkg, source: sourceOf(p), mutant: false });
+		// A mutant plants a bug in the given code; the puzzle's (correct) tests must catch it.
+		for (const [i, m] of (p.mutants ?? []).entries()) {
+			if (!p.given?.includes(m.find)) throw new Error(`${p.id}: mutant ${i + 1} text not found in given: ${m.find}`);
+			const mutated = { ...p, given: p.given.replace(m.find, m.replace), check: undefined };
+			list.push({ id: `${p.id} (Mutant ${i + 1})`, pkg: `${pkg}_m${i + 1}`, source: sourceOf(mutated), mutant: true });
+		}
 		bySub.set(sub, list);
 	}
 }
@@ -168,10 +188,11 @@ function namesOf(source: string): string[] {
 	return [...classes, ...tables];
 }
 
-/** Greedy split into batches whose puzzles share no names. */
-function batches<T extends { source: string }>(puzzles: T[]): T[][] {
-	const out: { items: T[]; names: Set<string> }[] = [];
-	for (const p of puzzles) {
+/** Greedy split into batches whose puzzles share no names (only Hibernate needs that). */
+function batches(units: Unit[], byName: boolean): Unit[][] {
+	if (!byName) return [units];
+	const out: { items: Unit[]; names: Set<string> }[] = [];
+	for (const p of units) {
 		const names = namesOf(p.source);
 		let batch = out.find((b) => names.every((n) => !b.names.has(n)));
 		if (!batch) out.push((batch = { items: [], names: new Set() }));
@@ -181,41 +202,76 @@ function batches<T extends { source: string }>(puzzles: T[]): T[][] {
 	return out.map((b) => b.items);
 }
 
+type Case = { pkg: string; name: string; failed: boolean };
+
+/** Test cases from the JUnit XML reports, with the puzzle package they belong to ("" for seed tests). */
+function readCases(dir: string, base: string): Case[] {
+	if (!existsSync(dir)) return [];
+	return readdirSync(dir)
+		.filter((f) => f.endsWith('.xml'))
+		.flatMap((f) => {
+			const xml = readFileSync(join(dir, f), 'utf8');
+			return [...xml.matchAll(/<testcase name="([^"]*)" classname="([^"]*)"[^>]*?(\/>|>([\s\S]*?)<\/testcase>)/g)].map((m) => {
+				const pkg = m[2]!.startsWith(`${base}.puzzles.`) ? m[2]!.slice(base.length + 9).split('.')[0]! : '';
+				return { pkg, name: `${m[2]}.${m[1]}`, failed: /<(failure|error)\b/.test(m[4] ?? '') };
+			});
+		});
+}
+
 let failed = false;
 for (const [key, all] of bySub) {
 	const sp = SUBPROJECTS[key]!;
 	const rootOf = (set: string) => join(scratch, sp.dir, 'src', set, 'java', sp.base, 'puzzles');
 	const clean = () => ['main', 'test'].forEach((set) => rmSync(rootOf(set), { recursive: true, force: true }));
-	const groups = batches(all);
-	for (const [n, puzzles] of groups.entries()) {
+	const results = join(scratch, sp.dir, 'build/test-results/test');
+	const groups = batches(all, key === 'jpa');
+	for (const [n, units] of groups.entries()) {
 		clean();
-		for (const p of puzzles) {
-			const pkg = p.id.replace(/-/g, '_');
+		for (const p of units) {
 			const isTest = /@Test\b/.test(p.source) && TEST_IMPORTS[key];
-			const dir = join(rootOf(isTest ? 'test' : sp.sourceSet), pkg);
+			const dir = join(rootOf(isTest ? 'test' : sp.sourceSet), p.pkg);
 			mkdirSync(dir, { recursive: true });
 			// One file per puzzle: top-level types lose `public` so they can share it. Projections name
 			// their record as in the course (`ormapping.persistence.X`); here it lives in the puzzle's package.
 			const body = p.source
 				.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '')
-				.replaceAll(`${sp.base}.persistence.`, `${sp.base}.puzzles.${pkg}.`);
+				.replaceAll(`${sp.base}.persistence.`, `${sp.base}.puzzles.${p.pkg}.`);
 			const imports = [...sp.imports, ...(isTest ? TEST_IMPORTS[key]! : [])];
-			const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...imports.map((i) => `import ${i};`), ''].join('\n');
+			const header = [`package ${sp.base}.puzzles.${p.pkg};`, '', ...imports.map((i) => `import ${i};`), ''].join('\n');
 			writeFileSync(join(dir, 'Puzzle.java'), `${header}\n${body}\n`);
 		}
-		console.log(`\n${sp.dir} batch ${n + 1}/${groups.length}: ${puzzles.map((p) => p.id).join(', ')}`);
+		const mutants = units.filter((u) => u.mutant).length;
+		console.log(`\n${sp.dir} batch ${n + 1}/${groups.length}: ${units.length - mutants} puzzles, ${mutants} mutants`);
+		rmSync(results, { recursive: true, force: true });
+		let output = '';
 		try {
-			execFileSync('./gradlew', [`:${sp.dir}:test`, '--console=plain', '-q'], { cwd: scratch, stdio: ['ignore', 'ignore', 'inherit'] });
-			// Keep the report (with Hibernate's DDL) per batch: <scratch>/reports/<subproject>-<n>.xml
-			const results = join(scratch, sp.dir, 'build/test-results/test');
+			// --continue: mutants are supposed to make tests fail; the reports decide.
+			execFileSync('./gradlew', [`:${sp.dir}:test`, '--continue', '--console=plain', '-q'], { cwd: scratch, stdio: 'pipe' });
+		} catch (e) {
+			output = String((e as { stderr?: Buffer }).stderr ?? e);
+		}
+		const cases = readCases(results, sp.base);
+		const problems: string[] = [];
+		if (cases.length === 0) problems.push(`no test results – compile error?\n${output}`);
+		for (const c of cases.filter((c) => c.failed && !units.find((u) => u.pkg === c.pkg)?.mutant)) {
+			problems.push(`test failed: ${c.name}`);
+		}
+		for (const u of units.filter((u) => u.mutant)) {
+			if (!cases.some((c) => c.pkg === u.pkg && c.failed)) problems.push(`not caught: ${u.id}`);
+		}
+		for (const u of units.filter((u) => !u.mutant && /@Test\b/.test(u.source))) {
+			if (cases.length && !cases.some((c) => c.pkg === u.pkg)) problems.push(`no test ran for ${u.id}`);
+		}
+		if (problems.length === 0) {
+			// Keep the report (with Hibernate's DDL) per batch: <scratch>/reports/<subproject>-<n>-*.xml
 			mkdirSync(join(scratch, 'reports'), { recursive: true });
 			for (const f of readdirSync(results).filter((f) => f.endsWith('.xml'))) {
 				cpSync(join(results, f), join(scratch, 'reports', `${sp.dir}-${n + 1}-${f}`));
 			}
 			console.log('OK');
-		} catch {
+		} else {
 			failed = true;
-			console.error(`FAILED (sources under ${rootOf('main')} and ${rootOf('test')}, report in ${join(scratch, sp.dir, 'build/test-results')})`);
+			console.error(`FAILED (sources under ${rootOf('main')} and ${rootOf('test')})\n- ${problems.join('\n- ')}`);
 			break;
 		}
 	}

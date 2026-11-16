@@ -1,0 +1,494 @@
+# Puzzles "Unit-Tests". Format: src/lib/content/schema.ts (puzzle).
+# The solution is a test. verify-puzzles runs it against `given` (must pass) and against every
+# `mutants` entry – a bug planted in `given` – where it must fail. So a test that checks nothing is caught.
+# Verify: node scripts/verify-puzzles.ts unit-test
+
+- id: ut-arrange-act-assert
+  kind: lines
+  title: Rabatt – Arrange, Act, Assert
+  prompt: |
+    Ab 100 € gibt es 10 % Rabatt. Teste, dass 120 € zu 108 € werden – in den drei Schritten Arrange, Act, Assert, jeweils mit Kommentar.
+  given: |
+    public class PriceCalculator {
+
+        public double finalPrice(double price) {
+            return price >= 100 ? price * 0.9 : price;
+        }
+    }
+
+    class PriceCalculatorTest {
+
+        // ✎ Test
+    }
+  solution: |
+    @Test
+    void verify_discount_is_applied_above_100_euro() {
+        // arrange
+        PriceCalculator calculator = new PriceCalculator();
+        // act
+        double price = calculator.finalPrice(120.0);
+        // assert
+        assertThat(price).isEqualTo(108.0);
+    }
+  redHerrings:
+    - "    double price = calculator.finalPrice(108.0);"
+    - "    assertThat(price).isEqualTo(120.0);"
+    - "    PriceCalculator calculator = null;"
+  explanation: |
+    **Arrange** baut die Objekte, **Act** ruft genau eine Methode auf, **Assert** prüft das Ergebnis. AssertJ schreibt den tatsächlichen Wert zuerst: `assertThat(price)`, dann den erwarteten. Ein Test pro Verhalten, der Name sagt, welches.
+  mutants:
+    - find: "price * 0.9"
+      replace: "price * 0.95"
+
+- id: ut-csv-boundaries
+  kind: template
+  title: Ticket – Grenzen mit CsvSource
+  prompt: |
+    Kinder sind unter 6, Jugendliche unter 18, Erwachsene unter 65, ab 65 Senioren. Teste **die Grenzen**: den ersten Wert jeder neuen Kategorie.
+  given: &ticket |
+    public class Ticket {
+
+        public enum Category { CHILD, YOUTH, ADULT, SENIOR }
+
+        public static Category categoryFor(int age) {
+            if (age < 0) {
+                throw new IllegalArgumentException("age must not be negative");
+            }
+            if (age < 6) {
+                return Category.CHILD;
+            }
+            if (age < 18) {
+                return Category.YOUTH;
+            }
+            return age < 65 ? Category.ADULT : Category.SENIOR;
+        }
+
+        public static double priceForAge(int age) {
+            return switch (categoryFor(age)) {
+                case CHILD -> 0.0;
+                case YOUTH -> 5.0;
+                case ADULT -> 10.0;
+                case SENIOR -> 7.0;
+            };
+        }
+
+        public static boolean isValidCode(String code) {
+            return code != null && code.matches("[A-Z]{3}-\\d{4}");
+        }
+    }
+  template: |
+    class TicketCategoryTest {
+
+        @ParameterizedTest(name = "{0} Jahre → {1}")
+        @{{CsvSource}}({
+                "5,  CHILD",
+                "{{6}},  YOUTH",
+                "17, YOUTH",
+                "{{18}}, ADULT",
+                "64, ADULT",
+                "{{65}}, SENIOR"
+        })
+        void category_for_age({{int age}}, {{Ticket.Category expected}}) {
+            assertThat(Ticket.categoryFor(age)).isEqualTo(expected);
+        }
+    }
+  redHerrings: [ValueSource, "7", "19", "66", "String expected"]
+  explanation: |
+    Fehler sitzen an den Grenzen: `<` statt `<=` fällt nur beim Wert genau an der Grenze auf. Deshalb steht jeweils der letzte Wert der alten und der erste der neuen Kategorie in der Tabelle. JUnit wandelt den Text `ADULT` selbst in den Enum-Wert um.
+  mutants:
+    - find: "age < 6"
+      replace: "age <= 6"
+    - find: "age < 65"
+      replace: "age <= 65"
+
+- id: ut-value-source
+  kind: template
+  title: Ticket – derselbe Test für mehrere Werte
+  prompt: |
+    Erwachsene zahlen 10 €. Prüfe das für 18, 30 und 64 Jahre mit **einem** parametrisierten Test.
+  given: *ticket
+  template: |
+    class TicketPriceTest {
+
+        @ParameterizedTest
+        @{{ValueSource}}({{ints}} = {18, 30, 64})
+        void adults_pay_full_price({{int age}}) {
+            assertThat(Ticket.priceForAge(age)).isEqualTo(10.0);
+        }
+    }
+  redHerrings: [CsvSource, strings, "String age", "Integer... ages"]
+  explanation: |
+    `@ValueSource(ints = {…})` liefert einen Wert pro Durchlauf an den einen Parameter. Für Paare aus Eingabe und Erwartung nimmst du `@CsvSource`. 64 ist der letzte Erwachsene – genau dort fällt ein falsches `<=` bei den Senioren auf.
+  mutants:
+    - find: "age < 65"
+      replace: "age < 64"
+
+- id: ut-extracting
+  kind: template
+  title: Warenkorb – Liste prüfen
+  prompt: |
+    Prüfe, dass der Warenkorb genau „Buch“ und „Stift“ enthält, **in dieser Reihenfolge**.
+  given: &cart |
+    public record Item(String name, double price) {
+    }
+
+    public class Cart {
+
+        private final List<Item> items = new ArrayList<>();
+
+        public void add(Item item) {
+            if (item == null) {
+                throw new IllegalArgumentException("item must not be null");
+            }
+            items.add(item);
+        }
+
+        public void remove(String name) {
+            Item item = find(name).orElseThrow(() -> new IllegalArgumentException("no item named " + name));
+            items.remove(item);
+        }
+
+        public Optional<Item> find(String name) {
+            return items.stream().filter(i -> i.name().equals(name)).findFirst();
+        }
+
+        public double total() {
+            return items.stream().mapToDouble(Item::price).sum();
+        }
+
+        public List<Item> items() {
+            return List.copyOf(items);
+        }
+    }
+  template: |
+    class CartItemsTest {
+
+        @Test
+        void verify_items_in_order() {
+            Cart cart = new Cart();
+            cart.add(new Item("Buch", 20.0));
+            cart.add(new Item("Stift", 2.0));
+
+            assertThat(cart.items())
+                    .{{extracting}}({{Item::name}})
+                    .{{containsExactly}}("Buch", "Stift");
+        }
+    }
+  redHerrings: [contains, containsExactlyInAnyOrder, map, "Item::price"]
+  explanation: |
+    `extracting(Item::name)` macht aus den Items ihre Namen. `containsExactly` prüft **alle** Elemente in **genau** dieser Reihenfolge. `contains` wäre auch mit zusätzlichen Elementen zufrieden, `containsExactlyInAnyOrder` ignoriert die Reihenfolge – beide übersehen den Fehler im Mutanten.
+  mutants:
+    - find: "items.add(item);"
+      replace: "items.add(0, item);"
+
+- id: ut-exception
+  kind: template
+  title: Warenkorb – Exception prüfen
+  prompt: |
+    Entfernen eines Artikels, den es nicht gibt, wirft eine `IllegalArgumentException` mit der Nachricht `no item named Heft`.
+  given: *cart
+  template: |
+    class CartRemoveTest {
+
+        @Test
+        void verify_remove_unknown_item() {
+            Cart cart = new Cart();
+
+            {{assertThatThrownBy}}({{() -> cart.remove("Heft")}})
+                    .{{isInstanceOf}}(IllegalArgumentException.class)
+                    .{{hasMessage}}("no item named Heft");
+        }
+    }
+  redHerrings: ["cart.remove(\"Heft\")", assertThat, isEqualTo, isExactlyInstanceOf(Exception.class)]
+  explanation: |
+    Der Aufruf steht in einem **Lambda**: So ruft ihn erst `assertThatThrownBy` auf und fängt die Exception. Ohne Lambda würde `cart.remove("Heft")` schon vorher werfen, und der Test bräche mit einem Fehler ab, statt etwas zu prüfen.
+  mutants:
+    - find: "Item item = find(name).orElseThrow(() -> new IllegalArgumentException(\"no item named \" + name));\n        items.remove(item);"
+      replace: "find(name).ifPresent(items::remove);"
+    - find: "\"no item named \" + name"
+      replace: "\"unknown item \" + name"
+
+- id: ut-optional
+  kind: lines
+  title: Warenkorb – Optional prüfen
+  prompt: |
+    Lege ein Buch in den Warenkorb. Prüfe zuerst, dass `find("Buch")` es mit dem Preis 20 € findet, dann, dass `find("Heft")` nichts findet.
+  given: |
+    public record Item(String name, double price) {
+    }
+
+    public class Cart {
+
+        private final List<Item> items = new ArrayList<>();
+
+        public void add(Item item) {
+            items.add(item);
+        }
+
+        public Optional<Item> find(String name) {
+            return items.stream().filter(i -> i.name().equals(name)).findFirst();
+        }
+    }
+
+    class CartFindTest {
+
+        // ✎ Test
+    }
+  solution: |
+    @Test
+    void verify_find() {
+        Cart cart = new Cart();
+        cart.add(new Item("Buch", 20.0));
+        assertThat(cart.find("Buch"))
+                .hasValueSatisfying(item -> assertThat(item.price()).isEqualTo(20.0));
+        assertThat(cart.find("Heft")).isEmpty();
+    }
+  redHerrings:
+    - "    assertThat(cart.find(\"Heft\")).isNull();"
+    - "    assertThat(cart.find(\"Buch\").price()).isEqualTo(20.0);"
+    - "    Cart cart = null;"
+  explanation: |
+    `find` liefert ein `Optional`, nie `null` – deshalb `isEmpty()` statt `isNull()`. `hasValueSatisfying` prüft, dass ein Wert da ist, und prüft ihn dann. `find("Buch").price()` kompiliert nicht: Ein `Optional` hat keinen Preis.
+  mutants:
+    - find: "i.name().equals(name)"
+      replace: "!i.name().equals(name)"
+
+- id: ut-nested-before-each
+  kind: lines
+  title: Warenkorb – BeforeEach und Nested
+  prompt: |
+    Schreib die Testklasse: ein Feld für den Warenkorb, ein frischer Warenkorb vor jedem Test, und eine verschachtelte Klasse `Empty` mit dem Test, dass die Summe eines leeren Warenkorbs 0 ist.
+  given: |
+    public record Item(String name, double price) {
+    }
+
+    public class Cart {
+
+        private final List<Item> items = new ArrayList<>();
+
+        public void add(Item item) {
+            items.add(item);
+        }
+
+        public double total() {
+            return items.stream().mapToDouble(Item::price).sum();
+        }
+    }
+  solution: |
+    class CartTest {
+        private Cart cart;
+        @BeforeEach
+        void setUp() {
+            cart = new Cart();
+        }
+        @Nested
+        class Empty {
+            @Test
+            void total_is_zero() {
+                assertThat(cart.total()).isZero();
+            }
+        }
+    }
+  redHerrings:
+    - "    @BeforeAll"
+    - "    static class Empty {"
+    - "        Cart cart = new Cart();"
+  explanation: |
+    `@BeforeEach` läuft vor **jedem** Test – jeder bekommt einen frischen Warenkorb. `@BeforeAll` liefe nur einmal und müsste `static` sein. Eine `@Nested`-Klasse darf **nicht** `static` sein, sonst findet JUnit ihre Tests nicht. `Cart cart = new Cart();` im `setUp` wäre eine lokale Variable – das Feld bliebe `null`.
+  mutants:
+    - find: "mapToDouble(Item::price).sum()"
+      replace: "mapToDouble(Item::price).sum() + 1"
+
+- id: ut-close-to
+  kind: template
+  title: Rabatt – Kommazahlen und Grenzen
+  prompt: |
+    Teste die Rabattgrenze mit drei Preisen: knapp darunter, genau 100 € und knapp darüber. Kommazahlen vergleichst du mit einer Toleranz.
+  given: |
+    public class PriceCalculator {
+
+        public double finalPrice(double price) {
+            return price >= 100 ? price * 0.9 : price;
+        }
+    }
+  template: |
+    class DiscountBoundaryTest {
+
+        @ParameterizedTest
+        @CsvSource({
+                "99.99,  {{99.99}}",
+                "100.00, {{90.00}}",
+                "100.01, 90.009"
+        })
+        void discount_starts_at_100(double price, double expected) {
+            assertThat(new PriceCalculator().finalPrice(price)).{{isCloseTo}}(expected, {{within(0.001)}});
+        }
+    }
+  redHerrings: ["89.99", "100.00", isEqualTo, isSameAs]
+  explanation: |
+    Bei 100 € beginnt der Rabatt – also brauchst du 99.99, 100.00 und 100.01. `double` rechnet nicht exakt: `100.01 * 0.9` ist nicht genau `90.009`. `isCloseTo(…, within(0.001))` erlaubt eine kleine Abweichung, `isEqualTo` würde hier scheitern.
+  mutants:
+    - find: "price >= 100"
+      replace: "price > 100"
+
+- id: ut-method-source
+  kind: template
+  title: Warenkorb – Testdaten aus einer Methode
+  prompt: |
+    Die Summe eines Warenkorbs ist die Summe seiner Preise. Prüfe einen leeren Warenkorb, einen mit einem und einen mit zwei Artikeln – die Fälle liefert eine Methode.
+  given: *cart
+  template: |
+    class CartTotalTest {
+
+        static Stream<Arguments> carts() {
+            return Stream.of(
+                    {{arguments}}(List.of(), 0.0),
+                    arguments(List.of(new Item("Buch", 20.0)), 20.0),
+                    arguments(List.of(new Item("Buch", 20.0), new Item("Stift", 2.0)), {{22.0}}));
+        }
+
+        @ParameterizedTest
+        @{{MethodSource}}("{{carts}}")
+        void total_is_sum_of_prices(List<Item> items, double expected) {
+            Cart cart = new Cart();
+            items.forEach(cart::add);
+
+            assertThat(cart.total()).isEqualTo(expected);
+        }
+    }
+  redHerrings: [ValueSource, "carts()", "20.0", Arguments]
+  explanation: |
+    `@MethodSource("carts")` nennt eine `static` Methode, die die Fälle liefert – mit `arguments(…)` pro Fall. So gehen auch Werte, die nicht in einen Text passen, wie Listen von Items. Der Name steht ohne Klammern.
+  mutants:
+    - find: "mapToDouble(Item::price).sum()"
+      replace: "mapToDouble(Item::price).max().orElse(0)"
+
+- id: ut-null-and-empty
+  kind: template
+  title: Ticket – ungültige Codes
+  prompt: |
+    Ein Code ist gültig, wenn er wie `ABC-1234` aussieht. Teste, dass `null`, ein leerer Text, ein Leerzeichen und `ABC1234` (ohne Bindestrich) ungültig sind.
+  given: *ticket
+  template: |
+    class TicketCodeTest {
+
+        @ParameterizedTest
+        @{{NullAndEmptySource}}
+        @ValueSource(strings = {" ", "ABC1234"})
+        void invalid_codes(String code) {
+            assertThat(Ticket.isValidCode(code)).{{isFalse()}};
+        }
+    }
+  redHerrings: [isTrue(), isNull(), CsvSource, "NullSource"]
+  explanation: |
+    `@NullAndEmptySource` ergänzt die Werte aus `@ValueSource` um `null` und `""` – beide lassen sich in `@ValueSource` nicht schreiben. Genau diese Randfälle vergessen Implementierungen oft: Ohne die Prüfung auf `null` wirft `isValidCode` eine `NullPointerException`.
+  mutants:
+    - find: "code != null && code.matches"
+      replace: "code.matches"
+    - find: '[A-Z]{3}-\\d{4}'
+      replace: '[A-Z]{3}-?\\d{4}'
+
+- id: ut-test-fixtures
+  kind: lines
+  title: Testdaten – eine Fixture-Klasse
+  prompt: |
+    Schreib eine Hilfsklasse für Testdaten: nicht instanziierbar, eine Methode `book()` und eine Methode `cartWith(Item...)`, die einen Warenkorb mit den Items füllt.
+  given: |
+    public record Item(String name, double price) {
+    }
+
+    public class Cart {
+
+        private final List<Item> items = new ArrayList<>();
+
+        public void add(Item item) {
+            items.add(item);
+        }
+
+        public double total() {
+            return items.stream().mapToDouble(Item::price).sum();
+        }
+    }
+  solution: |
+    final class TestFixtures {
+        private TestFixtures() {
+        }
+        static Item book() {
+            return new Item("Buch", 20.0);
+        }
+        static Cart cartWith(Item... items) {
+            Cart cart = new Cart();
+            for (Item item : items) {
+                cart.add(item);
+            }
+            return cart;
+        }
+    }
+  redHerrings:
+    - "    public TestFixtures() {"
+    - "            return cart.add(item);"
+    - "    Item book() {"
+  explanation: |
+    Fixtures sammeln Testdaten an einer Stelle: Ändert sich ein Konstruktor, änderst du eine Methode statt zwanzig Tests. Ein `private` Konstruktor und `final` verhindern, dass jemand die Klasse instanziiert; die Methoden sind `static`. `cart.add(item)` liefert nichts zurück, das man returnen könnte.
+  check: |
+    class FixturesCheck {
+        @Test
+        void check() {
+            assertThat(TestFixtures.cartWith(TestFixtures.book(), TestFixtures.book()).total()).isEqualTo(40.0);
+        }
+    }
+
+- id: ut-filtered-tuple
+  kind: template
+  title: Warenkorb – filtern und Paare prüfen
+  prompt: |
+    Prüfe nur die Artikel über 10 €: Es ist genau einer, das Buch um 20 €. Prüfe Name **und** Preis.
+  given: *cart
+  template: |
+    class CartExpensiveTest {
+
+        @Test
+        void verify_expensive_items() {
+            Cart cart = new Cart();
+            cart.add(new Item("Buch", 20.0));
+            cart.add(new Item("Stift", 2.0));
+
+            assertThat(cart.items())
+                    .{{filteredOn}}(item -> item.price() > 10)
+                    .{{extracting}}(Item::name, Item::price)
+                    .containsExactly({{tuple}}("Buch", 20.0));
+        }
+    }
+  redHerrings: [filter, map, Item, "anyMatch"]
+  explanation: |
+    `filteredOn` behält nur passende Elemente (bei AssertJ heißt es nicht `filter`). `extracting` mit **zwei** Funktionen liefert pro Element ein Paar, das du mit `tuple(…)` beschreibst. So prüfst du Name und Preis in einer Zeile.
+  mutants:
+    - find: "return List.copyOf(items);"
+      replace: "return items.stream().filter(i -> i.price() < 10).toList();"
+
+- id: ut-no-exception
+  kind: template
+  title: Warenkorb – wirft oder wirft nicht
+  prompt: |
+    Ein Artikel lässt sich ohne Exception hinzufügen. `null` dagegen wird mit einer `IllegalArgumentException` abgelehnt, deren Nachricht `null` enthält.
+  given: *cart
+  template: |
+    class CartAddTest {
+
+        @Test
+        void verify_add() {
+            Cart cart = new Cart();
+
+            assertThatCode(() -> cart.add(new Item("Buch", 20.0))).{{doesNotThrowAnyException}}();
+
+            {{assertThatIllegalArgumentException}}()
+                    .{{isThrownBy}}(() -> cart.add(null))
+                    .{{withMessageContaining}}("null");
+        }
+    }
+  redHerrings: [isThrownBy(), hasMessage, assertThatThrownBy, doesNotThrow]
+  explanation: |
+    `assertThatCode(…).doesNotThrowAnyException()` macht ausdrücklich, dass hier **nichts** schiefgehen darf. `assertThatIllegalArgumentException().isThrownBy(…)` ist die Kurzform für Typ und Aufruf; danach heißen die Prüfungen `withMessage…` statt `hasMessage…`.
+  mutants:
+    - find: "if (item == null) {\n            throw new IllegalArgumentException(\"item must not be null\");\n        }\n"
+      replace: ""
