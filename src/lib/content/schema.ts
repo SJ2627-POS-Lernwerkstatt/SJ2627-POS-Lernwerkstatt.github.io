@@ -107,8 +107,14 @@ const puzzleBase = {
 	prompt: z.string().min(1),
 	/** Optional PlantUML diagram body, rendered at build time. */
 	uml: z.string().min(1).optional(),
-	/** Optional read-only Java the solution builds on (existing entities, an interface, …). */
-	given: z.string().min(1).optional(),
+	/**
+	 * Optional read-only Java the solution builds on (existing entities, an interface, …). A list of blocks
+	 * (e.g. a shared YAML anchor plus a test class) is joined with a blank line.
+	 */
+	given: z
+		.union([z.string().min(1), z.array(z.string().min(1)).min(1)])
+		.transform((g) => (Array.isArray(g) ? g.map((s) => s.trimEnd()).join('\n\n') + '\n' : g))
+		.optional(),
 	/** Markdown, shown once the puzzle is solved or the solution is revealed. */
 	explanation: z.string().min(1),
 	/** Hidden JUnit test class that scripts/verify-puzzles.ts runs against the solution. Never sent to the browser. */

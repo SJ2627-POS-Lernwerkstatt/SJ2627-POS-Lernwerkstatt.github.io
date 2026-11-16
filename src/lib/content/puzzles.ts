@@ -46,6 +46,12 @@ export const PUZZLE_TOPICS = [
 		module: 'rest',
 		title: 'REST-Endpunkte',
 		description: 'Eine Controller-Methode mit dem richtigen Mapping, Parametern und Statuscode.'
+	},
+	{
+		slug: 'rest-test',
+		module: 'rest',
+		title: 'REST-Tests',
+		description: 'Den Controller testen: @WebMvcTest, MockMvc und ein gemockter Service.'
 	}
 ] as const satisfies readonly PuzzleTopic[];
 

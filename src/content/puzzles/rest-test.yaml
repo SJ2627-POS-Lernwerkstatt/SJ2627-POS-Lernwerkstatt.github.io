@@ -1,0 +1,449 @@
+# Puzzles "REST-Tests". Format: src/lib/content/schema.ts (puzzle).
+# All puzzles test the same small book API (&testedApi): DTOs, the service (mocked in the tests),
+# the controller and the exception handler. verify-puzzles runs the solution's tests against it
+# (must pass) and against every `mutants` entry, a bug planted in the controller (must fail).
+# Verify: node scripts/verify-puzzles.ts rest-test
+
+- id: rt-test-class
+  kind: lines
+  title: Die Testklasse
+  prompt: |
+    Schreib die Testklasse für `BookController`: nur die Web-Schicht, `MockMvc` und ein gemockter `BookService` (in dieser Reihenfolge), dazu ein Test, dass `GET /api/books` bei leerer Liste `200` und `[]` liefert.
+  given: &testedApi |
+    public record BookDto(String isbn, String title, String author) {
+    }
+
+    public record BookCreateCmd(
+            @NotBlank @Pattern(regexp = "\\d{13}") String isbn,
+            @NotBlank String title,
+            @NotBlank String author) {
+    }
+
+    public class BookNotFoundException extends RuntimeException {
+
+        public BookNotFoundException(String isbn) {
+            super("no book with isbn " + isbn);
+        }
+    }
+
+    /** Im Test durch einen Mock ersetzt. */
+    @Service
+    public class BookService {
+
+        public List<BookDto> findAll(String author) {
+            throw new UnsupportedOperationException();
+        }
+
+        public Optional<BookDto> findByIsbn(String isbn) {
+            throw new UnsupportedOperationException();
+        }
+
+        public BookDto create(BookCreateCmd cmd) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void delete(String isbn) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @RestController
+    @RequestMapping("/api/books")
+    @RequiredArgsConstructor
+    public class BookController {
+
+        private final BookService bookService;
+
+        @GetMapping
+        public List<BookDto> findAll(@RequestParam(required = false) String author) {
+            return bookService.findAll(author);
+        }
+
+        @GetMapping("/{isbn}")
+        public ResponseEntity<BookDto> findByIsbn(@PathVariable String isbn) {
+            return bookService.findByIsbn(isbn)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        }
+
+        @PostMapping
+        public ResponseEntity<BookDto> create(@Valid @RequestBody BookCreateCmd book) {
+            BookDto created = bookService.create(book);
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{isbn}").buildAndExpand(created.isbn()).toUri();
+            return ResponseEntity.created(location).body(created);
+        }
+
+        @DeleteMapping("/{isbn}")
+        public ResponseEntity<Void> delete(@PathVariable String isbn) {
+            bookService.delete(isbn);
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @RestControllerAdvice
+    public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+
+        @ExceptionHandler(BookNotFoundException.class)
+        ProblemDetail notFound(BookNotFoundException e) {
+            return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+  solution: |
+    @WebMvcTest(BookController.class)
+    class BookControllerTest {
+        @Autowired
+        private MockMvc mockMvc;
+        @MockitoBean
+        private BookService bookService;
+        @Test
+        void verify_find_all_empty() throws Exception {
+            when(bookService.findAll(null)).thenReturn(List.of());
+            mockMvc.perform(get("/api/books"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+        }
+    }
+  redHerrings:
+    - "@SpringBootTest"
+    - "    @MockBean"
+    - "    private BookService bookService = new BookService();"
+  explanation: |
+    `@WebMvcTest(BookController.class)` startet nur die Web-Schicht mit diesem Controller – schnell und ohne Datenbank. `MockMvc` schickt Anfragen ohne echten Server. `@MockitoBean` ersetzt den Service durch einen Mock; `@MockBean` gibt es in Spring Boot 4 nicht mehr. Ein echter `BookService` würde die Methoden hier gar nicht unterstützen.
+  mutants:
+    - find: "return bookService.findAll(author);"
+      replace: "return null;"
+
+- id: rt-get-ok
+  kind: template
+  title: Ein Buch lesen – 200 und JSON
+  prompt: |
+    Der Service liefert für `9783518365000` das Buch „Malina“. Prüfe Status, Content-Type und Titel der Antwort.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookFindTest {
+
+        static final BookDto MALINA = new BookDto("9783518365000", "Malina", "Ingeborg Bachmann");
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_find_by_isbn() throws Exception {
+            when(bookService.findByIsbn("9783518365000")).{{thenReturn}}({{Optional.of(MALINA)}});
+
+            mockMvc.perform({{get}}("/api/books/9783518365000"))
+                    .andExpect(status().{{isOk()}})
+                    .andExpect(content().contentType(MediaType.{{APPLICATION_JSON}}))
+                    .andExpect(jsonPath("{{$.title}}").value("Malina"));
+        }
+    }
+  redHerrings: [MALINA, post, isCreated(), "$title", TEXT_PLAIN]
+  explanation: |
+    `when(…).thenReturn(…)` legt fest, was der Mock liefert – hier ein `Optional`, weil der Service eins zurückgibt. `perform(get(…))` schickt die Anfrage, `andExpect` prüft die Antwort. `jsonPath("$.title")` greift in den JSON-Body: `$` ist das Wurzelobjekt.
+  mutants:
+    - find: ".map(ResponseEntity::ok)"
+      replace: ".map(b -> ResponseEntity.ok(new BookDto(b.isbn(), b.author(), b.title())))"
+
+- id: rt-not-found
+  kind: template
+  title: Ein Buch fehlt – 404
+  prompt: |
+    Der Service findet kein Buch mit der ISBN `0000000000000`. Prüfe, dass der Controller mit `404` antwortet.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookNotFoundTest {
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_find_by_isbn_not_found() throws Exception {
+            when(bookService.findByIsbn("0000000000000")).thenReturn({{Optional.empty()}});
+
+            mockMvc.perform(get("/api/books/0000000000000"))
+                    .andExpect(status().{{isNotFound()}});
+        }
+    }
+  redHerrings: ["null", isBadRequest(), "Optional.of(null)", isOk()]
+  explanation: |
+    „Nicht gefunden“ ist beim Service ein **leeres** `Optional`, nicht `null` – mit `null` würde der Controller eine `NullPointerException` werfen. `Optional.of(null)` wirft schon beim Erzeugen. Der Exception Case gehört zu jedem Endpunkt dazu.
+  mutants:
+    - find: ".orElse(ResponseEntity.notFound().build());"
+      replace: ".orElse(ResponseEntity.ok().build());"
+
+- id: rt-request-param
+  kind: template
+  title: Filter – Parameter weitergeben
+  prompt: |
+    `GET /api/books?author=Paul Celan` soll den Autor an den Service weitergeben. Prüfe das Ergebnis **und** dass der Service mit genau diesem Autor aufgerufen wurde.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookFilterTest {
+
+        static final BookDto MOHN = new BookDto("9783421000000", "Mohn und Gedächtnis", "Paul Celan");
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_find_by_author() throws Exception {
+            when(bookService.findAll("Paul Celan")).thenReturn(List.of(MOHN));
+
+            mockMvc.perform(get("/api/books").{{param}}("author", "Paul Celan"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", {{hasSize(1)}}));
+            {{verify}}(bookService).findAll("Paul Celan");
+        }
+    }
+  redHerrings: [header, pathVariable, "hasSize(0)", when]
+  explanation: |
+    `.param(name, wert)` hängt einen Query-Parameter an. `verify(mock).methode(…)` prüft, dass der Controller den Service genau so aufgerufen hat. Ignoriert der Controller den Parameter, liefert der Mock für `findAll(null)` eine leere Liste – und der Test schlägt fehl.
+  mutants:
+    - find: "return bookService.findAll(author);"
+      replace: "return bookService.findAll(null);"
+
+- id: rt-post-created
+  kind: template
+  title: Anlegen – 201 und Location
+  prompt: |
+    Teste `POST /api/books`: Der Body ist das JSON von `CREATE_HIOB`. Erwartet sind `201`, ein `Location`-Header auf das neue Buch und ein Aufruf des Service mit genau diesen Daten.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookCreateTest {
+
+        static final BookCreateCmd CREATE_HIOB = new BookCreateCmd("9783100000000", "Hiob", "Joseph Roth");
+        static final BookDto HIOB = new BookDto("9783100000000", "Hiob", "Joseph Roth");
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @Autowired
+        private ObjectMapper objectMapper;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_create() throws Exception {
+            when(bookService.create({{any(BookCreateCmd.class)}})).thenReturn(HIOB);
+
+            mockMvc.perform(post("/api/books")
+                            .{{contentType}}(MediaType.APPLICATION_JSON)
+                            .content({{objectMapper.writeValueAsString(CREATE_HIOB)}}))
+                    .andExpect(status().{{isCreated()}})
+                    .andExpect({{header()}}.string("Location", endsWith("/api/books/9783100000000")));
+            verify(bookService).create(CREATE_HIOB);
+        }
+    }
+  redHerrings: ["BookCreateCmd.class", isOk(), "CREATE_HIOB.toString()", "jsonPath()", "accept"]
+  explanation: |
+    `any(BookCreateCmd.class)` lässt den Mock auf jedes Kommando antworten; welches genau ankam, prüft danach `verify`. Den Body schreibt `objectMapper.writeValueAsString(…)` als JSON – `toString()` eines Records ist kein JSON. Ohne `contentType(APPLICATION_JSON)` antwortet Spring mit `415`.
+  mutants:
+    - find: "return ResponseEntity.created(location).body(created);"
+      replace: "return ResponseEntity.ok(created);"
+    - find: ".path(\"/{isbn}\").buildAndExpand(created.isbn()).toUri();"
+      replace: ".path(\"/{isbn}\").buildAndExpand(created.title()).toUri();"
+
+- id: rt-post-invalid
+  kind: template
+  title: Anlegen – ungültige Eingabe
+  prompt: |
+    Eine ISBN mit nur zwei Ziffern ist ungültig. Prüfe, dass der Controller mit `400` antwortet und den Service **gar nicht** aufruft.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookCreateInvalidTest {
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @Autowired
+        private ObjectMapper objectMapper;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_create_invalid() throws Exception {
+            BookCreateCmd invalid = new BookCreateCmd("12", "Hiob", "Joseph Roth");
+
+            mockMvc.perform(post("/api/books")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalid)))
+                    .andExpect(status().{{isBadRequest()}});
+            {{verifyNoInteractions}}(bookService);
+        }
+    }
+  redHerrings: [isCreated(), verify, isNotFound(), reset]
+  explanation: |
+    Ungültige Eingaben lehnt Spring wegen `@Valid` ab, **bevor** der Controller den Service aufruft. `verifyNoInteractions(bookService)` prüft genau das. Fehlt `@Valid` im Controller, landet das ungültige Kommando beim Service – und der Test schlägt fehl.
+  mutants:
+    - find: "@Valid @RequestBody BookCreateCmd book"
+      replace: "@RequestBody BookCreateCmd book"
+
+- id: rt-delete
+  kind: lines
+  title: Löschen – 204 und verify
+  prompt: |
+    Schreib den Test für `DELETE /api/books/9783518365000`: erwartet ist `204`, und der Service muss das Buch gelöscht haben. Erst die Anfrage, dann `verify`.
+  given:
+    - *testedApi
+    - |
+      @WebMvcTest(BookController.class)
+      class BookDeleteTest {
+
+          @Autowired
+          private MockMvc mockMvc;
+
+          @MockitoBean
+          private BookService bookService;
+
+          // ✎ Test
+      }
+  solution: |
+    @Test
+    void verify_delete() throws Exception {
+        mockMvc.perform(delete("/api/books/9783518365000"))
+                .andExpect(status().isNoContent());
+        verify(bookService).delete("9783518365000");
+    }
+  redHerrings:
+    - "    when(bookService.delete(\"9783518365000\")).thenReturn(true);"
+    - "            .andExpect(status().isOk());"
+    - "    verify(bookService.delete(\"9783518365000\"));"
+  explanation: |
+    `delete` gibt nichts zurück: Ein `void`-Aufruf braucht kein `when` – der Mock tut standardmäßig nichts. `verify(bookService).delete(…)` (die Klammer nach `bookService` schließt **vor** dem Methodenaufruf) prüft, dass der Controller wirklich gelöscht hat.
+  mutants:
+    - find: "bookService.delete(isbn);\n        return ResponseEntity.noContent().build();"
+      replace: "return ResponseEntity.noContent().build();"
+    - find: "return ResponseEntity.noContent().build();"
+      replace: "return ResponseEntity.ok().build();"
+
+- id: rt-delete-not-found
+  kind: template
+  title: Löschen – Exception aus dem Mock
+  prompt: |
+    Der Service wirft beim Löschen einer unbekannten ISBN eine `BookNotFoundException`. Prüfe `404`, den Content-Type eines `ProblemDetail` und die Nachricht im Feld `detail`.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookDeleteNotFoundTest {
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_delete_not_found() throws Exception {
+            {{doThrow}}(new BookNotFoundException("0000000000000")).{{when}}(bookService).delete("0000000000000");
+
+            mockMvc.perform(delete("/api/books/0000000000000"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.{{APPLICATION_PROBLEM_JSON}}))
+                    .andExpect(jsonPath("{{$.detail}}").value("no book with isbn 0000000000000"));
+        }
+    }
+  redHerrings: [thenThrow, APPLICATION_JSON, "$.message", verify]
+  explanation: |
+    Für `void`-Methoden geht `when(…).thenThrow(…)` nicht – dort heißt es `doThrow(…).when(mock).methode(…)`. Ein `ProblemDetail` kommt als `application/problem+json`, die Nachricht steht im Feld `detail`. So prüfst du auch, dass der Exception Handler greift.
+  mutants:
+    - find: "HttpStatus.NOT_FOUND"
+      replace: "HttpStatus.BAD_REQUEST"
+    - find: "forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage())"
+      replace: "forStatusAndDetail(HttpStatus.NOT_FOUND, \"not found\")"
+
+- id: rt-json-list
+  kind: template
+  title: Eine Liste im JSON prüfen
+  prompt: |
+    Der Service liefert zwei Bücher. Prüfe, dass beide im JSON stehen, und zwar „Mohn und Gedächtnis“ an **zweiter** Stelle.
+  given: *testedApi
+  template: |
+    @WebMvcTest(BookController.class)
+    class BookListTest {
+
+        static final BookDto MALINA = new BookDto("9783518365000", "Malina", "Ingeborg Bachmann");
+        static final BookDto MOHN = new BookDto("9783421000000", "Mohn und Gedächtnis", "Paul Celan");
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private BookService bookService;
+
+        @Test
+        void verify_find_all() throws Exception {
+            when(bookService.findAll(null)).thenReturn(List.of(MALINA, MOHN));
+
+            mockMvc.perform(get("/api/books"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", {{hasSize(2)}}))
+                    .andExpect(jsonPath("{{$[1].title}}").value("Mohn und Gedächtnis"));
+        }
+    }
+  redHerrings: ["$[2].title", "$.1.title", "size(2)", "$[0].title"]
+  explanation: |
+    Bei einer Liste ist `$` das Array: `hasSize(2)` prüft die Länge, `$[1]` ist das **zweite** Element – Indizes beginnen bei 0. `hasSize` kommt aus Hamcrest (`org.hamcrest.Matchers`).
+  mutants:
+    - find: "return bookService.findAll(author);"
+      replace: "return bookService.findAll(author).stream().limit(1).toList();"
+    - find: "return bookService.findAll(author);"
+      replace: "return bookService.findAll(author).reversed();"
+
+- id: rt-nested
+  kind: lines
+  title: Tests gruppieren mit Nested
+  prompt: |
+    Gruppiere die Tests für `DELETE` in einer verschachtelten Klasse `Delete`: zuerst der Good Case `good` (204), dann `not_found` (404, der Service wirft).
+  given:
+    - *testedApi
+    - |
+      @WebMvcTest(BookController.class)
+      class BookDeleteNestedTest {
+
+          @Autowired
+          private MockMvc mockMvc;
+
+          @MockitoBean
+          private BookService bookService;
+
+          // ✎ verschachtelte Klasse
+      }
+  solution: |
+    @Nested
+    class Delete {
+        @Test
+        void good() throws Exception {
+            mockMvc.perform(delete("/api/books/9783518365000")).andExpect(status().isNoContent());
+        }
+        @Test
+        void not_found() throws Exception {
+            doThrow(new BookNotFoundException("1")).when(bookService).delete("1");
+            mockMvc.perform(delete("/api/books/1")).andExpect(status().isNotFound());
+        }
+    }
+  redHerrings:
+    - "static class Delete {"
+    - "        when(bookService.delete(\"1\")).thenThrow(new BookNotFoundException(\"1\"));"
+    - "        mockMvc.perform(delete(\"/api/books/1\")).andExpect(status().isOk());"
+  explanation: |
+    `@Nested` gruppiert Good, Edge und Exception Cases eines Endpunkts – im Testbericht steht dann `Delete > good`, `Delete > not_found`. Die innere Klasse darf **nicht** `static` sein, sonst sieht sie `mockMvc` und `bookService` der äußeren Klasse nicht.
+  mutants:
+    - find: "HttpStatus.NOT_FOUND"
+      replace: "HttpStatus.CONFLICT"

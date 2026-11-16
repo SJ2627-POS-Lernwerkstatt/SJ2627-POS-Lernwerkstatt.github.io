@@ -17,12 +17,15 @@ type Mutant = { find: string; replace: string };
 type Raw = {
 	id: string;
 	kind: 'lines' | 'template';
-	given?: string;
+	/** A list of blocks is joined with a blank line, as in the content schema. */
+	given?: string | string[];
 	solution?: string;
 	template?: string;
 	check?: string;
 	mutants?: Mutant[];
 };
+/** A puzzle with `given` already joined into one string. */
+type Flat = Omit<Raw, 'given'> & { given?: string };
 /** One compiled unit: a puzzle, or a copy of it with a mutated `given` whose tests must fail. */
 type Unit = { id: string; pkg: string; source: string; mutant: boolean };
 
@@ -110,7 +113,8 @@ const TOPIC_SUBPROJECT: Record<string, keyof typeof SUBPROJECTS> = {
 	'jpa-repository': 'jpa',
 	'service-method': 'service',
 	'unit-test': 'test',
-	'rest-endpoint': 'rest'
+	'rest-endpoint': 'rest',
+	'rest-test': 'rest'
 };
 
 const MARKER = /^([ \t]*)\/\/ ✎.*$/m;
@@ -133,7 +137,14 @@ const TEST_IMPORTS: Record<string, string[]> = {
 		'org.springframework.test.web.servlet.MockMvc',
 		'static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*',
 		'static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*',
-		'static org.hamcrest.Matchers.*'
+		'static org.hamcrest.Matchers.*',
+		'org.junit.jupiter.api.Nested',
+		'org.springframework.test.context.bean.override.mockito.MockitoBean',
+		'tools.jackson.databind.ObjectMapper',
+		'static org.mockito.Mockito.*',
+		// Mockito and Hamcrest both have these: single-static imports decide.
+		'static org.mockito.ArgumentMatchers.any',
+		'static org.hamcrest.Matchers.endsWith'
 	]
 };
 
@@ -141,7 +152,7 @@ function dedent(code: string): string {
 	return code.replace(/\s+$/, '');
 }
 
-function solutionOf(p: Raw): string {
+function solutionOf(p: Flat): string {
 	if (p.kind === 'lines') return dedent(p.solution!);
 	const parsed = parseTemplate(p.template!.trimEnd());
 	return parsed.lines
@@ -150,12 +161,12 @@ function solutionOf(p: Raw): string {
 }
 
 /** The given code with the solution at the ✎ marker (or given + solution), plus the hidden check. */
-function sourceOf(p: Raw): string {
+function sourceOf(p: Flat): string {
 	const code = codeOf(p);
 	return p.check ? `${code}\n\n${p.check.trimEnd()}` : code;
 }
 
-function codeOf(p: Raw): string {
+function codeOf(p: Flat): string {
 	const solution = solutionOf(p);
 	if (!p.given) return solution;
 	const m = MARKER.exec(p.given);
@@ -185,7 +196,8 @@ for (const file of files) {
 	const sub = TOPIC_SUBPROJECT[topic];
 	if (!sub) throw new Error(`no subproject for topic ${topic}`);
 	const puzzles = parse(readFileSync(join(root, 'src/content/puzzles', file), 'utf8')) as Raw[];
-	for (const p of puzzles ?? []) {
+	for (const raw of puzzles ?? []) {
+		const p: Flat = { ...raw, given: Array.isArray(raw.given) ? raw.given.map((s) => s.trimEnd()).join('\n\n') + '\n' : raw.given };
 		const list = bySub.get(sub) ?? [];
 		const pkg = p.id.replace(/-/g, '_');
 		list.push({ id: p.id, pkg, source: sourceOf(p), mutant: false });
