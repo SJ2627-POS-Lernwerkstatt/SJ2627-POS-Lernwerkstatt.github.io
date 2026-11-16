@@ -2,6 +2,9 @@ import { correctFlags, templatePercent } from '#lib/puzzle/scoring.js';
 import type { Gaps, Tile } from '#lib/puzzle/state.js';
 import type { Answer, QuestionView } from './types.ts';
 
+/** What placedTexts and reviewLines need; puzzles of kind template have it too. */
+type TemplateLike = Pick<QuestionView & { kind: 'template' }, 'lines' | 'gaps' | 'tiles'>;
+
 export function emptyAnswer(q: QuestionView): Answer {
 	if (q.kind === 'single') return { kind: 'single', choice: null };
 	if (q.kind === 'multi') return { kind: 'multi', choices: [] };
@@ -14,7 +17,7 @@ export function templateTiles(q: QuestionView & { kind: 'template' }): Tile[] {
 }
 
 /** Piece texts per gap, in gap order. Unknown ids are ignored. */
-export function placedTexts(q: QuestionView & { kind: 'template' }, gaps: Gaps): string[][] {
+export function placedTexts(q: TemplateLike, gaps: Gaps): string[][] {
 	return q.gaps.map((_, g) =>
 		(gaps[String(g)] ?? []).flatMap((id) => {
 			const tile = q.tiles[Number(id.slice(1))];
@@ -54,7 +57,7 @@ export type ReviewSegment =
 	| { gap: number; expected: string[]; submitted: { text: string; correct: boolean }[]; anyOrder: boolean };
 
 /** The template with each gap's placed pieces marked right or wrong, for the review. */
-export function reviewLines(q: QuestionView & { kind: 'template' }, gaps: Gaps): ReviewSegment[][] {
+export function reviewLines(q: TemplateLike, gaps: Gaps): ReviewSegment[][] {
 	const placed = placedTexts(q, gaps);
 	return q.lines.map((line) =>
 		line.map((seg) => {

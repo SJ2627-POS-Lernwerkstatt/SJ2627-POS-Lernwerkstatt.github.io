@@ -1,7 +1,11 @@
 import type { Question, QuestionGroup } from '#lib/content/schema.js';
-import { buildPool, parseTemplate } from '#lib/puzzle/template.js';
+import { lineKey, parseLines, toLine } from '#lib/puzzle/lines.js';
+import { buildPool, parseTemplate, type Segment } from '#lib/puzzle/template.js';
+import type { PuzzleView } from '#lib/puzzle/view.js';
 import type { GroupView, QuestionView } from '#lib/quiz/types.js';
 import { highlightToHtml } from '../../../../scripts/markdown/highlight.ts';
+import { renderPlantUml } from '../../../../scripts/markdown/plantuml.ts';
+import type { PuzzleEntry } from './build.ts';
 import { renderMarkdown } from './text.ts';
 
 async function questionView(q: Question): Promise<QuestionView> {
@@ -20,6 +24,67 @@ async function questionView(q: Question): Promise<QuestionView> {
 	return q.kind === 'single'
 		? { ...common, kind: 'single', optionsHtml, answer: q.answer }
 		: { ...common, kind: 'multi', optionsHtml, answer: q.answer };
+}
+
+/** The template's code with every gap filled correctly. */
+function templateSolution(lines: Segment[][], gaps: { expected: string[] }[]): string {
+	return lines
+		.map((line) => line.map((s) => ('text' in s ? s.text : gaps[s.gap]!.expected.join(' '))).join(''))
+		.join('\n');
+}
+
+async function umlSrc(body: string, id: string): Promise<string> {
+	try {
+		const svg = await renderPlantUml(body);
+		return `data:image/svg+xml;base64,${Buffer.from(svg, 'utf8').toString('base64')}`;
+	} catch (e) {
+		throw new Error(`puzzle ${id}: ${(e as Error).message}`);
+	}
+}
+
+/** Long puzzles (given code + code or lines over this) go side by side on wide screens. */
+export const SPLIT_FROM_LINES = 16;
+
+export function puzzleLayout(setting: 'auto' | 'stacked' | 'split', givenLines: number, codeLines: number): 'stacked' | 'split' {
+	if (setting !== 'auto') return setting;
+	return givenLines + codeLines > SPLIT_FROM_LINES ? 'split' : 'stacked';
+}
+
+const lineCount = (code?: string) => (code ? code.trimEnd().split('\n').length : 0);
+
+/** The browser-ready form of a puzzle. */
+export async function puzzleView(p: PuzzleEntry): Promise<PuzzleView> {
+	const common = {
+		id: p.id,
+		topic: p.topic,
+		title: p.title,
+		promptHtml: await renderMarkdown(p.prompt),
+		umlSrc: p.uml ? await umlSrc(p.uml, p.id) : undefined,
+		givenHtml: p.given ? await highlightToHtml(p.given.trimEnd(), 'java') : undefined,
+		explanationHtml: await renderMarkdown(p.explanation)
+	};
+	if (p.kind === 'template') {
+		const parsed = parseTemplate(p.template.trimEnd());
+		const { tiles } = buildPool(parsed, p.redHerrings, p.reusable);
+		const solutionHtml = await highlightToHtml(templateSolution(parsed.lines, parsed.gaps), 'java');
+		const layout = puzzleLayout(p.layout, lineCount(p.given), parsed.lines.length);
+		return { ...common, kind: 'template', layout, solutionHtml, lines: parsed.lines, gaps: parsed.gaps, tiles };
+	}
+	// Already validated in buildIndex.
+	const solution = parseLines(p.solution).lines;
+	const herrings = p.redHerrings.flatMap((h) => {
+		const line = toLine(h);
+		return line && !('error' in line) ? [line] : [];
+	});
+	return {
+		...common,
+		kind: 'lines',
+		// The pool holds every line, so it is what makes a line puzzle long.
+		layout: puzzleLayout(p.layout, lineCount(p.given), solution.length + herrings.length),
+		solutionHtml: await highlightToHtml(solution.map(lineKey).join('\n'), 'java'),
+		tiles: [...solution.map((l) => ({ ...l, herring: false })), ...herrings.map((l) => ({ ...l, herring: true }))],
+		expected: solution.map(lineKey)
+	};
 }
 
 const cache = new Map<string, Promise<GroupView>>();

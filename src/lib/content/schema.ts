@@ -99,3 +99,42 @@ export type QuestionGroup = z.infer<typeof questionGroup>;
 export const questionPool = z.array(questionGroup);
 
 export const moduleSlug = z.enum(MODULE_SLUGS);
+
+const puzzleBase = {
+	id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'lowercase words separated by "-"'),
+	title: z.string().min(1).max(80),
+	/** Markdown: the task. */
+	prompt: z.string().min(1),
+	/** Optional PlantUML diagram body, rendered at build time. */
+	uml: z.string().min(1).optional(),
+	/** Optional read-only Java the solution builds on (existing entities, an interface, …). */
+	given: z.string().min(1).optional(),
+	/** Markdown, shown once the puzzle is solved or the solution is revealed. */
+	explanation: z.string().min(1),
+	/** auto = side by side on wide screens when the puzzle is long (see puzzleLayout), else stacked. */
+	layout: z.enum(['auto', 'stacked', 'split']).default('auto'),
+	status
+};
+
+/** Order whole lines. `solution` is the code in the right order; leading spaces (×4) set the indentation. */
+const linePuzzle = z.strictObject({
+	kind: z.literal('lines'),
+	...puzzleBase,
+	solution: z.string().min(1),
+	/** Wrong lines, with their indentation as leading spaces. */
+	redHerrings: z.array(z.string().min(1)).max(10).default([])
+});
+
+/** Fill gaps, ParsonXam template syntax as in the question pools. */
+const templatePuzzle = z.strictObject({
+	kind: z.literal('template'),
+	...puzzleBase,
+	template: z.string().min(1),
+	redHerrings: z.array(z.string().min(1)).default([]),
+	reusable: z.array(z.string().min(1)).default([])
+});
+
+export const puzzle = z.discriminatedUnion('kind', [linePuzzle, templatePuzzle]);
+export type Puzzle = z.infer<typeof puzzle>;
+
+export const puzzlePool = z.array(puzzle);

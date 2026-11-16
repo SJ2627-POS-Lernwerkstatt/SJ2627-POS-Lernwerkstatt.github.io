@@ -142,3 +142,58 @@ rubric:
 		);
 	});
 });
+
+describe('buildIndex puzzles', () => {
+	const linePuzzle = (id = 'entity-a', extra = '') => `
+- id: ${id}
+  kind: lines
+  title: A
+  prompt: Schreib A.
+  explanation: E
+  solution: |
+    @Entity
+    public class A {
+        private String name;
+    }
+${extra}`;
+
+	it('indexes puzzles with topic and order', () => {
+		const { index, errors } = build({ puzzles: { 'puzzles/jpa-entity.yaml': linePuzzle('a') + linePuzzle('b') } });
+		expect(errors).toEqual([]);
+		expect(index.puzzles.map((p) => [p.id, p.topic, p.order])).toEqual([
+			['a', 'jpa-entity', 0],
+			['b', 'jpa-entity', 1]
+		]);
+	});
+
+	it('rejects unknown topics, duplicate ids and bad lines', () => {
+		const bad = linePuzzle('c', '  redHerrings:\n    - "    private String name;"\n    - "  x"\n');
+		const { errors } = build({
+			puzzles: {
+				'puzzles/nope.yaml': linePuzzle(),
+				'puzzles/jpa-entity.yaml': linePuzzle('a') + linePuzzle('a') + bad
+			}
+		});
+		expect(errors).toEqual(
+			expect.arrayContaining([
+				expect.stringContaining('puzzles/nope.yaml: puzzle pools must be named'),
+				'duplicate puzzle id "a"',
+				expect.stringContaining('red herring "private String name;" is also a solution line'),
+				expect.stringContaining('red herring "x": indentation of 2 spaces')
+			])
+		);
+	});
+
+	it('checks template puzzles like template questions', () => {
+		const yaml = `
+- id: t
+  kind: template
+  title: T
+  prompt: P
+  explanation: E
+  template: "@{{Entity}}"
+`;
+		const { errors } = build({ puzzles: { 'puzzles/jpa-entity.yaml': yaml } });
+		expect(errors).toContain('puzzles/jpa-entity.yaml: t: a template needs at least 2 pieces');
+	});
+});

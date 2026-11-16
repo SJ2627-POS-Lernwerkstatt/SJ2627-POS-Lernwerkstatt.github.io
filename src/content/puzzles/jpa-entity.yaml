@@ -1,0 +1,432 @@
+# Puzzles "Entity aus UML". Format: src/lib/content/schema.ts (puzzle).
+# kind: lines    → solution in order, 4 spaces per indentation level; red herrings with their indentation.
+# kind: template → ParsonXam template syntax, as in the question pools.
+# In `given`, a line "// ✎ …" marks where the solution goes (scripts/verify-puzzles.ts inserts it there).
+# Convention: every entity has @Getter @Setter @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor.
+# Every solution is compiled and booted with Hibernate: node scripts/verify-puzzles.ts jpa-entity
+
+- id: entity-room-fields
+  kind: lines
+  title: Raum – Kopf und Felder
+  prompt: |
+    Schreib das Entity `Room` für die Tabelle `rooms`: Annotationen wie in jedem Entity und die Felder in der Reihenfolge des Diagramms. Die Id kommt von `AbstractPersistable`.
+  uml: |
+    hide empty methods
+    class Room <<(E) Entity>> {
+      - name : String {nn}
+      - seats : int
+    }
+  solution: |
+    @Entity
+    @Table(name = "rooms")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Room extends AbstractPersistable<Long> {
+        @NotNull
+        private String name;
+        private Integer seats;
+    }
+  redHerrings:
+    - "public class Room extends AbstractPersistable<long> {"
+    - "    private int seats;"
+    - "    private Long id;"
+    - "@Data"
+  explanation: |
+    Die vier Lombok-Annotationen stehen an jedem Entity, ihre Reihenfolge ist egal. `{nn}` wird zu `@NotNull`. `seats` hat **kein** `{nn}`, darf also fehlen – mit `int` ginge das nicht, deshalb `Integer`. Die Id steckt in `AbstractPersistable<Long>`; ein eigenes Feld `id` wäre doppelt. `@Data` würde das `equals` von `AbstractPersistable` ersetzen.
+
+- id: entity-book-columns
+  kind: template
+  title: Buch – Spalten aus dem Text
+  prompt: |
+    Ergänze die Annotationen von `Book`. Aus der Angabe: Die ISBN hat höchstens 13 Zeichen und ist eindeutig, der Titel höchstens 120 Zeichen. Der Preis hat 6 Stellen, davon 2 nach dem Komma.
+  uml: |
+    hide empty methods
+    class Book <<(E) Entity>> {
+      - isbn : String {nn}
+      - title : String {nn}
+      - price : BigDecimal
+      - publishedOn : Date
+    }
+  template: |
+    @{{Entity}}
+    @Table(name = "books")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Book extends AbstractPersistable<Long> {
+
+        @{{NotNull}}
+        @Column({{length}} = 13, {{unique}} = true)
+        private String isbn;
+
+        @NotNull
+        @Column({{length}} = 120)
+        private String title;
+
+        @Column({{precision}} = 6, {{scale}} = 2)
+        private BigDecimal price;
+
+        {{}}
+        private {{LocalDate}} publishedOn;
+    }
+  reusable: [length]
+  redHerrings: [size, Date, Embeddable, "@NotNull", digits]
+  explanation: |
+    `length` begrenzt Strings, `unique = true` macht die Spalte eindeutig. Zahlen mit Nachkommastellen: `precision` = alle Stellen, `scale` = davon nach dem Komma. `publishedOn` hat kein `{nn}`, also keine Annotation. `Date` im Diagramm wird in Java zu `LocalDate`.
+
+- id: entity-guest-constructor-call
+  kind: template
+  title: Gast – der erzeugte Konstruktor
+  prompt: |
+    `Guest` ist fertig. Leg einen Gast an: Anna Berger, geboren am 3. Mai 2001. Welche Argumente erwartet der Konstruktor von `@AllArgsConstructor`, in welcher Reihenfolge?
+  uml: |
+    hide empty methods
+    class Guest <<(E) Entity>> {
+      - firstName : String {nn}
+      - lastName : String {nn}
+      - birthDate : Date
+    }
+  given: |
+    @Entity
+    @Table(name = "guests")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Guest extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String firstName;
+        @NotNull
+        private String lastName;
+        private LocalDate birthDate;
+    }
+  template: |
+    public class GuestExample {
+
+        public static Guest anna() {
+            return new Guest({{"Anna"}}, {{"Berger"}}, {{LocalDate.of(2001, 5, 3)}});
+        }
+    }
+  redHerrings: ["1L", "null", "\"2001-05-03\"", "new Guest()"]
+  explanation: |
+    `@AllArgsConstructor` nimmt die Felder in der Reihenfolge im Code: `Guest(String firstName, String lastName, LocalDate birthDate)`. Die Id gehört nicht dazu, sie ist ein Feld von `AbstractPersistable`. Den Konstruktor ohne Parameter kann dein Code nicht aufrufen – er ist `protected` und nur für JPA.
+
+- id: entity-bike-accessors
+  kind: template
+  title: Fahrrad – Getter und Setter von Lombok
+  prompt: |
+    `Bike` hat Getter und Setter von Lombok. Ist das Rad ein E-Bike, wird das Kaufdatum auf heute gesetzt. Danach wird die Rahmennummer gelesen.
+  given: |
+    @Entity
+    @Table(name = "bikes")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Bike extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String frameNumber;
+        private boolean electric;
+        private LocalDate purchasedOn;
+    }
+  template: |
+    public class BikeExample {
+
+        public static String register(Bike bike) {
+            if (bike.{{isElectric()}}) {
+                bike.{{setPurchasedOn}}(LocalDate.now());
+            }
+            return bike.{{getFrameNumber()}};
+        }
+    }
+  redHerrings: ["getElectric()", "electric()", "purchasedOn", "frameNumber"]
+  explanation: |
+    `@Getter` erzeugt `getFrameNumber()`, für ein `boolean` aber `isElectric()`. `@Setter` erzeugt `setPurchasedOn(LocalDate)`. Die Felder selbst sind `private` – von außen kommst du nur über Getter und Setter an sie heran.
+
+- id: entity-car-enum
+  kind: template
+  title: Auto – Enum als Text
+  prompt: |
+    Mappe `fuel` so, dass in der Tabelle der **Name** des Enum-Werts steht (`PETROL`, …), nicht seine Nummer. Das Kennzeichen hat höchstens 10 Zeichen.
+  uml: |
+    hide empty methods
+    class Car <<(E) Entity>> {
+      - licensePlate : String {nn}
+      - fuel : Fuel {nn}
+    }
+    enum Fuel <<Enumeration>> {
+      PETROL
+      DIESEL
+      ELECTRIC
+    }
+    Car -right-> Fuel
+  given: |
+    public enum Fuel {
+        PETROL, DIESEL, ELECTRIC
+    }
+  template: |
+    @Entity
+    @Table(name = "cars")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Car extends AbstractPersistable<Long> {
+
+        @{{NotNull}}
+        @Column({{length}} = 10)
+        private String licensePlate;
+
+        @{{NotNull}}
+        @{{Enumerated}}(EnumType.{{STRING}})
+        private {{Fuel}} fuel;
+    }
+  reusable: [NotNull]
+  redHerrings: [ORDINAL, Embedded, String, Enumeration]
+  explanation: |
+    Ohne Annotation speichert JPA die Ordinalzahl (0, 1, 2). Fügt jemand später einen Wert in der Mitte ein, verschieben sich alle gespeicherten Daten. `@Enumerated(EnumType.STRING)` speichert den Namen. `<<Enumeration>>` ist nur die Schreibweise im Diagramm. Laut Cheat Sheet kostet `@Enumerated(EnumType.STRING)` in der Prüfung Punkte – für die volle Punktzahl nimmst du einen Converter mit Codes (Einheit 6).
+
+- id: entity-booking-column-names
+  kind: template
+  title: Buchung – reservierte Namen
+  prompt: |
+    `from` und `to` sind in SQL reservierte Wörter und dürfen keine Spaltennamen sein. Die Spalten heißen deshalb `date_from` und `date_to`; die Felder in Java bleiben `from` und `to`.
+  uml: |
+    hide empty methods
+    class Booking <<(E) Entity>> {
+      - from : Date {nn}
+      - to : Date {nn}
+    }
+  template: |
+    @Entity
+    @Table(name = "bookings")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Booking extends AbstractPersistable<Long> {
+
+        @NotNull
+        @{{Column}}({{name}} = "date_from")
+        private {{LocalDate}} from;
+
+        @NotNull
+        @{{Column}}({{name}} = "date_to")
+        private {{LocalDate}} to;
+    }
+  reusable: [Column, name, LocalDate]
+  redHerrings: [Table, value, LocalDateTime]
+  explanation: |
+    `@Column(name = "…")` legt den Spaltennamen fest, der Feldname in Java bleibt. Das gilt in H2 z. B. auch für `year`, `month`, `order`, `user`, `value` und `key`. Ein Datum ohne Uhrzeit ist ein `LocalDate`.
+
+- id: entity-member-address
+  kind: template
+  title: Mitglied – Value Object einbetten
+  prompt: |
+    `Address` ist ein Value Object: keine eigene Tabelle, die Spalten landen in `members`. Die Adresse ist Pflicht, und die `@NotNull` in `Address` sollen auch geprüft werden.
+  uml: |
+    hide empty methods
+    class Member <<(E) Entity>> {
+      - name : String {nn}
+      - address : Address {nn}
+    }
+    class Address <<(V) ValueObject>> {
+      - street : String {nn}
+      - zip : String {nn}
+      - city : String {nn}
+    }
+    Member *-right- Address
+  template: |
+    {{@Embeddable}}
+    public record Address(
+            @NotNull String street,
+            @NotNull String zip,
+            @NotNull String city) {
+    }
+
+    @Entity
+    @Table(name = "members")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Member extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        {{~@NotNull}} {{@Valid}} {{@Embedded}}
+        private Address address;
+    }
+  redHerrings: ["@Entity", "@OneToOne", "@ElementCollection"]
+  explanation: |
+    `@Embeddable` an der Klasse des Value Objects, `@Embedded` am Feld im Entity. Ohne `@Valid` prüft Bean Validation die Annotationen **in** `Address` nicht. `@NotNull` am Feld macht die ganze Adresse zur Pflicht. Ein Record passt gut für Value Objects, weil sie unveränderlich sind.
+
+- id: entity-author-lombok
+  kind: template
+  title: Autor – die vier Lombok-Annotationen
+  prompt: |
+    Ergänze die Lombok-Annotationen, die an jedem Entity stehen: Getter, Setter, der Konstruktor für JPA und der fachliche Konstruktor.
+  uml: |
+    hide empty methods
+    class Author <<(E) Entity>> {
+      - name : String {nn}
+      - bornOn : Date
+    }
+  template: |
+    @Entity
+    @Table(name = "authors")
+    {{~@Getter}} {{@Setter}} {{@AllArgsConstructor}}
+    @{{NoArgsConstructor}}(access = AccessLevel.{{PROTECTED}})
+    public class Author extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+        private LocalDate bornOn;
+    }
+  redHerrings: ["@Data", "@RequiredArgsConstructor", PRIVATE, AllArgsConstructor, "@Builder"]
+  explanation: |
+    `@Getter` und `@Setter` erzeugen Getter und Setter für jedes Feld, `@AllArgsConstructor` den fachlichen Konstruktor `Author(String name, LocalDate bornOn)`. `@NoArgsConstructor(access = AccessLevel.PROTECTED)` ist der Konstruktor für JPA – `private` geht nicht, Hibernate braucht mindestens `protected`. `@Data` würde das `equals` von `AbstractPersistable` ersetzen.
+
+- id: entity-tag-complete
+  kind: lines
+  title: Schlagwort – komplett
+  prompt: |
+    Schreib das ganze Entity `Tag` für die Tabelle `tags`. Das Label hat höchstens 30 Zeichen und ist eindeutig.
+  uml: |
+    hide empty methods
+    class Tag <<(E) Entity>> {
+      - label : String {nn}
+    }
+  solution: |
+    @Entity
+    @Table(name = "tags")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Tag extends AbstractPersistable<Long> {
+        @NotNull
+        @Column(length = 30, unique = true)
+        private String label;
+    }
+  redHerrings:
+    - "    private final String label;"
+    - "@NoArgsConstructor"
+    - "    @Size(min = 30)"
+    - "public record Tag(String label) {"
+  explanation: |
+    Gespeicherte Felder dürfen nicht `final` sein: Hibernate setzt sie beim Lesen. Der Konstruktor ohne Parameter ist `protected`, nicht `public`. „Höchstens 30 Zeichen“ ist `length = 30` (oder `@Size(max = 30)`), `min = 30` hieße „mindestens“. Ein Record kann kein Entity sein.
+
+- id: entity-publisher-own-id
+  kind: template
+  title: Verlag – Id selbst schreiben
+  prompt: |
+    Diesmal ohne `AbstractPersistable`: Schreib die Id von `Publisher` selbst. Die Datenbank soll sie vergeben.
+  uml: |
+    hide empty methods
+    class Publisher <<(E) Entity>> {
+      - name : String {nn}
+    }
+  template: |
+    @Entity
+    @Table(name = "publishers")
+    public class Publisher {
+
+        {{~@Id}} {{@GeneratedValue}}
+        private {{Long}} id;
+
+        @NotNull
+        private String name;
+    }
+  redHerrings: [long, "@Generated", "@Column(unique = true)", "@PrimaryKey"]
+  explanation: |
+    `@Id` markiert den Primary Key, `@GeneratedValue` lässt die Datenbank die Id vergeben. `Long` statt `long`: Ein neues Objekt hat noch keine Id, und das zeigt `null`. `@PrimaryKey` gibt es in JPA nicht. Ohne `AbstractPersistable` musst du `equals` und `hashCode` selbst schreiben – und `@AllArgsConstructor` würde die Id als ersten Parameter aufnehmen. Deshalb verwenden wir sonst immer `AbstractPersistable<Long>`.
+
+- id: entity-course-fields
+  kind: lines
+  title: Kurs – Felder mit Regeln
+  prompt: |
+    Schreib das Entity `Course` für die Tabelle `courses`, mit den Feldern in der Reihenfolge des Diagramms. Der Titel hat höchstens 80 Zeichen, die Gebühr 7 Stellen, davon 2 nach dem Komma.
+  uml: |
+    hide empty methods
+    class Course <<(E) Entity>> {
+      - title : String {nn}
+      - fee : BigDecimal {nn}
+      - online : boolean {nn}
+      - startsOn : Date
+    }
+  solution: |
+    @Entity
+    @Table(name = "courses")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Course extends AbstractPersistable<Long> {
+        @NotNull
+        @Column(length = 80)
+        private String title;
+        @NotNull
+        @Column(precision = 7, scale = 2)
+        private BigDecimal fee;
+        private boolean online;
+        private LocalDate startsOn;
+    }
+  redHerrings:
+    - "    private double fee;"
+    - "    @Column(length = 7, scale = 2)"
+    - "    private Date startsOn;"
+  explanation: |
+    Die Reihenfolge der Felder ist die Reihenfolge der Parameter von `@AllArgsConstructor`: `Course(title, fee, online, startsOn)`. Geldbeträge sind `BigDecimal`, nie `double` (Rundungsfehler). `length` gilt nur für Strings; bei Zahlen heißt es `precision`. `boolean` kann nie `null` sein, `{nn}` braucht hier keine Annotation.
+
+- id: entity-employee-all
+  kind: template
+  title: Mitarbeiter – alles zusammen
+  prompt: |
+    Ergänze `Employee`. Die E-Mail-Adresse hat höchstens 100 Zeichen und ist eindeutig. Die Rolle steht als Name in der Tabelle.
+  uml: |
+    hide empty methods
+    class Employee <<(E) Entity>> {
+      - name : String {nn}
+      - email : String {nn}
+      - role : Role {nn}
+      - hiredOn : Date
+    }
+    enum Role <<Enumeration>> {
+      STAFF
+      MANAGER
+    }
+    Employee -right-> Role
+  given: |
+    public enum Role {
+        STAFF, MANAGER
+    }
+  template: |
+    @{{Entity}}
+    @Table(name = "employees")
+    {{~@Getter}} {{@Setter}} {{@AllArgsConstructor}}
+    @NoArgsConstructor(access = AccessLevel.{{PROTECTED}})
+    public class Employee extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+
+        @NotNull
+        @Column(length = {{100}}, {{unique}} = true)
+        private String email;
+
+        @NotNull
+        @{{Enumerated}}(EnumType.{{STRING}})
+        private Role role;
+
+        private {{LocalDate}} hiredOn;
+    }
+  redHerrings: [ORDINAL, Embeddable, PRIVATE, "@Data", Date, nullable]
+  explanation: |
+    Alles aus diesem Thema auf einmal: `@Entity`, die vier Lombok-Annotationen mit `protected` Konstruktor für JPA, Länge und Eindeutigkeit über `@Column`, Enum als Name und `LocalDate` für `Date`. Der fachliche Konstruktor ist `Employee(name, email, role, hiredOn)` – deshalb die Felder in der Reihenfolge des Diagramms. (Für die volle Punktzahl mappst du Enums in der Prüfung mit einem Converter, Einheit 6.)

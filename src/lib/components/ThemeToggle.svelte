@@ -16,7 +16,7 @@
 >
 	<span class="icon" aria-hidden="true">{theme === 'light' ? '☀' : theme === 'dark' ? '☾' : '◐'}</span>
 	<span class="sr">Farbschema:</span>
-	{THEME_LABELS[theme]}
+	<span class="label">{THEME_LABELS[theme]}</span>
 </button>
 
 <style>
@@ -44,6 +44,20 @@
 	.icon {
 		font-size: 15px;
 		line-height: 1;
+	}
+	/* Phones: icon only, so the header with three links still fits. The name stays for screen readers. */
+	@media (max-width: 420px) {
+		.toggle {
+			padding: 4px 8px;
+		}
+		.label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
 	}
 	.sr {
 		position: absolute;

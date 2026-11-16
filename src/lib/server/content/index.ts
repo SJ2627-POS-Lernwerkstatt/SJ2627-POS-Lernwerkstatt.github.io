@@ -15,7 +15,8 @@ function load(): ContentIndex {
 		exercises: relative(
 			import.meta.glob('/src/content/*/exercises/*.md', { query: '?raw', import: 'default', eager: true })
 		),
-		pools: relative(import.meta.glob('/src/content/questions/*.yaml', { query: '?raw', import: 'default', eager: true }))
+		pools: relative(import.meta.glob('/src/content/questions/*.yaml', { query: '?raw', import: 'default', eager: true })),
+		puzzles: relative(import.meta.glob('/src/content/puzzles/*.yaml', { query: '?raw', import: 'default', eager: true }))
 	};
 	const { index, errors } = buildIndex(files);
 	if (errors.length) {
@@ -31,3 +32,4 @@ export const unitsOf = (module: ModuleSlug) => content.units.filter((u) => u.mod
 export const exercisesOf = (module: ModuleSlug) => content.exercises.filter((x) => x.module === module);
 export const groupsOf = (module: ModuleSlug) => content.groups.filter((g) => g.unit.startsWith(`${module}/`));
 export const groupsForUnit = (unitId: string) => content.groups.filter((g) => g.unit === unitId);
+export const puzzlesOf = (topic: string) => content.puzzles.filter((p) => p.topic === topic);

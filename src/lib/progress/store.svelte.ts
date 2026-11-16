@@ -70,6 +70,20 @@ class ProgressStore {
 		this.save();
 	}
 
+	isSolved(puzzleId: string): boolean {
+		return Boolean(this.data.puzzles[puzzleId]?.solvedAt);
+	}
+
+	/** One press of "Prüfen". The first correct answer marks the puzzle as solved for good. */
+	recordPuzzle(puzzleId: string, correct: boolean, now = new Date()) {
+		const entry = this.data.puzzles[puzzleId] ?? { tries: 0 };
+		this.data.puzzles[puzzleId] = {
+			tries: entry.tries + 1,
+			solvedAt: entry.solvedAt ?? (correct ? now.toISOString() : undefined)
+		};
+		this.save();
+	}
+
 	setTheme(theme: Theme) {
 		this.data.settings.theme = theme;
 		this.save();

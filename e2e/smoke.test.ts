@@ -90,3 +90,76 @@ test('side panel: shows the course, marks read units and stays collapsed after a
 	await toggle.click();
 	await expect(panel).toBeVisible();
 });
+
+test('puzzles: a wrong try is marked, the right order is solved and stored', async ({ page }) => {
+	await page.goto('/puzzles/jpa-entity/entity-room-fields');
+	await hydrated(page);
+	const pool = page.getByTestId('pool');
+	const answer = page.getByTestId('answer');
+	const place = (text: string) => pool.getByText(text, { exact: true }).click();
+
+	// A red herring first: marked wrong, then keep working.
+	await place('private Long id;');
+	await page.getByRole('button', { name: 'Prüfen' }).click();
+	await expect(page.getByText(/Noch nicht ganz – 0 % richtig/)).toBeVisible();
+	await page.getByRole('button', { name: 'Weiter bearbeiten' }).click();
+	await answer.getByText('private Long id;', { exact: true }).click();
+
+	// Annotations on one element may come in any order.
+	for (const line of [
+		'@Table(name = "rooms")',
+		'@AllArgsConstructor',
+		'@Entity',
+		'@Getter',
+		'@NoArgsConstructor(access = AccessLevel.PROTECTED)',
+		'@Setter',
+		'public class Room extends AbstractPersistable<Long> {',
+		'@NotNull',
+		'private String name;',
+		'private Integer seats;',
+		'}'
+	]) {
+		await place(line);
+	}
+	await page.getByRole('button', { name: 'Prüfen' }).click();
+	await expect(page.getByText('Richtig!')).toBeVisible();
+
+	await page.goto('/puzzles/jpa-entity');
+	await hydrated(page);
+	await expect(page.getByText(/^1 von \d+ gelöst$/)).toBeVisible();
+});
+
+test('puzzles: a template puzzle shows the solution after a wrong try', async ({ page }) => {
+	await page.goto('/puzzles/jpa-entity/entity-publisher-own-id');
+	await hydrated(page);
+	await page.getByTestId('pool').getByText('long', { exact: true }).click();
+	await page.getByRole('button', { name: 'Prüfen' }).click();
+	await page.getByRole('button', { name: 'Lösung zeigen' }).click();
+	await expect(page.getByRole('heading', { name: 'Lösung' })).toBeVisible();
+	await expect(page.getByText('@GeneratedValue', { exact: false }).last()).toBeVisible();
+});
+
+test('puzzles: long puzzles keep the pieces in view (side by side, or docked on a phone)', async ({ page }) => {
+	const url = '/puzzles/jpa-entity/entity-book-columns';
+	const pool = page.getByTestId('pool');
+
+	// Desktop: task | code | pieces, course panel hidden; the pieces stay in view while scrolling.
+	await page.setViewportSize({ width: 1280, height: 800 });
+	await page.goto(url);
+	await hydrated(page);
+	await expect(page.getByRole('navigation', { name: 'Kursübersicht' })).toBeHidden();
+	await page.mouse.wheel(0, 600);
+	await expect(pool).toBeInViewport();
+	const box = (await pool.boundingBox())!;
+	const code = (await page.getByRole('group', { name: 'Code mit Lücken' }).boundingBox())!;
+	expect(box.x).toBeGreaterThan(code.x + code.width - 1);
+
+	// Phone: the task folds away after the first piece, the pieces stay docked at the bottom.
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto(url);
+	await hydrated(page);
+	await pool.getByText('Entity', { exact: true }).click();
+	await expect(page.getByText('einblenden')).toBeVisible();
+	await page.mouse.wheel(0, 400);
+	await expect(pool).toBeInViewport();
+});

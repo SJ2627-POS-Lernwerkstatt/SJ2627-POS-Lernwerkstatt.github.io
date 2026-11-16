@@ -1,0 +1,160 @@
+// Compiles every puzzle solution in a scratch copy of the exam seed and runs the subproject's tests
+// (for JPA: the Spring context boots and Hibernate creates the schema from all puzzle entities).
+//
+//   node scripts/verify-puzzles.ts [topic ...]
+//
+// Env: SEED (default ../materials/seed), PUZZLE_SCRATCH (default <tmp>/puzzle-verify).
+// The seed is copied once; only the generated puzzle packages are replaced on each run.
+
+import { execFileSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { parse } from 'yaml';
+import { parseTemplate } from '../src/lib/puzzle/template.ts';
+
+type Raw = { id: string; kind: 'lines' | 'template'; given?: string; solution?: string; template?: string };
+
+const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main' | 'test'; imports: string[] }> = {
+	jpa: {
+		dir: 'Aufgabe1_ORMapping',
+		base: 'ormapping',
+		sourceSet: 'main',
+		imports: [
+			'jakarta.persistence.*',
+			'jakarta.validation.*',
+			'jakarta.validation.constraints.*',
+			'java.math.BigDecimal',
+			'java.time.*',
+			'java.util.*',
+			'lombok.*',
+			'org.hibernate.annotations.EmbeddedColumnNaming',
+			'org.springframework.data.jpa.domain.AbstractPersistable',
+			'org.springframework.data.jpa.repository.*',
+			'org.springframework.data.repository.query.Param'
+		]
+	},
+	service: {
+		dir: 'Aufgabe2_BusinessService',
+		base: 'businessservice',
+		sourceSet: 'main',
+		imports: ['java.math.*', 'java.time.*', 'java.util.*', 'java.util.stream.*', 'org.springframework.stereotype.Service']
+	},
+	test: {
+		dir: 'Aufgabe2_BusinessService',
+		base: 'businessservice',
+		sourceSet: 'test',
+		imports: [
+			'java.math.*',
+			'java.time.*',
+			'java.util.*',
+			'org.junit.jupiter.api.*',
+			'org.junit.jupiter.params.ParameterizedTest',
+			'org.junit.jupiter.params.provider.*',
+			'static org.assertj.core.api.Assertions.*'
+		]
+	},
+	rest: {
+		dir: 'Aufgabe3_RestfulApi',
+		base: 'restfulapi',
+		sourceSet: 'main',
+		imports: [
+			'jakarta.persistence.*',
+			'jakarta.validation.*',
+			'jakarta.validation.constraints.*',
+			'java.net.URI',
+			'java.util.*',
+			'org.springframework.http.*',
+			'org.springframework.web.bind.annotation.*',
+			'org.springframework.web.servlet.support.ServletUriComponentsBuilder',
+			'org.springframework.data.jpa.domain.AbstractPersistable',
+			'org.springframework.data.jpa.repository.JpaRepository'
+		]
+	}
+};
+
+const TOPIC_SUBPROJECT: Record<string, keyof typeof SUBPROJECTS> = {
+	'jpa-entity': 'jpa',
+	'jpa-relation': 'jpa',
+	'jpa-repository': 'jpa',
+	'service-method': 'service',
+	'unit-test': 'test',
+	'rest-endpoint': 'rest'
+};
+
+const MARKER = /^([ \t]*)\/\/ ✎.*$/m;
+
+function dedent(code: string): string {
+	return code.replace(/\s+$/, '');
+}
+
+function solutionOf(p: Raw): string {
+	if (p.kind === 'lines') return dedent(p.solution!);
+	const parsed = parseTemplate(p.template!.trimEnd());
+	return parsed.lines
+		.map((line) => line.map((s) => ('text' in s ? s.text : parsed.gaps[s.gap]!.expected.join(' '))).join(''))
+		.join('\n');
+}
+
+/** The given code with the solution at the ✎ marker, or given + solution. */
+function sourceOf(p: Raw): string {
+	const solution = solutionOf(p);
+	if (!p.given) return solution;
+	const m = MARKER.exec(p.given);
+	if (!m) return `${p.given.trimEnd()}\n\n${solution}`;
+	const indented = solution
+		.split('\n')
+		.map((l) => (l ? m[1] + l : l))
+		.join('\n');
+	return p.given.replace(MARKER, () => indented);
+}
+
+const root = resolve(import.meta.dirname, '..');
+const seed = resolve(process.env.SEED ?? join(root, '..', 'materials', 'seed'));
+const scratch = resolve(process.env.PUZZLE_SCRATCH ?? join(tmpdir(), 'puzzle-verify'));
+
+if (!existsSync(join(scratch, 'gradlew'))) {
+	console.log(`Copying seed ${seed} → ${scratch}`);
+	cpSync(seed, scratch, { recursive: true, filter: (src) => !/[/\\](build|\.gradle)$/.test(src) });
+}
+
+const wanted = process.argv.slice(2);
+const files = readdirSync(join(root, 'src/content/puzzles')).filter((f) => f.endsWith('.yaml'));
+const bySub = new Map<string, { id: string; source: string }[]>();
+for (const file of files) {
+	const topic = file.replace(/\.yaml$/, '');
+	if (wanted.length && !wanted.includes(topic)) continue;
+	const sub = TOPIC_SUBPROJECT[topic];
+	if (!sub) throw new Error(`no subproject for topic ${topic}`);
+	const puzzles = parse(readFileSync(join(root, 'src/content/puzzles', file), 'utf8')) as Raw[];
+	for (const p of puzzles ?? []) {
+		const list = bySub.get(sub) ?? [];
+		list.push({ id: p.id, source: sourceOf(p) });
+		bySub.set(sub, list);
+	}
+}
+
+let failed = false;
+for (const [key, puzzles] of bySub) {
+	const sp = SUBPROJECTS[key]!;
+	const pkgRoot = join(scratch, sp.dir, 'src', sp.sourceSet, 'java', sp.base, 'puzzles');
+	rmSync(pkgRoot, { recursive: true, force: true });
+	for (const p of puzzles) {
+		const pkg = p.id.replace(/-/g, '_');
+		const dir = join(pkgRoot, pkg);
+		mkdirSync(dir, { recursive: true });
+		// One file per puzzle: top-level types lose `public` so they can share it.
+		const body = p.source.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '');
+		const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...sp.imports.map((i) => `import ${i};`), ''].join('\n');
+		writeFileSync(join(dir, 'Puzzle.java'), `${header}\n${body}\n`);
+	}
+	console.log(`\n${sp.dir}: ${puzzles.length} puzzles → ./gradlew :${sp.dir}:test`);
+	try {
+		execFileSync('./gradlew', [`:${sp.dir}:test`, '--console=plain', '-q'], { cwd: scratch, stdio: 'inherit' });
+		console.log('OK');
+	} catch {
+		failed = true;
+		console.error(`FAILED (sources in ${pkgRoot})`);
+	}
+}
+process.exit(failed ? 1 : 0);

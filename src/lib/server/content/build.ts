@@ -1,10 +1,14 @@
 import { parse as parseYaml } from 'yaml';
 import type { z } from 'zod';
 import { isModuleSlug, type ModuleSlug } from '#lib/content/modules.js';
+import { puzzleTopic } from '#lib/content/puzzles.js';
+import { LINE_LIMITS, lineKey, parseLines, toLine } from '#lib/puzzle/lines.js';
 import { buildPool, parseTemplate } from '#lib/puzzle/template.js';
 import {
 	exerciseFrontmatter,
+	puzzlePool,
 	questionPool,
+	type Puzzle,
 	unitFrontmatter,
 	type ExerciseFrontmatter,
 	type Question,
@@ -31,10 +35,17 @@ export type Exercise = ExerciseFrontmatter & {
 	file: string;
 };
 
+export type PuzzleEntry = Puzzle & {
+	topic: string;
+	/** Position in the topic's file, from 0. */
+	order: number;
+};
+
 export type ContentIndex = {
 	units: Unit[];
 	exercises: Exercise[];
 	groups: QuestionGroup[];
+	puzzles: PuzzleEntry[];
 };
 
 /** Raw file contents keyed by path relative to the content root, e.g. "jpa/06-enums.md". */
@@ -42,12 +53,15 @@ export type ContentFiles = {
 	units: Record<string, string>;
 	exercises: Record<string, string>;
 	pools: Record<string, string>;
+	/** "puzzles/<topic>.yaml"; optional so older callers need not pass it. */
+	puzzles?: Record<string, string>;
 };
 
 const MODULE_PART = '([a-z]+(?:-[a-z0-9]+)*)';
 const UNIT_PATH = new RegExp(`^${MODULE_PART}/(\\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\\.md$`);
 const EXERCISE_PATH = new RegExp(`^${MODULE_PART}/exercises/(\\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\\.md$`);
 const POOL_PATH = new RegExp(`^questions/${MODULE_PART}\\.yaml$`);
+const PUZZLE_PATH = /^puzzles\/([a-z0-9]+(?:-[a-z0-9]+)*)\.yaml$/;
 
 /** Splits "---\n<yaml>\n---\n<body>" and parses the YAML. */
 export function frontmatter(raw: string): unknown {
@@ -60,7 +74,25 @@ function zodErrors(file: string, error: z.ZodError): string[] {
 	return error.issues.map((i) => `${file}: ${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`);
 }
 
-function checkQuestion(q: Question, where: string, errors: string[]) {
+function checkPuzzle(p: Puzzle, where: string, errors: string[]) {
+	if (p.kind === 'template') {
+		checkQuestion(p, where, errors);
+		return;
+	}
+	const { lines, errors: lineErrors } = parseLines(p.solution);
+	for (const e of lineErrors) errors.push(`${where}: solution ${e}`);
+	if (lines.length < 3) errors.push(`${where}: a line puzzle needs at least 3 solution lines`);
+	if (lines.length > LINE_LIMITS.lines) errors.push(`${where}: more than ${LINE_LIMITS.lines} solution lines`);
+	const keys = new Set(lines.map(lineKey));
+	for (const h of p.redHerrings) {
+		const line = toLine(h);
+		if (!line) errors.push(`${where}: a red herring must not be blank`);
+		else if ('error' in line) errors.push(`${where}: red herring "${h.trim()}": ${line.error}`);
+		else if (keys.has(lineKey(line))) errors.push(`${where}: red herring "${h.trim()}" is also a solution line`);
+	}
+}
+
+function checkQuestion(q: Question | Puzzle, where: string, errors: string[]) {
 	if (q.kind === 'template') {
 		const parsed = parseTemplate(q.template.trimEnd());
 		for (const e of parsed.errors) errors.push(`${where}: template line ${e.line}: ${e.message}`);
@@ -151,6 +183,32 @@ export function buildIndex(files: ContentFiles): { index: ContentIndex; errors: 
 		}
 	}
 
+	const puzzles: PuzzleEntry[] = [];
+	for (const [file, raw] of Object.entries(files.puzzles ?? {})) {
+		const m = PUZZLE_PATH.exec(file);
+		if (!m || !puzzleTopic(m[1])) {
+			errors.push(`${file}: puzzle pools must be named "puzzles/<topic>.yaml" with a topic from PUZZLE_TOPICS`);
+			continue;
+		}
+		let data: unknown;
+		try {
+			data = parseYaml(raw) ?? [];
+		} catch (e) {
+			errors.push(`${file}: ${(e as Error).message}`);
+			continue;
+		}
+		const parsed = puzzlePool.safeParse(data);
+		if (!parsed.success) {
+			errors.push(...zodErrors(file, parsed.error));
+			continue;
+		}
+		parsed.data.forEach((p, order) => {
+			checkPuzzle(p, `${file}: ${p.id}`, errors);
+			puzzles.push({ ...p, topic: m[1], order });
+		});
+	}
+	duplicates(puzzles, (p) => p.id, (k) => `duplicate puzzle id "${k}"`, errors);
+
 	duplicates(units, (u) => `${u.module}/${u.order}`, (k) => `two units share the number ${k}`, errors);
 	duplicates(units, (u) => u.id, (k) => `duplicate unit slug "${k}"`, errors);
 	duplicates(exercises, (x) => `${x.module}/${x.order}`, (k) => `two exercises share the number ${k}`, errors);
@@ -164,7 +222,7 @@ export function buildIndex(files: ContentFiles): { index: ContentIndex; errors: 
 
 	const byOrder = <T extends { module: string; order: number }>(a: T, b: T) =>
 		a.module === b.module ? a.order - b.order : 0;
-	return { index: { units: units.sort(byOrder), exercises: exercises.sort(byOrder), groups }, errors };
+	return { index: { units: units.sort(byOrder), exercises: exercises.sort(byOrder), groups, puzzles }, errors };
 }
 
 function duplicates<T>(items: T[], key: (item: T) => string, message: (key: string) => string, errors: string[]) {

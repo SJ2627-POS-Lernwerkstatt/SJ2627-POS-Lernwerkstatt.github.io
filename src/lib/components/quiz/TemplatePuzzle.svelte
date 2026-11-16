@@ -24,9 +24,13 @@
 		placed: Gaps;
 		/** Locked after answering: nothing can be moved any more. */
 		disabled?: boolean;
+		/** Keep the pieces docked at the bottom of the screen (puzzle pages). */
+		dock?: boolean;
+		/** Pieces next to the code when the surrounding `puzzle` container is wide enough. */
+		split?: boolean;
 		onchange: (gaps: Gaps) => void;
 	}
-	let { lines, pieces, placed, disabled = false, onchange }: Props = $props();
+	let { lines, pieces, placed, disabled = false, dock = false, split = false, onchange }: Props = $props();
 
 	const FLIP_MS = 120;
 	const gapCount = untrack(() => 1 + Math.max(-1, ...lines.flat().map((s) => ('gap' in s ? s.gap : -1))));
@@ -83,7 +87,7 @@
 	oder rechts ändert die Reihenfolge in einer Lücke.
 </p>
 
-<div class="layout" class:disabled>
+<div class="layout" class:disabled class:dock class:split>
 	<div class="code" role="group" aria-label="Code mit Lücken">
 		{#each lines as line}
 			<div class="line">
@@ -269,6 +273,31 @@
 		min-height: 52px;
 		padding: 2px;
 		border-radius: 10px;
+	}
+	/* dock: the pieces stay at the bottom of the screen while the code scrolls behind them. */
+	.layout.dock .pool-box {
+		position: sticky;
+		bottom: 0;
+		z-index: 5;
+		max-height: 40dvh;
+		overflow-y: auto;
+		box-shadow: 0 -8px 20px rgb(0 0 0 / 0.12);
+	}
+	/* split (long puzzles, enough room): code | pieces, the pieces column stays in view. */
+	@container puzzle (min-width: 1150px) {
+		.layout.split {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+			align-items: start;
+		}
+		.layout.split .pool-box {
+			position: sticky;
+			top: 80px;
+			bottom: auto;
+			max-height: calc(100dvh - 96px);
+			overflow-y: auto;
+			box-shadow: none;
+		}
 	}
 	@media (max-width: 700px) {
 		.code {

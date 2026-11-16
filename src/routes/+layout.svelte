@@ -2,33 +2,50 @@
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import '../app.css';
 	import CourseNav from '#lib/components/CourseNav.svelte';
 	import Logo from '#lib/components/Logo.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
-	import { isNarrow, setCollapsed, setDrawer, storedCollapsed } from '#lib/sidebar.js';
+	import { isNarrow, NARROW, setCollapsed, setDrawer, storedCollapsed } from '#lib/sidebar.js';
 	import { applyTheme } from '#lib/theme.js';
 
 	let { children, data } = $props();
 
 	// Mirrors the data-sidebar / data-drawer attributes on <html>, which the CSS uses.
 	let panelOpen = $state(true);
+	let narrow = $state(false);
+
+	// Pages that need the full width (long puzzles) set `wide` in their data. There the course panel
+	// is hidden on wide screens unless opened for this page; that choice is not remembered.
+	const wide = $derived(Boolean((page.data as { wide?: boolean }).wide));
+	let widePanel = $state(false);
 
 	onMount(() => {
 		progress.init();
 		panelOpen = isNarrow() ? false : !storedCollapsed();
+		const query = matchMedia(NARROW);
+		narrow = query.matches;
+		query.addEventListener('change', (e) => (narrow = e.matches));
 	});
 
 	function togglePanel() {
+		if (wide && !isNarrow()) {
+			widePanel = !widePanel;
+			return;
+		}
 		panelOpen = !panelOpen;
 		if (isNarrow()) setDrawer(panelOpen);
 		else setCollapsed(!panelOpen);
 	}
 
+	const expanded = $derived(wide && !narrow ? widePanel : panelOpen);
+
 	// The drawer on narrow screens closes after following a link.
 	afterNavigate(() => {
+		widePanel = false;
 		if (isNarrow() && panelOpen) {
 			panelOpen = false;
 			setDrawer(false);
@@ -45,14 +62,14 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="page">
+<div class="page" class:wide class:wide-panel={widePanel}>
 	<header>
 		<button
 			class="panel-toggle"
 			type="button"
 			aria-controls="course-panel"
-			aria-expanded={panelOpen}
-			title={panelOpen ? 'Kursübersicht ausblenden' : 'Kursübersicht einblenden'}
+			aria-expanded={expanded}
+			title={expanded ? 'Kursübersicht ausblenden' : 'Kursübersicht einblenden'}
 			onclick={togglePanel}
 		>
 			<span aria-hidden="true">☰</span>
@@ -62,6 +79,7 @@
 		<nav class="main-nav" aria-label="Hauptnavigation">
 			<a href={resolve('/')}>Lernen</a>
 			<a href={resolve('/ueben')}>Üben</a>
+			<a href={resolve('/puzzles')}>Puzzles</a>
 		</nav>
 		<ThemeToggle />
 	</header>
@@ -179,6 +197,18 @@
 		max-width: calc(var(--content-width) + 64px);
 		margin: 0 auto;
 		padding: 40px 32px 64px;
+	}
+	/* Long puzzles: task | code | pieces side by side. The panel is hidden unless opened for this page. */
+	.page.wide main {
+		max-width: 1640px;
+	}
+	@media (min-width: 961px) {
+		.page.wide .panel {
+			display: none;
+		}
+		.page.wide.wide-panel .panel {
+			display: block;
+		}
 	}
 	footer {
 		display: flex;

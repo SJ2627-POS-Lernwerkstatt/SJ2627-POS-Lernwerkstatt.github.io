@@ -39,6 +39,10 @@ export const progressSchema = z.object({
 			z.object({ submittedAt: timestamp.optional(), selfRating: z.int().min(1).max(4).optional() })
 		)
 		.default({}),
+	/** Puzzles by id: how often "Prüfen" was pressed and when it first came out right. */
+	puzzles: z
+		.record(z.string(), z.object({ tries: z.int().min(0), solvedAt: timestamp.optional() }))
+		.default({}),
 	settings: z
 		.object({
 			theme: z.enum(['light', 'dark', 'system']).optional()
@@ -48,5 +52,5 @@ export const progressSchema = z.object({
 export type Progress = z.infer<typeof progressSchema>;
 
 export function emptyProgress(): Progress {
-	return { version: 1, units: {}, groups: {}, runs: [], exercises: {}, settings: {} };
+	return { version: 1, units: {}, groups: {}, runs: [], exercises: {}, puzzles: {}, settings: {} };
 }
