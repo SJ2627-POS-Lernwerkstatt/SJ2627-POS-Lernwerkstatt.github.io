@@ -96,6 +96,10 @@ function checkQuestion(q: Question | Puzzle, where: string, errors: string[]) {
 	if (q.kind === 'template') {
 		const parsed = parseTemplate(q.template.trimEnd());
 		for (const e of parsed.errors) errors.push(`${where}: template line ${e.line}: ${e.message}`);
+		// Pieces of one gap are shown and joined with a space: "find{{A}}{{B}}" would read "findA B".
+		q.template.split('\n').forEach((line, i) => {
+			if (/\}\}\{\{/.test(line)) errors.push(`${where}: template line ${i + 1}: markers "}}{{" touch – separate them with a blank or fixed text, or use one piece`);
+		});
 		if (parsed.pieces.length < 2) errors.push(`${where}: a template needs at least 2 pieces`);
 		for (const e of buildPool(parsed, q.redHerrings, q.reusable).errors) errors.push(`${where}: ${e}`);
 	}

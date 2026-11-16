@@ -31,6 +31,8 @@ const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main'
 			'org.hibernate.annotations.EmbeddedColumnNaming',
 			'org.springframework.data.jpa.domain.AbstractPersistable',
 			'org.springframework.data.jpa.repository.*',
+			// Single-type import wins over jakarta.persistence.Query from the wildcard above.
+			'org.springframework.data.jpa.repository.Query',
 			'org.springframework.data.repository.query.Param'
 		]
 	},
@@ -83,6 +85,17 @@ const TOPIC_SUBPROJECT: Record<string, keyof typeof SUBPROJECTS> = {
 };
 
 const MARKER = /^([ \t]*)\/\/ ✎.*$/m;
+
+/** Extra imports for puzzles that contain tests; they go to the test source set and really run. */
+const TEST_IMPORTS: Record<string, string[]> = {
+	jpa: [
+		'org.junit.jupiter.api.Test',
+		'org.springframework.beans.factory.annotation.Autowired',
+		'org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest',
+		'org.springframework.boot.jpa.test.autoconfigure.TestEntityManager',
+		'static org.assertj.core.api.Assertions.*'
+	]
+};
 
 function dedent(code: string): string {
 	return code.replace(/\s+$/, '');
@@ -157,17 +170,23 @@ function batches<T extends { source: string }>(puzzles: T[]): T[][] {
 let failed = false;
 for (const [key, all] of bySub) {
 	const sp = SUBPROJECTS[key]!;
-	const pkgRoot = join(scratch, sp.dir, 'src', sp.sourceSet, 'java', sp.base, 'puzzles');
+	const rootOf = (set: string) => join(scratch, sp.dir, 'src', set, 'java', sp.base, 'puzzles');
+	const clean = () => ['main', 'test'].forEach((set) => rmSync(rootOf(set), { recursive: true, force: true }));
 	const groups = batches(all);
 	for (const [n, puzzles] of groups.entries()) {
-		rmSync(pkgRoot, { recursive: true, force: true });
+		clean();
 		for (const p of puzzles) {
 			const pkg = p.id.replace(/-/g, '_');
-			const dir = join(pkgRoot, pkg);
+			const isTest = /@Test\b/.test(p.source) && TEST_IMPORTS[key];
+			const dir = join(rootOf(isTest ? 'test' : sp.sourceSet), pkg);
 			mkdirSync(dir, { recursive: true });
-			// One file per puzzle: top-level types lose `public` so they can share it.
-			const body = p.source.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '');
-			const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...sp.imports.map((i) => `import ${i};`), ''].join('\n');
+			// One file per puzzle: top-level types lose `public` so they can share it. Projections name
+			// their record as in the course (`ormapping.persistence.X`); here it lives in the puzzle's package.
+			const body = p.source
+				.replace(/^public (?=(abstract |final |sealed )?(class|record|enum|interface) )/gm, '')
+				.replaceAll(`${sp.base}.persistence.`, `${sp.base}.puzzles.${pkg}.`);
+			const imports = [...sp.imports, ...(isTest ? TEST_IMPORTS[key]! : [])];
+			const header = [`package ${sp.base}.puzzles.${pkg};`, '', ...imports.map((i) => `import ${i};`), ''].join('\n');
 			writeFileSync(join(dir, 'Puzzle.java'), `${header}\n${body}\n`);
 		}
 		console.log(`\n${sp.dir} batch ${n + 1}/${groups.length}: ${puzzles.map((p) => p.id).join(', ')}`);
@@ -182,10 +201,11 @@ for (const [key, all] of bySub) {
 			console.log('OK');
 		} catch {
 			failed = true;
-			console.error(`FAILED (sources in ${pkgRoot}, report in ${join(scratch, sp.dir, 'build/test-results')})`);
+			console.error(`FAILED (sources under ${rootOf('main')} and ${rootOf('test')}, report in ${join(scratch, sp.dir, 'build/test-results')})`);
 			break;
 		}
 	}
-	rmSync(pkgRoot, { recursive: true, force: true });
+	// Keep the sources of a failed batch for inspection.
+	if (!failed) clean();
 }
 process.exit(failed ? 1 : 0);

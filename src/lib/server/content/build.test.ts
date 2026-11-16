@@ -197,3 +197,18 @@ ${extra}`;
 		expect(errors).toContain('puzzles/jpa-entity.yaml: t: a template needs at least 2 pieces');
 	});
 });
+
+describe('template checks', () => {
+	it('rejects touching markers, whose pieces would be joined with a space', () => {
+		const yaml = `
+- id: t
+  kind: template
+  title: T
+  prompt: P
+  explanation: E
+  template: "List<A> findBy{{Venue}}{{Name}}(String n);"
+`;
+		const { errors } = buildIndex({ units: {}, exercises: {}, pools: {}, puzzles: { 'puzzles/jpa-repository.yaml': yaml } });
+		expect(errors).toEqual([expect.stringContaining('markers "}}{{" touch')]);
+	});
+});

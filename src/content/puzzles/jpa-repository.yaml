@@ -1,0 +1,484 @@
+# Puzzles "Repositories und Queries". Format: src/lib/content/schema.ts (puzzle).
+# Most puzzles share the concert model below (YAML anchors &concertModel / &concertUml).
+# Projections name their record `ormapping.persistence.X` as in JPA unit 18; verify-puzzles maps that package.
+# Spring Data checks every derived query and every @Query at startup, so verify-puzzles catches typos in names.
+# Verify: node scripts/verify-puzzles.ts jpa-repository
+
+- id: repo-movie-interface
+  kind: lines
+  title: Filme – das Repository
+  prompt: |
+    Schreib das Repository für `Movie`. Es soll einen Film über seinen Titel finden (höchstens einer) und danach alle Filme, die länger als eine Anzahl Minuten dauern.
+  uml: |
+    hide empty methods
+    class Movie <<(E) Entity>> {
+      - title : String {nn, unique}
+      - minutes : int {nn}
+    }
+  given: |
+    @Entity
+    @Table(name = "movies")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Movie extends AbstractPersistable<Long> {
+
+        @NotNull
+        @Column(unique = true)
+        private String title;
+        private int minutes;
+    }
+  solution: |
+    public interface MovieRepository extends JpaRepository<Movie, Long> {
+        Optional<Movie> findByTitle(String title);
+        List<Movie> findByMinutesGreaterThan(int minutes);
+    }
+  redHerrings:
+    - "public interface MovieRepository extends JpaRepository<Long, Movie> {"
+    - "public class MovieRepository implements JpaRepository<Movie, Long> {"
+    - "    Optional<Movie> findByName(String title);"
+  explanation: |
+    Ein Repository ist ein **Interface**, die Implementierung erzeugt Spring Data. Die Typargumente sind Entity und Typ der Id: `JpaRepository<Movie, Long>`. Der Methodenname muss Feldnamen verwenden – `findByName` scheitert beim Start, weil `Movie` kein Feld `name` hat. `Optional` für höchstens einen Treffer.
+
+- id: repo-movie-return-types
+  kind: template
+  title: Filme – Rückgabetypen und Präfixe
+  prompt: |
+    Ergänze die Rückgabetypen und Präfixe: einen Film über seine IMDb-Nummer (höchstens einer), alle Filme eines Genres, die Anzahl der Filme eines Genres und ob es eine IMDb-Nummer schon gibt.
+  given: |
+    public enum MovieGenre {
+        DRAMA, COMEDY, THRILLER
+    }
+
+    @Entity
+    @Table(name = "movies")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Movie extends AbstractPersistable<Long> {
+
+        @NotNull
+        @Column(unique = true)
+        private String imdbId;
+        @NotNull
+        private String title;
+        @NotNull
+        @Enumerated(EnumType.STRING)
+        private MovieGenre genre;
+    }
+  template: |
+    public interface MovieRepository extends JpaRepository<Movie, Long> {
+
+        {{Optional<Movie>}} findByImdbId(String imdbId);
+
+        {{List<Movie>}} findByGenre(MovieGenre genre);
+
+        long {{countBy}}Genre(MovieGenre genre);
+
+        boolean {{existsBy}}ImdbId(String imdbId);
+    }
+  redHerrings: ["Optional<List<Movie>>", findBy, hasBy, countAll, int]
+  explanation: |
+    `Optional<…>` für höchstens einen Treffer, `List<…>` für beliebig viele. `countBy…` liefert die Anzahl als `long`, `existsBy…` ein `boolean` – Spring Data baut daraus `select count(…)` bzw. eine Abfrage, die beim ersten Treffer aufhört. `hasBy` und `countAll` kennt Spring Data nicht.
+
+- id: repo-concert-path
+  kind: template
+  title: Konzerte – Pfade über Beziehungen
+  prompt: |
+    Finde alle Konzerte in einer Stadt (die Stadt steht in der `Location` der Spielstätte) und alle Konzerte einer Spielstätte über ihren Namen.
+  uml: &concertUml |
+    hide empty methods
+    class Venue <<(E) Entity>> {
+      - name : String {nn}
+      - location : Location
+      - concerts : Concert[*]
+    }
+    class Location <<(V) ValueObject>> {
+      - street : String {nn}
+      - city : String {nn}
+    }
+    class Concert <<(E) Entity>> {
+      - title : String {nn}
+      - date : Date {nn}
+      - ticketPrice : BigDecimal
+    }
+    Venue *-right- Location
+    Venue "1" -- "n" Concert
+  given: &concertModel |
+    @Embeddable
+    public record Location(@NotNull String street, @NotNull String city) {
+    }
+
+    @Entity
+    @Table(name = "venues")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Venue extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+        @Embedded
+        private Location location;
+
+        @OneToMany(mappedBy = "venue")
+        private List<Concert> concerts = new ArrayList<>();
+
+        public Venue(String name, Location location) {
+            this.name = name;
+            this.location = location;
+        }
+
+        public List<Concert> getConcerts() {
+            return Collections.unmodifiableList(concerts);
+        }
+    }
+
+    @Entity
+    @Table(name = "concerts")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Concert extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+        @NotNull
+        private LocalDate date;
+        @Column(precision = 6, scale = 2)
+        private BigDecimal ticketPrice;
+
+        @ManyToOne
+        @JoinColumn(name = "venue_id")
+        private Venue venue;
+
+        public Concert(String title, LocalDate date, BigDecimal ticketPrice) {
+            this.title = title;
+            this.date = date;
+            this.ticketPrice = ticketPrice;
+        }
+    }
+  template: |
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        List<Concert> findBy{{VenueLocationCity}}(String city);
+
+        List<Concert> findBy{{VenueName}}(String name);
+    }
+  redHerrings: [VenueCity, LocationCity, VenueAddressCity, Name, ConcertsVenueName]
+  explanation: |
+    Ein abgeleiteter Name folgt den Feldern wie ein Pfad: `concert.venue.location.city` wird zu `findByVenueLocationCity`. Das funktioniert über Beziehungen (`venue`) und Value Objects (`location`) hinweg. `VenueCity` oder `VenueAddressCity` gibt es hier nicht – der Name muss genau zu den Feldern passen, sonst startet der Kontext nicht.
+
+- id: repo-concert-first-top
+  kind: template
+  title: Konzerte – sortieren und begrenzen
+  prompt: |
+    Finde das **teuerste** Konzert und die **drei frühesten** Konzerte.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        Optional<Concert> find{{First}}ByOrderByTicketPrice{{Desc}}();
+
+        List<Concert> find{{Top3}}ByOrderByDate{{Asc}}();
+    }
+  redHerrings: [Last, Max, Bottom3, All]
+  explanation: |
+    `First` (oder `Top`) liefert einen Treffer, `Top3` die ersten drei – nach der Sortierung mit `OrderBy…Desc` bzw. `…Asc`. Das teuerste ist das erste bei absteigendem Preis. `Last` und `Max` gibt es als Schlüsselwort nicht.
+
+- id: repo-concert-keywords
+  kind: template
+  title: Konzerte – Schlüsselwörter
+  prompt: |
+    Drei Suchen: Konzerte zwischen zwei Daten (beide eingeschlossen), Konzerte, deren Titel einen Text enthält (Groß-/Kleinschreibung egal), und Konzerte, deren Karte **höchstens** einen Betrag kostet.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        List<Concert> findByDate{{Between}}(LocalDate from, LocalDate to);
+
+        List<Concert> findByTitle{{ContainingIgnoreCase}}(String part);
+
+        List<Concert> findByTicketPrice{{LessThanEqual}}(BigDecimal max);
+    }
+  redHerrings: [LessThan, Like, Containing, From, Equals]
+  explanation: |
+    `Between` schließt beide Grenzen ein. `Containing` setzt die `%` selbst, `IgnoreCase` vergleicht ohne Groß-/Kleinschreibung – `Containing` allein wäre bei „Rock“ gegen „rock“ leer. „Höchstens“ heißt `LessThanEqual` – `LessThan` ließe genau den Betrag weg. `Like` gibt es, dort musst du die `%` aber selbst übergeben.
+
+- id: repo-jpql-basic
+  kind: template
+  title: Konzerte – erste JPQL-Query
+  prompt: |
+    Schreib die Query in JPQL: alle Konzerte bis zu einem Höchstpreis, sortiert nach Datum.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        @Query("{{select c}} {{from Concert c}} where c.ticketPrice <= {{:max}} order by {{c.date}}")
+        List<Concert> findAffordable(BigDecimal max);
+    }
+  redHerrings: ["select *", "from concerts c", "?max", "date", "from Concert"]
+  explanation: |
+    JPQL fragt **Entities und Felder** ab, nicht Tabellen und Spalten: `from Concert c`, nicht `from concerts`. Ausgewählt wird der Alias (`select c`), `select *` gibt es nicht. Parameter heißen `:name` und werden über den Namen des Methodenparameters gefüllt.
+
+- id: repo-jpql-join
+  kind: template
+  title: Seminare – Join über n:m
+  prompt: |
+    Finde alle Seminare, die eine Person mit einem bestimmten Namen besucht, sortiert nach Titel.
+  uml: |
+    hide empty methods
+    class Seminar <<(E) Entity>> {
+      - title : String {nn}
+      - participants : Participant[*]
+    }
+    class Participant <<(E) Entity>> {
+      - name : String {nn}
+    }
+    Seminar "n" -right-> "n" Participant
+  given: |
+    @Entity
+    @Table(name = "participants")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Participant extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String name;
+    }
+
+    @Entity
+    @Table(name = "seminars")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public class Seminar extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+
+        @ManyToMany
+        @JoinTable(name = "seminar_participants",
+                joinColumns = @JoinColumn(name = "seminar_id"),
+                inverseJoinColumns = @JoinColumn(name = "participant_id"))
+        private Set<Participant> participants = new HashSet<>();
+
+        public Seminar(String title) {
+            this.title = title;
+        }
+    }
+  template: |
+    public interface SeminarRepository extends JpaRepository<Seminar, Long> {
+
+        @Query("select s from Seminar s {{join s.participants p}} where {{p.name}} = :name order by s.title")
+        List<Seminar> findAttendedBy(String name);
+    }
+  redHerrings: ["join Participant p", "join participants p", "s.participants.name", "name"]
+  explanation: |
+    `join s.participants p` folgt der Beziehung vom Seminar aus und gibt jedem Teilnehmer den Alias `p`. Danach vergleichst du `p.name`. Ein Pfad wie `s.participants.name` geht bei einer Collection nicht – dafür brauchst du den Join. `join Participant p` würde kein Feld, sondern eine ganze Entity nennen.
+
+- id: repo-jpql-params
+  kind: lines
+  title: Konzerte – Query mit Parametern
+  prompt: |
+    Schreib `ConcertRepository` mit einer JPQL-Query: alle Konzerte in einer Stadt bis zu einem Höchstpreis. Binde die Parameter ausdrücklich mit `@Param`.
+  uml: *concertUml
+  given: *concertModel
+  solution: |
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+        @Query("select c from Concert c where c.venue.location.city = :city and c.ticketPrice <= :max")
+        List<Concert> findCheapInCity(@Param("city") String city, @Param("max") BigDecimal max);
+    }
+  redHerrings:
+    - "    @Query(\"select c from concerts c where c.city = :city and c.ticket_price <= :max\")"
+    - "    List<Concert> findCheapInCity(@Param(\"max\") String city, @Param(\"city\") BigDecimal max);"
+    - "    @Query(\"select c from Concert c where c.venue.city = :city and c.ticketPrice <= :max\")"
+  explanation: |
+    Ein Pfad mit Punkten (`c.venue.location.city`) erzeugt den Join selbst. `c.venue.city` gibt es nicht – die Stadt steckt in `location`. `@Param("city")` bindet den Parameter `:city` an den Methodenparameter – vertauschte Namen kompilieren, liefern aber die falschen Werte.
+
+- id: repo-jpql-distinct
+  kind: template
+  title: Spielstätten – distinct
+  prompt: |
+    Finde alle Spielstätten, die **mindestens ein** Konzert über einem Preis haben – jede Spielstätte nur einmal.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public interface VenueRepository extends JpaRepository<Venue, Long> {
+
+        @Query("select {{distinct}} v from Venue v {{join v.concerts c}} where c.ticketPrice > :min")
+        List<Venue> findWithConcertAbove(BigDecimal min);
+    }
+  redHerrings: ["group by", "join Concert c", "left join v.concerts c", all]
+  explanation: |
+    Der Join liefert eine Zeile pro passendem Konzert – eine Spielstätte mit drei teuren Konzerten käme dreimal vor. `distinct` macht daraus einen Eintrag. Ein `left join` würde auch Spielstätten ohne Konzert liefern; die fallen hier aber ohnehin durch die Bedingung.
+
+- id: repo-projection-record
+  kind: template
+  title: Konzerte – Projektion in einen Record
+  prompt: |
+    Liefere für jedes Konzert nur Titel, Name der Spielstätte und Preis, sortiert nach Titel – als Record `ConcertOverview` im Package `ormapping.persistence`.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public record ConcertOverview(String title, String venueName, BigDecimal ticketPrice) {
+    }
+
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        @Query("""
+                select {{new}} {{ormapping.persistence.ConcertOverview}}({{c.title}}, {{c.venue.name}}, {{c.ticketPrice}})
+                from Concert c
+                order by c.title""")
+        List<ConcertOverview> findOverview();
+    }
+  redHerrings: [ConcertOverview, c.venue, venueName, "c.venue.location"]
+  explanation: |
+    `select new` ruft für jede Zeile den Konstruktor des Records auf – Typen und Reihenfolge müssen passen. Der Klassenname braucht das **ganze Package**, sonst startet der Kontext nicht: `Could not resolve class 'ConcertOverview'`. `c.venue` wäre die ganze Spielstätte, der Record will ihren Namen.
+
+- id: repo-aggregate-group-by
+  kind: template
+  title: Spielstätten – zählen mit group by
+  prompt: |
+    Zähle die Konzerte pro Spielstätte, sortiert nach Name. Spielstätten **ohne** Konzert sollen mit `0` dabei sein.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public record VenueCount(String venueName, long concertCount) {
+    }
+
+    public interface VenueRepository extends JpaRepository<Venue, Long> {
+
+        @Query("""
+                select new ormapping.persistence.VenueCount(v.name, {{count(c)}})
+                from Venue v {{left join}} v.concerts c
+                {{group by}} v.name
+                order by v.name""")
+        List<VenueCount> countConcerts();
+    }
+  redHerrings: [join, "count(v)", "sum(c)", "order by", having]
+  explanation: |
+    `left join` behält Spielstätten ohne Konzert; ein normaler `join` ließe sie weg. `count(c)` zählt nur echte Konzerte, bei einer leeren Spielstätte also `0` – `count(v)` zählte die Spielstätte selbst und gäbe `1`. Alles im `select`, das kein Aggregat ist, gehört in `group by`.
+
+- id: repo-interface-projection
+  kind: template
+  title: Konzerte – Interface-Projektion
+  prompt: |
+    Für eine Liste reichen Titel und Datum. Ergänze die Interface-Projektion, die Spring Data für jedes Konzert über einem Preis füllt.
+  uml: *concertUml
+  given: *concertModel
+  template: |
+    public interface ConcertSummary {
+        String {{getTitle()}};
+        LocalDate {{getDate()}};
+    }
+
+    public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+        List<{{ConcertSummary}}> findByTicketPriceGreaterThan(BigDecimal min);
+    }
+  redHerrings: ["title()", "getName()", Concert, "date()"]
+  explanation: |
+    Eine Interface-Projektion besteht aus Gettern, die wie die Felder des Entities heißen: `getTitle()` für `title`. Spring Data lädt dann nur diese Spalten. Mit `List<Concert>` bekämst du wieder die ganzen Entities.
+
+- id: repo-lifecycle-test
+  kind: lines
+  title: Filme – der Lifecycle-Test
+  prompt: |
+    Schreib den Lifecycle-Test: speichern, Id prüfen, Persistence Context leeren, neu lesen und den Titel prüfen.
+  given: |
+    @Entity
+    @Table(name = "movies")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Movie extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+        private int minutes;
+    }
+
+    public interface MovieRepository extends JpaRepository<Movie, Long> {
+    }
+
+    @DataJpaTest
+    class MovieRepositoryTest {
+
+        @Autowired
+        private MovieRepository movieRepository;
+
+        @Autowired
+        private TestEntityManager entityManager;
+
+        // ✎ Test
+    }
+  solution: |
+    @Test
+    void verify_life_cycle() {
+        Movie saved = movieRepository.save(new Movie("Heat", 170));
+        assertThat(saved.getId()).isNotNull();
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(movieRepository.findById(saved.getId()))
+                .hasValueSatisfying(m -> assertThat(m.getTitle()).isEqualTo("Heat"));
+    }
+  redHerrings:
+    - "    Movie saved = movieRepository.save(new Movie(1L, \"Heat\", 170));"
+    - "    assertThat(saved.getId()).isNull();"
+    - "    entityManager.persist(saved);"
+  explanation: |
+    Die Id ist nach `save` gesetzt – die vergibt die Datenbank, sie gehört nie in den Konstruktor. `flush()` schreibt alles in die Datenbank, `clear()` leert den Persistence Context: Erst dann liest `findById` wirklich aus der Datenbank. In dieser Reihenfolge – nach `clear` gäbe es nichts mehr zu schreiben. `findById` liefert ein `Optional`, deshalb `hasValueSatisfying`.
+
+- id: repo-derived-query-test
+  kind: template
+  title: Filme – Query testen
+  prompt: |
+    Teste `findByTitleContainingIgnoreCase`: Die Suche nach `heat` findet „Heat“ und „Heathers“ – aber nicht „Alien“.
+  given: |
+    @Entity
+    @Table(name = "movies")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    public class Movie extends AbstractPersistable<Long> {
+
+        @NotNull
+        private String title;
+        private int minutes;
+    }
+
+    public interface MovieRepository extends JpaRepository<Movie, Long> {
+
+        List<Movie> findByTitleContainingIgnoreCase(String part);
+    }
+  template: |
+    @DataJpaTest
+    class MovieSearchTest {
+
+        @Autowired
+        private MovieRepository movieRepository;
+
+        @Test
+        void verify_find_by_title_containing_ignore_case() {
+            movieRepository.save(new Movie("Heat", 170));
+            movieRepository.save(new Movie("Heathers", 103));
+            movieRepository.save(new Movie("Alien", 117));
+
+            assertThat(movieRepository.{{findByTitleContainingIgnoreCase}}("heat"))
+                    .extracting({{Movie::getTitle}})
+                    .{{containsExactlyInAnyOrder}}("Heat", "Heathers");
+        }
+    }
+  redHerrings: [findByTitle, "Movie::title", hasSize, isEqualTo]
+  explanation: |
+    `extracting(Movie::getTitle)` macht aus den Filmen ihre Titel. `containsExactlyInAnyOrder` prüft, dass **genau** diese beiden gefunden werden – damit fällt auch auf, wenn „Alien“ fälschlich dabei wäre. Der Test speichert dafür bewusst einen Film, der nicht gefunden werden darf.
