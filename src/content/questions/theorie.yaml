@@ -1,0 +1,248 @@
+# Flashcards for the theory questions (Theoriefragen). The writing exercise is in each unit.
+
+- id: theorie-di-definition
+  unit: theorie/dependency-injection
+  main:
+    kind: single
+    prompt: "Welcher Satz beschreibt Dependency Injection am besten?"
+    options:
+      - "Eine Klasse erzeugt ihre Abhängigkeiten nicht selbst, sondern bekommt sie von außen übergeben."
+      - "Eine Klasse lädt ihre Abhängigkeiten zur Laufzeit aus der Datenbank."
+      - "Jede Klasse erbt ihre Abhängigkeiten von einer Oberklasse."
+      - "Abhängigkeiten werden als `static`-Felder global abgelegt."
+    answer: 0
+    explanation: "Von außen übergeben statt selbst mit `new` erzeugen – meist über den Konstruktor."
+  followUps:
+    - kind: multi
+      prompt: "Welche drei Rollen gibt es bei Dependency Injection?"
+      options:
+        - "Abhängigkeit (Service)"
+        - "Client (die Klasse, die sie braucht)"
+        - "Injector / Container (in Spring: ApplicationContext)"
+        - "Datenbank"
+        - "Browser"
+      answer: [0, 1, 2]
+      explanation: "Abhängigkeit, Client und Injector. Der Container baut die Beans und übergibt sie."
+
+- id: theorie-di-nutzen
+  unit: theorie/dependency-injection
+  main:
+    kind: single
+    prompt: "Welches Problem löst Dependency Injection vor allem?"
+    options:
+      - "Feste Kopplung: Ohne DI lässt sich die Abhängigkeit z. B. im Test nicht durch einen Mock ersetzen."
+      - "Langsame Datenbankabfragen"
+      - "Fehlende HTTP-Statuscodes"
+      - "Zu große JAR-Dateien"
+    answer: 0
+    explanation: "Lose Kopplung und Austauschbarkeit – besonders wichtig für Tests mit Mocks."
+
+- id: theorie-java-bytecode
+  unit: theorie/java-laufzeit
+  main:
+    kind: single
+    prompt: "Was erzeugt `javac` aus einer `.java`-Datei?"
+    options:
+      - "Bytecode (`.class`), den die JVM ausführt"
+      - "Maschinencode für den aktuellen Prozessor"
+      - "JavaScript"
+      - "Eine `.exe`-Datei"
+    answer: 0
+    explanation: "Bytecode ist plattformunabhängig; die JVM übersetzt ihn zur Laufzeit (JIT) in Maschinencode."
+  followUps:
+    - kind: single
+      prompt: "Warum läuft dasselbe `.jar` auf Windows, Linux und macOS?"
+      options:
+        - "Weil es für jedes System eine JVM gibt, die denselben Bytecode ausführt."
+        - "Weil das `.jar` Maschinencode für alle Prozessoren enthält."
+        - "Weil Java im Browser läuft."
+        - "Weil das Betriebssystem Java-Quellcode direkt versteht."
+      answer: 0
+      explanation: "„Write once, run anywhere“: Die JVM ist plattformspezifisch, der Bytecode nicht."
+
+- id: theorie-java-vergleich
+  unit: theorie/java-laufzeit
+  main:
+    kind: single
+    prompt: "Was muss auf dem Zielsystem installiert sein, um ein in Go oder Rust kompiliertes Programm auszuführen?"
+    options:
+      - "Normalerweise nichts – es ist schon Maschinencode, muss aber pro Plattform kompiliert werden."
+      - "Eine JVM"
+      - "Node.js"
+      - "Der Go- bzw. Rust-Compiler"
+    answer: 0
+    explanation: "Nativ kompilierte Programme brauchen keine Runtime, sind aber an Betriebssystem und Prozessor gebunden. TypeScript wird dagegen in JavaScript transpiliert und braucht Browser oder Node.js."
+
+- id: theorie-mvc-rollen
+  unit: theorie/mvc
+  main:
+    kind: single
+    prompt: "Welche Aufgabe hat der Controller im MVC-Pattern?"
+    options:
+      - "Er nimmt Anfragen entgegen, ruft das Model auf und gibt das Ergebnis an die View."
+      - "Er speichert die Daten in der Datenbank."
+      - "Er stellt die Daten als HTML dar."
+      - "Er enthält die Geschäftsregeln."
+    answer: 0
+    explanation: "Der Controller vermittelt zwischen Anfrage, Model (Daten + Logik) und View (Darstellung)."
+  followUps:
+    - kind: single
+      prompt: "Was ist bei einer REST-API mit `@RestController` die „View“?"
+      options:
+        - "Die JSON-Darstellung der zurückgegebenen DTOs"
+        - "Eine Thymeleaf-Vorlage"
+        - "Das Entity"
+        - "Die Datenbanktabelle"
+      answer: 0
+      explanation: "Jackson erzeugt aus dem Rückgabewert JSON – das ist die Darstellung für den Client."
+
+- id: theorie-rest-put-patch
+  unit: theorie/rest-schreiben
+  main:
+    kind: single
+    prompt: "Was ist der Unterschied zwischen PUT und PATCH?"
+    options:
+      - "PUT ersetzt die ganze Ressource, PATCH ändert nur die mitgeschickten Felder."
+      - "PUT legt an, PATCH löscht."
+      - "PUT ist für Listen, PATCH für einzelne Objekte."
+      - "Es gibt keinen Unterschied."
+    answer: 0
+    explanation: "Bei PUT fehlende Felder gelten als leer; bei PATCH bedeutet ein fehlendes Feld „nicht ändern“."
+  followUps:
+    - kind: single
+      prompt: "Welche Antwort ist nach einem erfolgreichen `POST /api/books` üblich?"
+      options:
+        - "`201 Created` mit `Location`-Header"
+        - "`204 No Content`"
+        - "`200 OK` ohne Body"
+        - "`202 Accepted`"
+      answer: 0
+      explanation: "Neue Ressource → 201 und der Pfad zur neuen Ressource im `Location`-Header."
+
+- id: theorie-rest-idempotent
+  unit: theorie/rest-schreiben
+  main:
+    kind: multi
+    prompt: "Welche HTTP-Methoden sind idempotent (mehrmals senden = gleiche Wirkung wie einmal)?"
+    options:
+      - "PUT"
+      - "DELETE"
+      - "POST"
+      - "GET"
+    answer: [0, 1, 3]
+    explanation: "POST legt bei jedem Senden eine neue Ressource an und ist daher nicht idempotent."
+
+- id: theorie-locking-lost-update
+  unit: theorie/optimistic-locking
+  main:
+    kind: single
+    prompt: "Zwei Benutzer laden dasselbe Buch und speichern nacheinander mit PUT. Wie heißt das Problem?"
+    options:
+      - "Lost Update – die erste Änderung wird überschrieben."
+      - "Deadlock"
+      - "N+1-Problem"
+      - "Race Condition im Browser"
+    answer: 0
+    explanation: "Der zweite PUT sendet den alten Stand der anderen Felder mit und überschreibt die erste Änderung unbemerkt."
+  followUps:
+    - kind: single
+      prompt: "Wie setzt man Optimistic Locking in JPA um, und was antwortet die REST-API bei einem Konflikt?"
+      options:
+        - "Feld mit `@Version`; bei Konflikt `409 Conflict`"
+        - "`@Lock` am Repository; bei Konflikt `404`"
+        - "`synchronized` am Controller; bei Konflikt `500`"
+        - "`@Transactional`; bei Konflikt `200`"
+      answer: 0
+      explanation: "Hibernate prüft und erhöht die Version bei jedem Update und wirft sonst eine `OptimisticLockException`."
+
+- id: theorie-tests-arten
+  unit: theorie/testarten
+  main:
+    kind: single
+    prompt: "Welche Testart ist ein `@WebMvcTest` mit MockMvc und `@MockitoBean`?"
+    options:
+      - "Ein Test der Web-Schicht (Slice-Test): nur der Controller, das Service ist gemockt."
+      - "Ein End-to-End-Test im Browser"
+      - "Ein Lasttest"
+      - "Ein reiner Unit-Test ohne Spring"
+    answer: 0
+    explanation: "Spring fährt nur die MVC-Schicht hoch; HTTP-Anfragen werden simuliert."
+  followUps:
+    - kind: single
+      prompt: "Was beschreibt die Testpyramide?"
+      options:
+        - "Viele schnelle Unit-Tests unten, weniger Integrationstests, wenige End-to-End-Tests oben."
+        - "Viele End-to-End-Tests unten, wenige Unit-Tests oben."
+        - "Die Reihenfolge, in der Tests ausgeführt werden."
+        - "Wie viele Asserts ein Test haben darf."
+      answer: 0
+      explanation: "Je höher, desto langsamer und teurer – darum weniger davon."
+
+- id: theorie-vererbung-strategien
+  unit: theorie/vererbung-tabellen
+  main:
+    kind: single
+    prompt: "Welche JPA-Strategie speichert die ganze Hierarchie in einer Tabelle mit Discriminator-Spalte?"
+    options:
+      - "`SINGLE_TABLE`"
+      - "`JOINED`"
+      - "`TABLE_PER_CLASS`"
+      - "`@MappedSuperclass`"
+    answer: 0
+    explanation: "SINGLE_TABLE ist der Default: schnell, aber die Spalten der Unterklassen müssen nullable sein."
+  followUps:
+    - kind: single
+      prompt: "Unterklassen haben viele eigene Pflichtattribute, Datenintegrität ist wichtig. Welche Strategie passt?"
+      options:
+        - "`JOINED`"
+        - "`SINGLE_TABLE`"
+        - "`TABLE_PER_CLASS`"
+        - "keine, Vererbung geht in JPA nicht"
+      answer: 0
+      explanation: "JOINED: eine Tabelle pro Klasse, `NOT NULL` möglich – dafür Joins beim Lesen."
+
+- id: theorie-template-method
+  unit: theorie/template-method
+  main:
+    kind: single
+    prompt: "Was macht die Template Method?"
+    options:
+      - "Sie legt in der Oberklasse den festen Ablauf fest und ruft Schritte auf, die Unterklassen implementieren."
+      - "Sie erzeugt Objekte, ohne die konkrete Klasse zu kennen."
+      - "Sie stellt sicher, dass es nur eine Instanz gibt."
+      - "Sie übersetzt HTML-Vorlagen."
+    answer: 0
+    explanation: "Ablauf `final` in der abstrakten Oberklasse, Schritte als `abstract`-Methoden (oder Hooks)."
+  followUps:
+    - kind: single
+      prompt: "Worin unterscheidet sich Template Method von Strategy?"
+      options:
+        - "Template Method nutzt Vererbung, Strategy Komposition (ein austauschbares Objekt wird übergeben)."
+        - "Strategy braucht immer eine Datenbank."
+        - "Template Method geht nur mit Interfaces."
+        - "Es gibt keinen Unterschied."
+      answer: 0
+      explanation: "Schritte in Unterklassen vs. Verhalten als übergebenes Objekt (z. B. Lambda)."
+
+- id: theorie-rekursion
+  unit: theorie/rekursion
+  main:
+    kind: multi
+    prompt: "Welche Bestandteile hat jede korrekte rekursive Lösung?"
+    options:
+      - "eine Abbruchbedingung (Basisfall)"
+      - "einen Selbstaufruf mit einem kleineren Problem"
+      - "eine Schleife"
+      - "eine globale Variable"
+    answer: [0, 1]
+    explanation: "Basisfall plus Rekursionsschritt; ohne Basisfall gibt es einen `StackOverflowError`."
+  followUps:
+    - kind: single
+      prompt: "Was liefert `factorial(4)`, wenn `factorial(n) = n <= 1 ? 1 : n * factorial(n - 1)`?"
+      options:
+        - "24"
+        - "10"
+        - "4"
+        - "StackOverflowError"
+      answer: 0
+      explanation: "4 · 3 · 2 · 1 = 24."
