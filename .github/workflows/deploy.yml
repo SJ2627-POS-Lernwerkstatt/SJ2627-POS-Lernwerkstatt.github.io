@@ -59,6 +59,15 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: build
+      # Login flow against an in-browser fake API. Rebuilds with PUBLIC_API_URL=mock (overwrites build/, so it
+      # runs after the Pages artifact was taken from the real build).
+      - run: npm run test:e2e:mock
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces-mock
+          path: test-results
+          retention-days: 7
 
   deploy:
     if: github.ref == 'refs/heads/main'
