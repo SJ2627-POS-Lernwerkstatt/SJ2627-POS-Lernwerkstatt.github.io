@@ -49,5 +49,4 @@ Du bekommst höchstens **zwei E-Mails pro Woche**: montags die Quest der Woche u
 - Alle Daten werden **spätestens am 31. Juli 2027 gelöscht**.
 - Du kannst jederzeit verlangen, dass deine Daten früher gelöscht werden, oder die Teilnahme beenden – sag es einfach deiner Lehrkraft. Die Seite funktioniert danach weiter ohne Anmeldung.
 
-**Verantwortlich** für die Datenverarbeitung mit Anmeldung ist deine Lernwerkstatt-Lehrkraft.
-<!-- TODO (Lehrkraft): Name und Kontakt-E-Mail ergänzen, bevor die Anmeldung live geht. -->
+**Verantwortlich** für die Datenverarbeitung mit Anmeldung ist deine Lernwerkstatt-Lehrkraft: Michael Freimüller, HTL Spengergasse, [freimueller@spengergasse.at](mailto:freimueller@spengergasse.at).
