@@ -3,6 +3,7 @@ title: "@WebMvcTest und @MockitoBean"
 minutes: 8
 cheatsheet: 22
 status: draft
+mindest: true
 ---
 
 Ein Controller-Test braucht weder Datenbank noch einen echten Service. **`@WebMvcTest`** startet nur die Web-Schicht: Controller, `@RestControllerAdvice`, Jackson, Validierung. Den Service ersetzt ein Mock.

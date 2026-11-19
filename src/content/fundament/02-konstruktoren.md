@@ -2,6 +2,7 @@
 title: Konstruktoren, this und private Felder
 minutes: 8
 status: draft
+mindest: true
 ---
 
 In der letzten Einheit wurden die Felder nach `new Book()` einzeln befüllt. Das ist fehleranfällig: Man vergisst leicht eines, und jeder kann jederzeit `pages = -5` setzen. Besser ist es, wenn ein Objekt **von Anfang an gültig** ist und seine Felder **schützt**.

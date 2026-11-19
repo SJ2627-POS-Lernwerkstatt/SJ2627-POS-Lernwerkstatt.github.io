@@ -3,6 +3,7 @@ title: "@ManyToOne und Fremdschlüssel"
 minutes: 10
 cheatsheet: 13
 status: draft
+mindest: true
 ---
 
 Viele Bücher stehen in einer Filiale: `Book "n" -- "1" Branch`. In der Datenbank ist das eine Spalte `branch_id` in der Tabelle `books` – ein **Fremdschlüssel** auf `branches`. In Java ist es einfach ein Feld vom Typ `Branch`.

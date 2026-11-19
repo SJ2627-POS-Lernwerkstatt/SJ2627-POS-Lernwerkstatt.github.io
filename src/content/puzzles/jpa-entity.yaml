@@ -6,6 +6,7 @@
 # Every solution is compiled and booted with Hibernate: node scripts/verify-puzzles.ts jpa-entity
 
 - id: entity-room-fields
+  mindest: true
   kind: lines
   title: Raum – Kopf und Felder
   prompt: |
@@ -37,6 +38,7 @@
     Die vier Lombok-Annotationen stehen an jedem Entity, ihre Reihenfolge ist egal. `{nn}` wird zu `@NotNull`. `seats` hat **kein** `{nn}`, darf also fehlen – mit `int` ginge das nicht, deshalb `Integer`. Die Id steckt in `AbstractPersistable<Long>`; ein eigenes Feld `id` wäre doppelt. `@Data` würde das `equals` von `AbstractPersistable` ersetzen.
 
 - id: entity-book-columns
+  mindest: true
   kind: template
   title: Buch – Spalten aus dem Text
   prompt: |
@@ -149,6 +151,7 @@
     `@Getter` erzeugt `getFrameNumber()`, für ein `boolean` aber `isElectric()`. `@Setter` erzeugt `setPurchasedOn(LocalDate)`. Die Felder selbst sind `private` – von außen kommst du nur über Getter und Setter an sie heran.
 
 - id: entity-car-enum
+  mindest: true
   kind: template
   title: Auto – Enum als Text
   prompt: |
@@ -225,6 +228,7 @@
     `@Column(name = "…")` legt den Spaltennamen fest, der Feldname in Java bleibt. Das gilt in H2 z. B. auch für `year`, `month`, `order`, `user`, `value` und `key`. Ein Datum ohne Uhrzeit ist ein `LocalDate`.
 
 - id: entity-member-address
+  mindest: true
   kind: template
   title: Mitglied – Value Object einbetten
   prompt: |
@@ -268,6 +272,7 @@
     `@Embeddable` an der Klasse des Value Objects, `@Embedded` am Feld im Entity. Ohne `@Valid` prüft Bean Validation die Annotationen **in** `Address` nicht. `@NotNull` am Feld macht die ganze Adresse zur Pflicht. Ein Record passt gut für Value Objects, weil sie unveränderlich sind.
 
 - id: entity-author-lombok
+  mindest: true
   kind: template
   title: Autor – die vier Lombok-Annotationen
   prompt: |

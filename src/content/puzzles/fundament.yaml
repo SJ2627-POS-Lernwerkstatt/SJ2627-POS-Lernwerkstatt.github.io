@@ -4,6 +4,7 @@
 # Verify: node scripts/verify-puzzles.ts fundament
 
 - id: fund-book-class
+  mindest: true
   kind: lines
   title: Buch – Felder, Konstruktor, Getter
   prompt: |
@@ -37,6 +38,7 @@
     }
 
 - id: fund-book-validation
+  mindest: true
   kind: lines
   title: Buch – nur gültige Objekte
   prompt: |
@@ -77,6 +79,7 @@
     }
 
 - id: fund-interface-policy
+  mindest: true
   kind: lines
   title: Mahngebühr – Interface implementieren
   prompt: |
@@ -113,6 +116,7 @@
     }
 
 - id: fund-override-tostring
+  mindest: true
   kind: template
   title: Buch – toString überschreiben
   prompt: |
@@ -148,6 +152,7 @@
     }
 
 - id: fund-inheritance-ebook
+  mindest: true
   kind: lines
   title: E-Book – von Medium erben
   prompt: |
@@ -202,6 +207,7 @@
     }
 
 - id: fund-equals-isbn
+  mindest: true
   kind: lines
   title: ISBN – equals und hashCode
   prompt: |
@@ -247,6 +253,7 @@
     }
 
 - id: fund-map-count
+  mindest: true
   kind: lines
   title: Ausleihen pro Filiale zählen
   prompt: |
@@ -282,6 +289,7 @@
     }
 
 - id: fund-exception-not-found
+  mindest: true
   kind: lines
   title: Buch nicht gefunden – eigene Exception
   prompt: |

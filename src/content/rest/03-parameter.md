@@ -3,6 +3,7 @@ title: "@PathVariable und @RequestParam"
 minutes: 7
 cheatsheet: 21
 status: draft
+mindest: true
 ---
 
 Werte kommen auf zwei Wegen in den Controller: als Teil des **Pfads** oder als **Query-Parameter** nach dem `?`.

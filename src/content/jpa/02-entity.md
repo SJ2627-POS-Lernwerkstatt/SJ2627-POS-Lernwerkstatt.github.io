@@ -3,6 +3,7 @@ title: Das erste Entity
 minutes: 9
 cheatsheet: 9
 status: draft
+mindest: true
 ---
 
 Ein Entity ist eine ganz normale Java-Klasse, die JPA in eine Tabelle abbildet. Dafür braucht sie genau zwei Dinge: die Annotation `@Entity` und einen Primary Key.

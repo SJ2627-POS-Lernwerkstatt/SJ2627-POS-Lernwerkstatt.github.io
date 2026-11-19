@@ -2,6 +2,7 @@
 title: Interfaces – ein Versprechen ohne Code
 minutes: 9
 status: draft
+mindest: true
 ---
 
 Ein **Interface** sagt, *was* eine Klasse können muss, aber nicht *wie*. Es ist ein Vertrag: „Wer mich implementiert, hat diese Methoden.“

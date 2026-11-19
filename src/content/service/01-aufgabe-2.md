@@ -2,6 +2,7 @@
 title: Aufgabe 2 im Überblick
 minutes: 7
 status: draft
+mindest: true
 ---
 
 In Aufgabe 2 programmierst du **Geschäftslogik**: Regeln, Berechnungen und Auswertungen über Daten, die du selbst im Test erzeugst. Es gibt keine Datenbank und keine REST-Schnittstelle – nur Java, einen Service und Tests.

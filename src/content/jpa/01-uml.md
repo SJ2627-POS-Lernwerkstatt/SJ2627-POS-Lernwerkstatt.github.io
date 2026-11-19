@@ -3,6 +3,7 @@ title: Vom UML-Diagramm zum Code
 minutes: 10
 cheatsheet: 9
 status: draft
+mindest: true
 ---
 
 Aufgabe 1 der Matura beginnt immer gleich: ein UML-Klassendiagramm, ein paar Sätze Text darunter und der Auftrag, das Modell mit JPA umzusetzen, in eine Datenbank abzubilden und zu testen. Bevor du die erste Annotation schreibst, musst du das Diagramm richtig lesen. Darum geht es in dieser Einheit.

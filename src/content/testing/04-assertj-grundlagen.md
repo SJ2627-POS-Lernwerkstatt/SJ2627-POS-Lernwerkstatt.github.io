@@ -3,6 +3,7 @@ title: AssertJ Grundlagen
 minutes: 8
 cheatsheet: 6
 status: draft
+mindest: true
 ---
 
 Für das *Assert* in deinen Tests verwendest du **AssertJ**. Es ist in jedem Spring-Boot-Projekt schon dabei (über die Test-Starter) und liest sich fast wie ein Satz: *„Stelle sicher, dass der Preis gleich 108 ist.“*

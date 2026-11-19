@@ -5,6 +5,7 @@
 # Verify: node scripts/verify-puzzles.ts rest-test
 
 - id: rt-test-class
+  mindest: true
   kind: lines
   title: Die Testklasse
   prompt: |
@@ -115,6 +116,7 @@
       replace: "return null;"
 
 - id: rt-get-ok
+  mindest: true
   kind: template
   title: Ein Buch lesen – 200 und JSON
   prompt: |

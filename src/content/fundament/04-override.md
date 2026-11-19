@@ -2,6 +2,7 @@
 title: "@Override und Polymorphie"
 minutes: 7
 status: draft
+mindest: true
 ---
 
 **Überschreiben** heißt: Eine Klasse liefert ihre eigene Version einer Methode, die es schon gibt – aus einem Interface oder aus einer Oberklasse. `@Override` schreibst du darüber, damit der **Compiler prüft**, dass du wirklich etwas überschreibst.

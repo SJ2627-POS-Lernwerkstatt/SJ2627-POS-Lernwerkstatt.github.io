@@ -3,6 +3,7 @@ title: "@OneToMany bidirektional"
 minutes: 10
 cheatsheet: 14
 status: draft
+mindest: true
 ---
 
 In Einheit 9 kennt jedes Buch seine Filiale. Im Diagramm `Book "n" -- "1" Branch` fehlt aber die Pfeilspitze, und `Branch` hat ein Attribut `books : Book[*]`: Auch die Filiale kennt ihre Bücher. Die Beziehung ist **bidirektional**.

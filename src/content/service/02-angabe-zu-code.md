@@ -2,6 +2,7 @@
 title: Von der Angabe zum Code
 minutes: 9
 status: draft
+mindest: true
 ---
 
 Die Angabe ist kein Java. Sie beschreibt Datenklassen in einem Diagramm und den Service in Pseudocode. Deine erste Aufgabe: beides sauber übersetzen, bevor du eine einzige Regel programmierst.

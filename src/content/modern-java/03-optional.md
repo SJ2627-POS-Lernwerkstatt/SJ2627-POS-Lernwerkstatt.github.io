@@ -2,6 +2,7 @@
 title: Optional – die Schachtel mit Deckel
 minutes: 8
 status: draft
+mindest: true
 ---
 
 Geben Methoden, die nichts finden, `null` zurück, vergisst der Aufrufer leicht die Prüfung – und es kracht mit einer `NullPointerException`. Ein **`Optional<T>`** ist eine Schachtel, die entweder genau einen Wert enthält oder leer ist. Schon die Signatur zeigt, dass der Wert fehlen kann.

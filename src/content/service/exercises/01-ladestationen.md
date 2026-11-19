@@ -4,6 +4,7 @@ minutes: 90
 grading: teacher
 classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/service-01-ladestationen/accept
 status: draft
+mindest: true
 rubric:
   erwartet: >-
     Die drei Datenklassen und der `ChargingBillingService` sind korrekt umgesetzt. Die Tests erzeugen

@@ -3,6 +3,7 @@ title: Aufbau eines Tests
 minutes: 7
 cheatsheet: 4
 status: draft
+mindest: true
 ---
 
 Bei der Matura musst du **jede** Aufgabe testen: Entities, Services und REST-Controller. Ein Test ohne klaren Aufbau ist schwer zu lesen und noch schwerer zu reparieren. Deshalb folgt jeder Test in diesem Kurs demselben Muster.

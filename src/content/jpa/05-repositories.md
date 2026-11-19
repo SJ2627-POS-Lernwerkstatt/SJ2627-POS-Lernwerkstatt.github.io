@@ -3,6 +3,7 @@ title: Repositories und der erste @DataJpaTest
 minutes: 10
 cheatsheet: 17
 status: draft
+mindest: true
 ---
 
 Ein Entity allein speichert noch nichts. Für das Speichern, Lesen und Löschen brauchst du eine **Zugriffsklasse**, in Spring Data ein Repository. Und weil ungetestete Klassen in der Beurteilung nicht zählen, schreibst du für jedes Repository gleich einen Test.

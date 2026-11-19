@@ -3,6 +3,7 @@ title: Records – Datenklassen in einer Zeile
 minutes: 8
 cheatsheet: 2
 status: draft
+mindest: true
 ---
 
 Ein **Record** (Java 16) ist eine Klasse für Daten, die sich nicht ändern: Du schreibst nur, welche Felder es gibt – den Rest erzeugt Java.

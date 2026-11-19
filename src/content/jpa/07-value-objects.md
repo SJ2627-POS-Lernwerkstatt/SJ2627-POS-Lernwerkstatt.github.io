@@ -3,6 +3,7 @@ title: Value Objects mit @Embeddable
 minutes: 10
 cheatsheet: 10
 status: draft
+mindest: true
 ---
 
 Eine Adresse besteht aus Straße, Postleitzahl und Ort. Sie hat keine eigene Identität: Zwei Adressen mit denselben Werten sind dieselbe Adresse. Im Diagramm ist sie ein `«ValueObject»`. In der Datenbank bekommt sie keine eigene Tabelle – ihre Werte landen als Spalten in der Tabelle des Entities, das sie besitzt.

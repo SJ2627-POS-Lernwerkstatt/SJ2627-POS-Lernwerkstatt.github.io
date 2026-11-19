@@ -4,6 +4,7 @@
 # Verify: node scripts/verify-puzzles.ts unit-test
 
 - id: ut-arrange-act-assert
+  mindest: true
   kind: lines
   title: Rabatt – Arrange, Act, Assert
   prompt: |

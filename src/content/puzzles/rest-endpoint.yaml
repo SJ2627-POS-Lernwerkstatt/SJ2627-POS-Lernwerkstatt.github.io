@@ -5,6 +5,7 @@
 # Verify: node scripts/verify-puzzles.ts rest-endpoint
 
 - id: rest-controller-skeleton
+  mindest: true
   kind: lines
   title: Bücher – der Controller
   prompt: |
@@ -123,6 +124,7 @@
     }
 
 - id: rest-path-variable
+  mindest: true
   kind: template
   title: Bücher – eines über den Pfad
   prompt: |
@@ -204,6 +206,7 @@
     }
 
 - id: rest-post-created
+  mindest: true
   kind: template
   title: Bücher – anlegen mit 201
   prompt: |
@@ -249,6 +252,7 @@
     }
 
 - id: rest-delete
+  mindest: true
   kind: lines
   title: Bücher – löschen mit 204
   prompt: |
@@ -288,6 +292,7 @@
     }
 
 - id: rest-put-replace
+  mindest: true
   kind: template
   title: Bücher – ersetzen mit PUT
   prompt: |

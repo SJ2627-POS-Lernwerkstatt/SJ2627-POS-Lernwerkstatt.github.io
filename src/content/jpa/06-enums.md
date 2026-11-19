@@ -3,6 +3,7 @@ title: Enums richtig speichern
 minutes: 10
 cheatsheet: 12
 status: draft
+mindest: true
 ---
 
 Ein Enum sieht harmlos aus: ein Feld `private Genre genre;` und fertig. Doch genau hier verlieren viele Punkte, denn das Standardverhalten von JPA ist für die Prüfung falsch.

@@ -5,6 +5,7 @@
 # Verify: node scripts/verify-puzzles.ts jpa-repository
 
 - id: repo-movie-interface
+  mindest: true
   kind: lines
   title: Filme – das Repository
   prompt: |
@@ -389,6 +390,7 @@
     Eine Interface-Projektion besteht aus Gettern, die wie die Felder des Entities heißen: `getTitle()` für `title`. Spring Data lädt dann nur diese Spalten. Mit `List<Concert>` bekämst du wieder die ganzen Entities.
 
 - id: repo-lifecycle-test
+  mindest: true
   kind: lines
   title: Filme – der Lifecycle-Test
   prompt: |

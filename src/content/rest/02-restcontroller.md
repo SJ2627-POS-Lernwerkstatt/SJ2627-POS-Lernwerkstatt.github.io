@@ -3,6 +3,7 @@ title: "@RestController und ResponseEntity"
 minutes: 9
 cheatsheet: 20
 status: draft
+mindest: true
 ---
 
 ## Das Gerüst

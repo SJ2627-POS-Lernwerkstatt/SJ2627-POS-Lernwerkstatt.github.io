@@ -3,6 +3,7 @@ title: Basisattribute und Constraints
 minutes: 10
 cheatsheet: 13
 status: draft
+mindest: true
 ---
 
 Ohne weitere Angaben wird jeder `String` zu `varchar(255)` und jede Spalte darf `null` sein. Die Angabe verlangt aber meistens mehr: Pflichtfelder, Höchstlängen, eindeutige Werte, Geldbeträge mit zwei Nachkommastellen. Das legst du mit Annotationen am Feld fest.

@@ -3,6 +3,7 @@ title: Mit Zahlen rechnen
 minutes: 8
 cheatsheet: 3
 status: draft
+mindest: true
 ---
 
 Summen und Durchschnitte sind der Kern vieler Geschäftsregeln bei Aufgabe 2: Gesamtdauer, Durchschnittsnote, Umsatz pro Monat. Streams haben dafür eigene Varianten für Zahlen.
