@@ -163,3 +163,12 @@ test('puzzles: long puzzles keep the pieces in view (side by side, or docked on 
 	await page.mouse.wheel(0, 400);
 	await expect(pool).toBeInViewport();
 });
+
+test('without PUBLIC_API_URL there is no login UI', async ({ page }) => {
+	await page.goto('/');
+	await hydrated(page);
+	await expect(page.getByRole('link', { name: /Anmelden|Lernwerkstatt-Login|Woche/ })).toHaveCount(0);
+	await page.goto('/fortschritt');
+	await hydrated(page);
+	await expect(page.getByRole('button', { name: 'Abmelden' })).toHaveCount(0);
+});

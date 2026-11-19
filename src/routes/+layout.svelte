@@ -9,6 +9,8 @@
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
+	import { startSync } from '#lib/sync/runtime.svelte.ts';
+	import { session } from '#lib/sync/session.svelte.ts';
 	import { isNarrow, NARROW, setCollapsed, setDrawer, storedCollapsed } from '#lib/sidebar.js';
 	import { applyTheme } from '#lib/theme.js';
 
@@ -25,6 +27,7 @@
 
 	onMount(() => {
 		progress.init();
+		startSync();
 		panelOpen = isNarrow() ? false : !storedCollapsed();
 		const query = matchMedia(NARROW);
 		narrow = query.matches;
@@ -80,6 +83,9 @@
 			<a href={resolve('/')}>Lernen</a>
 			<a href={resolve('/ueben')}>Üben</a>
 			<a href={resolve('/puzzles')}>Puzzles</a>
+			{#if session.loggedIn}
+				<a class="optional" href={resolve('/woche')}>Woche</a>
+			{/if}
 		</nav>
 		<ThemeToggle />
 	</header>
@@ -97,6 +103,9 @@
 				<a href={resolve('/so-funktionierts')}>So funktioniert's</a>
 				<a href={resolve('/fortschritt')}>Mein Fortschritt</a>
 				<a href={resolve('/datenschutz')}>Datenschutz</a>
+				{#if session.enabled && session.loaded && !session.loggedIn}
+					<a href={resolve('/anmelden')}>Anmelden</a>
+				{/if}
 			</footer>
 		</div>
 	</div>
@@ -212,7 +221,8 @@
 	}
 	footer {
 		display: flex;
-		gap: 20px;
+		flex-wrap: wrap;
+		gap: 8px 20px;
 		padding: 16px 32px;
 		border-top: 1px solid var(--border);
 		font-size: 14px;
@@ -243,6 +253,12 @@
 			z-index: 10;
 			border: 0;
 			background: rgb(0 0 0 / 0.3);
+		}
+	}
+	/* The header has no room for a 4th link on phones; the start page links to /woche there. */
+	@media (max-width: 480px) {
+		.main-nav .optional {
+			display: none;
 		}
 	}
 	@media (max-width: 600px) {

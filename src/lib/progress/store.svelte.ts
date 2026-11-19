@@ -28,6 +28,8 @@ class ProgressStore {
 	data = $state<Progress>(emptyProgress());
 	/** True once the stored progress has been read (after hydration). */
 	loaded = $state(false);
+	/** Called after every local change (not after adopting a server copy). Used by the login sync. */
+	onChange: (() => void) | null = null;
 	/** False if the browser refuses to store data; the UI warns that progress will be lost. */
 	persistent = $state(true);
 
@@ -50,6 +52,17 @@ class ProgressStore {
 
 	save() {
 		this.persistent = safeSet(STORAGE_KEY, serialize($state.snapshot(this.data) as Progress));
+		this.onChange?.();
+	}
+
+	/** Takes over the merged document from the server. Stores it, but does not count as a local change. */
+	adopt(progress: Progress) {
+		this.data = progress;
+		this.persistent = safeSet(STORAGE_KEY, serialize(progress));
+	}
+
+	snapshot(): Progress {
+		return $state.snapshot(this.data) as Progress;
 	}
 
 	isRead(unitId: string): boolean {

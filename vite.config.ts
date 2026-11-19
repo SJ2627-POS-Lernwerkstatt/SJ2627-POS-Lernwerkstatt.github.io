@@ -4,6 +4,8 @@ import { defineConfig } from 'vitest/config';
 import { markdown } from './scripts/markdown/index.ts';
 
 export default defineConfig({
+	// Lets a real build drop src/lib/sync/mock.ts entirely (see session.svelte.ts).
+	define: { __API_MOCK__: JSON.stringify(process.env.PUBLIC_API_URL === 'mock') },
 	plugins: [
 		sveltekit({
 			compilerOptions: {

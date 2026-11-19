@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import Button from '#lib/components/Button.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
+	import { session } from '#lib/sync/session.svelte.ts';
 	import { moduleSummary, nextUnit } from '#lib/progress/summary.js';
 
 	let { data } = $props();
@@ -38,6 +39,20 @@
 	{/if}
 	<Button variant={progress.loaded && next ? 'secondary' : 'primary'} href={resolve('/ueben')}>Üben</Button>
 </div>
+
+{#if session.enabled && session.loaded}
+	{#if session.loggedIn}
+		<section class="week" aria-label="Wochenaufgaben">
+			<span class="label">Diese Woche</span>
+			<div class="links">
+				<a href={resolve('/woche')}>Wochenaufgaben</a>
+				<a href={resolve('/heute')}>Was mache ich heute?</a>
+			</div>
+		</section>
+	{:else}
+		<p class="login"><a href={resolve('/anmelden')}>Lernwerkstatt-Login</a></p>
+	{/if}
+{/if}
 
 <h2>Module</h2>
 <ol class="modules">
@@ -112,6 +127,29 @@
 	}
 	.next a:hover {
 		color: var(--primary);
+	}
+	.week {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 16px;
+		margin-top: 16px;
+		padding: 12px 16px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+	}
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 16px;
+	}
+	.week a {
+		font-weight: 600;
+	}
+	.login {
+		margin: 12px 0 0;
+		font-size: 14px;
 	}
 	.modules {
 		display: grid;
