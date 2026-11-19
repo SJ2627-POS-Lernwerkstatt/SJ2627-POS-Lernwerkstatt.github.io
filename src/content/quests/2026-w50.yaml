@@ -1,0 +1,10 @@
+# Quest week 2026-W50 (7.–13. Dezember). Format: src/lib/quests/schema.ts, docs in SPEC.md ("Quests").
+week: 2026-W50
+title: "Moderne Java – Records und Optional"
+goal: 3
+items:
+  # TODO fundament: replace/extend with the first Fundament units once the module exists.
+  - unit: modern-java/records
+  - group: modern-java-records-generated
+  - unit: modern-java/optional
+  - review: { module: modern-java, cards: 6 }

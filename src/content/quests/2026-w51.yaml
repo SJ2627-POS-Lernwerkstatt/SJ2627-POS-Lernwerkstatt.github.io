@@ -1,0 +1,11 @@
+# Quest week 2026-W51 (14.–20. Dezember). Format: src/lib/quests/schema.ts, docs in SPEC.md ("Quests").
+week: 2026-W51
+title: "Moderne Java – Switch und Git"
+goal: 3
+items:
+  # TODO fundament: add Fundament units (e.g. class vs. object, interfaces) here.
+  - unit: modern-java/switch
+  - group: modern-java-switch-exhaustive
+  - unit: modern-java/git
+  - group: modern-java-git-classroom
+  - review: { module: modern-java, cards: 8 }
