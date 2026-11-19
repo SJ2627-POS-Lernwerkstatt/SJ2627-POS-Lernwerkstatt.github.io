@@ -1,4 +1,4 @@
-export const MODULE_SLUGS = ['fundament', 'modern-java', 'testing', 'streams', 'jpa', 'service', 'rest', 'pruefungen'] as const;
+export const MODULE_SLUGS = ['fundament', 'modern-java', 'testing', 'streams', 'jpa', 'service', 'rest', 'theorie', 'pruefungen'] as const;
 export type ModuleSlug = (typeof MODULE_SLUGS)[number];
 
 export type Module = {
@@ -8,7 +8,7 @@ export type Module = {
 	note: string;
 };
 
-/** The eight modules in their suggested order. */
+/** The nine modules in their suggested order. */
 export const MODULES: readonly Module[] = [
 	{ slug: 'fundament', title: 'Fundament', note: 'Grundlagen: Klassen, Interfaces, Vererbung' },
 	{ slug: 'modern-java', title: 'Moderne Java Features', note: 'Grundlagen' },
@@ -17,6 +17,7 @@ export const MODULES: readonly Module[] = [
 	{ slug: 'jpa', title: 'Spring Data JPA', note: 'Aufgabe 1' },
 	{ slug: 'service', title: 'Service-Schicht', note: 'Aufgabe 2' },
 	{ slug: 'rest', title: 'REST-Controller', note: 'Aufgabe 3' },
+	{ slug: 'theorie', title: 'Theoriefragen', note: 'Zusatzaufgabe: leichte Bonuspunkte' },
 	{ slug: 'pruefungen', title: 'Probeprüfungen', note: 'alles zusammen' }
 ];
 
