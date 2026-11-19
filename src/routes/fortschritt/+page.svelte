@@ -3,6 +3,8 @@
 	import type { Progress } from '#lib/progress/schema.js';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import { exportFileName, parseProgress } from '#lib/progress/storage.js';
+	import { logout } from '#lib/sync/runtime.svelte.ts';
+	import { session } from '#lib/sync/session.svelte.ts';
 
 	let pendingImport = $state<Progress | null>(null);
 	let importError = $state('');
@@ -72,6 +74,14 @@
 
 {#if message}
 	<p class="note ok" role="status">{message}</p>
+{/if}
+
+{#if session.enabled && session.loaded && session.loggedIn}
+	<section>
+		<h2>Anmeldung</h2>
+		<p>Du bist angemeldet{session.student ? ` als ${session.student.displayName}` : ''}. Dein Fortschritt wird mit deinem Konto abgeglichen.</p>
+		<Button variant="secondary" onclick={logout}>Abmelden</Button>
+	</section>
 {/if}
 
 <section>
