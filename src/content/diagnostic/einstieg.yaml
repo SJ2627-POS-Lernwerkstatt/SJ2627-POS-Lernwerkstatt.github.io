@@ -1,0 +1,142 @@
+# Einstiegstest (diagnostic) for the launch lesson. 10 single/multi questions, no follow-ups.
+# Results go to the backend and are visible ONLY to the teacher; students only see "Danke!".
+# Each entry: id, area (fundament | jpa | rest | service | java), question (same shape as a question-group main).
+# Schema/wiring: to be added with the login/quest UI (T2.x / T-C3).
+
+- id: diag-interface
+  area: fundament
+  question:
+    kind: single
+    prompt: "Was bedeutet `class StudentPolicy implements LateFeePolicy`?"
+    options:
+      - "`StudentPolicy` muss alle Methoden des Interfaces `LateFeePolicy` ausprogrammieren."
+      - "`StudentPolicy` erbt den fertigen Code von `LateFeePolicy`."
+      - "`StudentPolicy` darf nur eine Methode haben."
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Ein Interface ist ein Vertrag; `implements` heißt, den ganzen Vertrag zu erfüllen."
+
+- id: diag-constructor
+  area: fundament
+  question:
+    kind: single
+    prompt: "Was ist an diesem Konstruktor falsch?"
+    code: |
+      public class Book {
+          private String title;
+          public Book(String title) {
+              title = title;
+          }
+      }
+    options:
+      - "Es müsste `this.title = title;` heißen, sonst bleibt das Feld leer."
+      - "Konstruktoren brauchen den Rückgabetyp `void`."
+      - "Nichts, der Code ist richtig."
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "`title` meint im Konstruktor den Parameter; das Feld erreicht man mit `this.title`."
+
+- id: diag-override
+  area: fundament
+  question:
+    kind: single
+    prompt: "Wozu schreibt man `@Override` über eine Methode?"
+    options:
+      - "Der Compiler prüft, dass die Methode wirklich eine Methode aus Oberklasse oder Interface überschreibt."
+      - "Damit die Methode schneller läuft."
+      - "Damit Spring die Methode findet."
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "`@Override` fängt Tippfehler und falsche Parametertypen ab."
+
+- id: diag-collections
+  area: java
+  question:
+    kind: single
+    prompt: "Welche Sammlung passt für „Anzahl der Ausleihen pro Filiale“?"
+    options:
+      - "`Map<String, Integer>`"
+      - "`List<Integer>`"
+      - "`String[]`"
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Schlüssel (Filiale) → Wert (Anzahl) ist eine Map."
+
+- id: diag-record
+  area: java
+  question:
+    kind: single
+    prompt: "Wie liest du bei `record Person(String name, int age)` den Namen aus?"
+    options:
+      - "`person.name()`"
+      - "`person.getName()`"
+      - "`person.name`"
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Records erzeugen Zugriffsmethoden ohne `get`."
+
+- id: diag-entity
+  area: jpa
+  question:
+    kind: multi
+    prompt: "Was braucht eine Klasse, damit JPA sie als Tabelle speichert? (mehrere richtig)"
+    options:
+      - "`@Entity`"
+      - "eine Id, z. B. über `extends AbstractPersistable<Long>`"
+      - "einen Konstruktor ohne Parameter (z. B. `@NoArgsConstructor(access = AccessLevel.PROTECTED)`)"
+      - "`@RestController`"
+      - "Ich weiß es nicht."
+    answer: [0, 1, 2]
+    explanation: "Entity-Annotation, Id und No-Args-Konstruktor; `@RestController` gehört zur REST-Schicht."
+
+- id: diag-repository
+  area: jpa
+  question:
+    kind: single
+    prompt: "Wer schreibt den Code für `List<Book> findByTitleContaining(String part)` in einem Spring-Data-Repository?"
+    options:
+      - "Spring Data erzeugt ihn aus dem Methodennamen."
+      - "Ich muss eine Klasse mit SQL dafür schreiben."
+      - "Hibernate liest ihn aus einer XML-Datei."
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Abgeleitete Queries entstehen aus dem Methodennamen."
+
+- id: diag-rest-status
+  area: rest
+  question:
+    kind: single
+    prompt: "Welcher Statuscode passt, wenn `GET /api/books/42` kein Buch findet?"
+    options:
+      - "`404 Not Found`"
+      - "`200 OK` mit leerem Body"
+      - "`500 Internal Server Error`"
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Die Ressource existiert nicht → 404."
+
+- id: diag-rest-post
+  area: rest
+  question:
+    kind: single
+    prompt: "Was antwortet ein REST-Endpunkt typischerweise, wenn `POST /api/books` ein Buch angelegt hat?"
+    options:
+      - "`201 Created` mit einem `Location`-Header auf das neue Buch"
+      - "`200 OK` ohne Body"
+      - "`204 No Content`"
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "Neu angelegt → 201 und wo die neue Ressource liegt."
+
+- id: diag-service-test
+  area: service
+  question:
+    kind: single
+    prompt: "Wie prüfst du in einem JUnit-Test mit AssertJ, dass `fee(5)` den Wert 250 liefert?"
+    options:
+      - "`assertThat(policy.fee(5)).isEqualTo(250);`"
+      - "`if (policy.fee(5) == 250) System.out.println(\"ok\");`"
+      - "`assert policy.fee(5) = 250;`"
+      - "Ich weiß es nicht."
+    answer: 0
+    explanation: "AssertJ: `assertThat(actual).isEqualTo(expected)`."
