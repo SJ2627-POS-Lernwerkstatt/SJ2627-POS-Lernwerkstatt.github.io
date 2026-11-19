@@ -50,6 +50,9 @@ export function puzzleLayout(setting: 'auto' | 'stacked' | 'split', givenLines: 
 	return givenLines + codeLines > SPLIT_FROM_LINES ? 'split' : 'stacked';
 }
 
+/** On a phone such puzzles get the hint "Laptop empfohlen". */
+const isLong = (givenLines: number, codeLines: number) => givenLines + codeLines > SPLIT_FROM_LINES;
+
 const lineCount = (code?: string) => (code ? code.trimEnd().split('\n').length : 0);
 
 /** The browser-ready form of a puzzle. */
@@ -68,7 +71,7 @@ export async function puzzleView(p: PuzzleEntry): Promise<PuzzleView> {
 		const { tiles } = buildPool(parsed, p.redHerrings, p.reusable);
 		const solutionHtml = await highlightToHtml(templateSolution(parsed.lines, parsed.gaps), 'java');
 		const layout = puzzleLayout(p.layout, lineCount(p.given), parsed.lines.length);
-		return { ...common, kind: 'template', layout, solutionHtml, lines: parsed.lines, gaps: parsed.gaps, tiles };
+		return { ...common, kind: 'template', layout, long: isLong(lineCount(p.given), parsed.lines.length), solutionHtml, lines: parsed.lines, gaps: parsed.gaps, tiles };
 	}
 	// Already validated in buildIndex.
 	const solution = parseLines(p.solution).lines;
@@ -81,6 +84,7 @@ export async function puzzleView(p: PuzzleEntry): Promise<PuzzleView> {
 		kind: 'lines',
 		// The pool holds every line, so it is what makes a line puzzle long.
 		layout: puzzleLayout(p.layout, lineCount(p.given), solution.length + herrings.length),
+		long: isLong(lineCount(p.given), solution.length),
 		solutionHtml: await highlightToHtml(solution.map(lineKey).join('\n'), 'java'),
 		tiles: [...solution.map((l) => ({ ...l, herring: false })), ...herrings.map((l) => ({ ...l, herring: true }))],
 		expected: solution.map(lineKey)

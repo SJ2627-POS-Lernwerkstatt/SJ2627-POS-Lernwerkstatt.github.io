@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { dndzone, setKeyboardDragTrigger } from 'svelte-dnd-action';
+	import Tray from '#lib/components/puzzle/Tray.svelte';
+	import { ghostGuard, puzzleMode } from '#lib/puzzle/mode.svelte.js';
+	import { placeSelected, returnToTray, toggleSelection, validSelection, type Selection } from '#lib/puzzle/select.js';
 	import type { Segment } from '#lib/puzzle/template.js';
 	import {
 		addToGap,
@@ -8,7 +11,6 @@
 		moveInGap,
 		real,
 		refillPool,
-		removeFromGap,
 		setGap,
 		tidyPool,
 		toGaps,
@@ -53,16 +55,53 @@
 	const considerGap = (g: number, e: CustomEvent<{ items: Chip[] }>) => (board = setGap(board, g, e.detail.items));
 	const finalizeGap = (g: number, e: CustomEvent<{ items: Chip[] }>) => commit(setGap(board, g, real(e.detail.items)));
 
+	onMount(() => puzzleMode.watch());
+
+	// Tap mode: a tapped tray piece is selected, then a tap on a gap places it there.
+	let selection = $state<Selection>(null);
+	const tap = $derived(puzzleMode.tap);
+	const picked = $derived(validSelection(board, selection));
+	const pickedText = $derived(board.pool.find((c) => c.id === picked)?.text);
+
+	function pick(chip: Chip) {
+		if (tap) selection = toggleSelection(picked, chip.id);
+		else commit(addToGap(board, chip.id, selected));
+	}
+
+	/** Puts the selected piece into gap `g`. */
+	function fill(g: number) {
+		selected = g;
+		if (!tap || !picked) return;
+		const step = placeSelected(board, picked, g);
+		selection = step.selection;
+		commit(step.board);
+	}
+
+	function giveBack(g: number, chip: Chip) {
+		selected = g;
+		const step = returnToTray(board, picked, g, chip.id);
+		selection = step.selection;
+		commit(step.board);
+	}
+
 	function onPoolKey(e: KeyboardEvent, chip: Chip) {
 		if (e.key !== 'Enter') return;
 		e.preventDefault();
-		commit(addToGap(board, chip.id, selected));
+		pick(chip);
+	}
+
+	function onGapKey(e: KeyboardEvent, g: number) {
+		// Only for the gap itself, not for a chip inside it.
+		if (e.key !== 'Enter' || e.target !== e.currentTarget) return;
+		e.preventDefault();
+		fill(g);
 	}
 
 	function onPlacedKey(e: KeyboardEvent, g: number, chip: Chip) {
 		if (e.key === 'Enter') {
 			e.preventDefault();
-			commit(removeFromGap(board, g, chip.id));
+			if (tap && picked) fill(g);
+			else giveBack(g, chip);
 		} else if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
 			e.preventDefault();
 			commit(moveInGap(board, g, chip.id, e.key === 'ArrowRight' ? 1 : -1));
@@ -81,13 +120,14 @@
 </script>
 
 <p class="sr">
-	Wähle eine Lücke aus und tippe dann auf einen Baustein, um ihn dort einzusetzen. Tippe auf einen eingesetzten Baustein,
-	um ihn zurückzulegen. Oder ziehe die Bausteine in die Lücken. Mit der Tastatur: Lücke oder Baustein fokussieren, Enter
-	setzt einen Baustein ein oder legt ihn zurück, Leertaste hebt ihn auf, die Pfeiltasten bewegen ihn, Alt mit Pfeil links
+	Tippen: Tippe auf einen Baustein, um ihn auszuwählen, und dann auf die Lücke, in die er gehört. Tippe auf einen
+	eingesetzten Baustein, um ihn zurückzulegen. Ohne Tippen-Modus setzt ein Tipp den Baustein in die gewählte Lücke. Du
+	kannst die Bausteine auch in die Lücken ziehen. Mit der Tastatur: Baustein fokussieren und Enter wählt ihn aus, dann zur
+	Lücke gehen und Enter setzt ihn ein; Enter auf einem eingesetzten Baustein legt ihn zurück, Leertaste hebt ihn auf, die Pfeiltasten bewegen ihn, Alt mit Pfeil links
 	oder rechts ändert die Reihenfolge in einer Lücke.
 </p>
 
-<div class="layout" class:disabled class:dock class:split>
+<div class="layout" class:disabled class:split use:ghostGuard>
 	<div class="code" role="group" aria-label="Code mit Lücken">
 		{#each lines as line}
 			<div class="line">
@@ -99,15 +139,17 @@
 						<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 						<span
 							class="gap"
-							class:selected={selected === g}
+							class:selected={!tap && selected === g}
+							class:target={tap && picked !== null}
 							class:empty={board.gaps[g]?.length === 0}
 							role="group"
-							aria-label="Lücke {g + 1}"
+							aria-label={tap && picked ? `Lücke ${g + 1}, ${pickedText} hier einsetzen` : `Lücke ${g + 1}`}
 							data-testid="gap-{g}"
 							use:dndzone={zone(board.gaps[g] ?? [])}
 							onconsider={(e) => considerGap(g, e)}
 							onfinalize={(e) => finalizeGap(g, e)}
-							onclick={() => (selected = g)}
+							onclick={(e) => fill(g)}
+							onkeydown={(e) => onGapKey(e, g)}
 							onfocusin={() => (selected = g)}
 						>
 							{#each board.gaps[g] ?? [] as chip (chip.id)}
@@ -117,8 +159,9 @@
 									aria-label="{chip.text}, antippen zum Zurücklegen"
 									onclick={(e) => {
 										e.stopPropagation();
-										selected = g;
-										commit(removeFromGap(board, g, chip.id));
+										// With a piece selected a tap anywhere in the gap places it; otherwise it takes the chip back.
+										if (tap && picked) fill(g);
+										else giveBack(g, chip);
 									}}
 									onkeydown={(e) => onPlacedKey(e, g, chip)}>{chip.text}</span
 								>
@@ -131,32 +174,31 @@
 		{/each}
 	</div>
 
-	<section class="pool-box" aria-labelledby="pool-title">
-		<header>
-			<h2 id="pool-title">Bausteine</h2>
-			<span>∞ mehrfach verwendbar</span>
-		</header>
-		<div
-			class="pool"
-			aria-label="Bausteine"
-			data-testid="pool"
-			use:dndzone={zone(board.pool)}
-			onconsider={considerPool}
-			onfinalize={finalizePool}
-		>
-			{#each board.pool as chip (chip.id)}
-				<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-				<span
-					class="chip"
-					aria-label={chip.reusable ? `${chip.text}, mehrfach verwendbar` : chip.text}
-					onclick={() => commit(addToGap(board, chip.id, selected))}
-					onkeydown={(e) => onPoolKey(e, chip)}
-				>
-					{chip.text}{#if chip.reusable}<span class="inf" aria-hidden="true">∞</span>{/if}
-				</span>
-			{/each}
-		</div>
-	</section>
+	<Tray title="Bausteine" note="∞ mehrfach verwendbar" {dock} {split} selectedText={picked ? pickedText : undefined} oncancel={() => (selection = null)}>
+			<div
+				class="pool"
+				aria-label="Bausteine"
+				data-testid="pool"
+				use:dndzone={zone(board.pool)}
+				onconsider={considerPool}
+				onfinalize={finalizePool}
+			>
+				{#each board.pool as chip (chip.id)}
+					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+					<span
+						class="chip"
+						class:picked={picked === chip.id}
+						aria-label={(chip.reusable ? `${chip.text}, mehrfach verwendbar` : chip.text) +
+							(tap ? (picked === chip.id ? ', ausgewählt' : ', antippen zum Auswählen') : '')}
+						aria-current={picked === chip.id ? 'true' : undefined}
+						onclick={(e) => pick(chip)}
+						onkeydown={(e) => onPoolKey(e, chip)}
+					>
+						{chip.text}{#if chip.reusable}<span class="inf" aria-hidden="true">∞</span>{/if}
+					</span>
+				{/each}
+			</div>
+		</Tray>
 </div>
 
 <style>
@@ -176,6 +218,7 @@
 		gap: 20px;
 	}
 	.code {
+		min-width: 0;
 		padding: 20px;
 		border: 1px solid var(--border);
 		border-radius: 14px;
@@ -242,30 +285,6 @@
 		color: var(--primary);
 		font-weight: 700;
 	}
-	.pool-box {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		padding: 20px;
-		border: 1px solid var(--border);
-		border-radius: 14px;
-		background: var(--surface);
-	}
-	.pool-box header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 4px;
-	}
-	h2 {
-		font-size: 15px;
-		font-weight: 600;
-	}
-	header span {
-		color: var(--text-muted);
-		font-size: 12px;
-	}
 	.pool {
 		display: flex;
 		flex-wrap: wrap;
@@ -274,29 +293,23 @@
 		padding: 2px;
 		border-radius: 10px;
 	}
-	/* dock: the pieces stay at the bottom of the screen while the code scrolls behind them. */
-	.layout.dock .pool-box {
-		position: sticky;
-		bottom: 0;
-		z-index: 5;
-		max-height: 40dvh;
-		overflow-y: auto;
-		box-shadow: 0 -8px 20px rgb(0 0 0 / 0.12);
+	.gap.target {
+		border-color: var(--primary);
+		border-style: solid;
+		background: var(--primary-soft);
+		cursor: pointer;
 	}
-	/* split (long puzzles, enough room): code | pieces, the pieces column stays in view. */
+	.chip.picked {
+		border-color: var(--primary);
+		background: var(--primary-soft);
+		box-shadow: 0 0 0 2px var(--primary);
+	}
+	/* split (long puzzles, enough room): code | pieces. The tray sticks by itself. */
 	@container puzzle (min-width: 1150px) {
 		.layout.split {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
 			align-items: start;
-		}
-		.layout.split .pool-box {
-			position: sticky;
-			top: 80px;
-			bottom: auto;
-			max-height: calc(100dvh - 96px);
-			overflow-y: auto;
-			box-shadow: none;
 		}
 	}
 	@media (max-width: 700px) {
