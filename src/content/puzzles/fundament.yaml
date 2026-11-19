@@ -146,3 +146,182 @@
             assertThat(new Book("Der Hobbit", 310).toString()).isEqualTo("Der Hobbit (310 Seiten)");
         }
     }
+
+- id: fund-inheritance-ebook
+  kind: lines
+  title: E-Book – von Medium erben
+  prompt: |
+    `Ebook` erbt von `Medium`, hat zusätzlich `sizeMb` und darf nur 7 Tage ausgeliehen werden.
+  given: |
+    public class Medium {
+        private final String title;
+
+        public Medium(String title) {
+            this.title = title;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public int loanDays() {
+            return 21;
+        }
+    }
+
+    // ✎ Ebook
+  solution: |
+    public class Ebook extends Medium {
+        private final double sizeMb;
+
+        public Ebook(String title, double sizeMb) {
+            super(title);
+            this.sizeMb = sizeMb;
+        }
+
+        @Override
+        public int loanDays() {
+            return 7;
+        }
+    }
+  redHerrings:
+    - "public class Ebook implements Medium {"
+    - "        this.title = title;"
+    - "        super.loanDays();"
+  explanation: |
+    Von einer Klasse erbt man mit `extends`. Der Konstruktor ruft zuerst `super(title)` auf, denn `title` ist in `Medium` privat und hat keinen leeren Konstruktor. `loanDays()` wird mit `@Override` überschrieben.
+  check: |
+    class EbookCheck {
+        @Test
+        void check() {
+            Medium m = new Ebook("Momo", 2.5);
+            assertThat(m.getTitle()).isEqualTo("Momo");
+            assertThat(m.loanDays()).isEqualTo(7);
+            assertThat(new Medium("Krabat").loanDays()).isEqualTo(21);
+        }
+    }
+
+- id: fund-equals-isbn
+  kind: lines
+  title: ISBN – equals und hashCode
+  prompt: |
+    Zwei `Isbn`-Objekte mit gleichem Text sollen gleich sein – auch in einem `HashSet`.
+  given: |
+    public class Isbn {
+        private final String value;
+
+        public Isbn(String value) {
+            this.value = value;
+        }
+
+        // ✎ equals und hashCode
+    }
+  solution: |
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Isbn other)) return false;
+        return value.equals(other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+  redHerrings:
+    - "public boolean equals(Isbn other) {"
+    - "    return value == other.value;"
+    - "    return 0;"
+  explanation: |
+    `equals` muss `Object` als Parameter haben, sonst überschreibt es nichts (`@Override` würde das melden). Den Text vergleichst du mit `equals`, nicht mit `==`. `hashCode` gehört immer dazu – gleiche ISBN, gleicher Hash.
+  check: |
+    class IsbnCheck {
+        @Test
+        void check() {
+            assertThat(new Isbn("9783608938289")).isEqualTo(new Isbn(new String("9783608938289")));
+            assertThat(new Isbn("9783608938289")).isNotEqualTo(new Isbn("9783423071505"));
+            java.util.Set<Isbn> set = new java.util.HashSet<>();
+            set.add(new Isbn("9783608938289"));
+            assertThat(set).contains(new Isbn("9783608938289"));
+        }
+    }
+
+- id: fund-map-count
+  kind: lines
+  title: Ausleihen pro Filiale zählen
+  prompt: |
+    Zähle mit einer `Map`, wie viele Ausleihen es pro Filiale gibt.
+  given: |
+    import java.util.*;
+
+    public class LoanStats {
+        public static Map<String, Integer> countByBranch(List<String> branches) {
+            // ✎ zählen
+        }
+    }
+  solution: |
+    Map<String, Integer> counts = new HashMap<>();
+    for (String branch : branches) {
+        counts.put(branch, counts.getOrDefault(branch, 0) + 1);
+    }
+    return counts;
+  redHerrings:
+    - "Map<String, int> counts = new HashMap<>();"
+    - "    counts.put(branch, counts.get(branch) + 1);"
+    - "    counts.add(branch);"
+  explanation: |
+    `getOrDefault(branch, 0)` liefert 0, wenn die Filiale noch nicht vorkommt – `get` würde `null` liefern, und `null + 1` wirft eine `NullPointerException`. `put` mit demselben Schlüssel überschreibt den alten Zähler. In `< >` steht `Integer`, nicht `int`.
+  check: |
+    class LoanStatsCheck {
+        @Test
+        void check() {
+            assertThat(LoanStats.countByBranch(List.of("Mitte", "Nord", "Mitte")))
+                .containsEntry("Mitte", 2).containsEntry("Nord", 1).hasSize(2);
+            assertThat(LoanStats.countByBranch(List.of())).isEmpty();
+        }
+    }
+
+- id: fund-exception-not-found
+  kind: lines
+  title: Buch nicht gefunden – eigene Exception
+  prompt: |
+    Schreib `BookNotFoundException` (unchecked) und wirf sie in `find`, wenn es kein Buch mit dieser Id gibt.
+  given: |
+    import java.util.*;
+
+    // ✎ Exception
+
+    public class BookCatalog {
+        private final Map<Long, String> titles = new HashMap<>(Map.of(1L, "Momo"));
+
+        public String find(long id) {
+            String title = titles.get(id);
+            if (title == null) {
+                throw new BookNotFoundException(id);
+            }
+            return title;
+        }
+    }
+  solution: |
+    public class BookNotFoundException extends RuntimeException {
+        public BookNotFoundException(long id) {
+            super("Book " + id + " not found");
+        }
+    }
+  redHerrings:
+    - "public class BookNotFoundException extends Exception {"
+    - "        this.message = \"Book \" + id + \" not found\";"
+    - "public class BookNotFoundException implements RuntimeException {"
+  explanation: |
+    Mit `extends RuntimeException` ist die Exception unchecked – `find` braucht kein `throws`. Mit `extends Exception` würde `find` nicht kompilieren. Die Nachricht geht per `super(…)` an die Oberklasse.
+  check: |
+    class BookCatalogCheck {
+        @Test
+        void check() {
+            assertThat(new BookCatalog().find(1L)).isEqualTo("Momo");
+            assertThatThrownBy(() -> new BookCatalog().find(2L))
+                .isInstanceOf(BookNotFoundException.class)
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Book 2 not found");
+        }
+    }

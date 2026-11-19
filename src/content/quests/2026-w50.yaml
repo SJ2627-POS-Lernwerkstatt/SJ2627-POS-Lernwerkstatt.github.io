@@ -1,10 +1,14 @@
 # Quest week 2026-W50 (7.–13. Dezember). Format: src/lib/quests/schema.ts, docs in SPEC.md ("Quests").
+# Launch week: everyone logs in during the lesson. Fundament I.
 week: 2026-W50
-title: "Moderne Java – Records und Optional"
+title: "Fundament I – Klassen, Konstruktoren, Interfaces"
 goal: 3
 items:
-  # TODO fundament: replace/extend with the first Fundament units once the module exists.
-  - unit: modern-java/records
-  - group: modern-java-records-generated
-  - unit: modern-java/optional
-  - review: { module: modern-java, cards: 6 }
+  - unit: fundament/klassen-objekte
+  - unit: fundament/konstruktoren
+  - puzzle: fund-book-class
+  - unit: fundament/interfaces
+  - puzzle: fund-interface-policy
+  - unit: fundament/override
+  - review: { module: fundament, cards: 6 }
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
