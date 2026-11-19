@@ -16,6 +16,12 @@ const oneLine = (md: string, max = 80) => {
 	return text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text;
 };
 
+/** Classroom50 assignment slug from ".../assignments/<slug>/accept"; undefined if there is no URL or it does not match. */
+export function assignmentSlug(classroomUrl: string | undefined): string | undefined {
+	if (!classroomUrl) return undefined;
+	return /\/assignments\/([^/?#]+)\/accept\/?(?:[?#].*)?$/.exec(classroomUrl)?.[1];
+}
+
 /** Every unit, question group, puzzle and exercise with link, title and minutes. */
 export function contentEntries(content: ContentIndex): ContentEntry[] {
 	const unitHref = (id: string) => `/${id}`;
@@ -39,13 +45,26 @@ export function contentEntries(content: ContentIndex): ContentEntry[] {
 			minutes: puzzleMinutes(p),
 			href: `/puzzles/${p.topic}/${p.id}`
 		})),
-		...content.exercises.map((x) => ({ id: x.id, kind: 'exercise' as const, module: x.module, title: x.title, minutes: x.minutes, href: `/${x.id}` }))
+		...content.exercises.map((x) => {
+			const assignment = assignmentSlug(x.classroomUrl);
+			return {
+				id: x.id,
+				kind: 'exercise' as const,
+				module: x.module,
+				title: x.title,
+				minutes: x.minutes,
+				href: `/${x.id}`,
+				...(assignment ? { assignment } : {}),
+				grading: x.grading
+			};
+		})
 	];
 }
 
 export function buildContentIndex(content: ContentIndex, now = new Date()): ContentIndexFile {
 	const entries = contentEntries(content);
-	return { version: hash(entries), generatedAt: now.toISOString(), entries };
+	const modules = MODULES.map((m) => ({ slug: m.slug, title: m.title }));
+	return { version: hash({ modules, entries }), generatedAt: now.toISOString(), modules, entries };
 }
 
 type Lookup = Map<string, ContentEntry>;

@@ -1,6 +1,6 @@
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { buildQuests } from './build.js';
+import { assignmentSlug, buildContentIndex, buildQuests } from './build.js';
 import { buildIndex } from '#lib/server/content/build.js';
 import { isoWeekOf, weekRange } from '#lib/quests/week.js';
 
@@ -27,7 +27,7 @@ const puzzle = `
 const { index, errors: contentErrors } = buildIndex({
 	units: { 'jpa/01-entity.md': unit('Entity'), 'modern-java/01-var.md': unit('Var') },
 	exercises: {
-		'jpa/exercises/01-fahrradverleih.md': `---\ntitle: Fahrradverleih\ngrading: auto\nminutes: 90\nrubric: { erwartet: a, genuegend: b, befriedigend: c, gut: d, sehrGut: e }\n---\n`
+		'jpa/exercises/01-fahrradverleih.md': `---\ntitle: Fahrradverleih\ngrading: auto\nclassroomUrl: https://classroom50.org/org/course/assignments/jpa-01-fahrradverleih/accept\nminutes: 90\nrubric: { erwartet: a, genuegend: b, befriedigend: c, gut: d, sehrGut: e }\n---\n`
 	},
 	pools: { 'questions/jpa.yaml': group('jpa-enum-01', 'jpa/entity') },
 	puzzles: { 'puzzles/jpa-entity.yaml': puzzle }
@@ -140,4 +140,32 @@ describe('real quest files', () => {
 			expect(quests.weeks.find((w) => w.week === week)?.holiday, week).toBe(true);
 		}
 	});
+});
+
+describe('content index', () => {
+	const file = buildContentIndex(index, new Date('2027-01-01T00:00:00Z'));
+	it('lists the modules in course order', () => {
+		expect(file.modules.map((m) => m.slug)).toEqual(['fundament', 'modern-java', 'testing', 'streams', 'jpa', 'service', 'rest', 'theorie', 'pruefungen']);
+		expect(file.modules[4]).toEqual({ slug: 'jpa', title: 'Spring Data JPA' });
+	});
+	it('adds assignment and grading to exercises only', () => {
+		expect(file.entries.find((e) => e.kind === 'exercise')).toMatchObject({ id: 'jpa/uebungen/fahrradverleih', assignment: 'jpa-01-fahrradverleih', grading: 'auto' });
+		expect(file.entries.filter((e) => e.kind !== 'exercise').every((e) => !('assignment' in e) && !('grading' in e))).toBe(true);
+	});
+	it('hashes the modules too', () => {
+		expect(file.version).toMatch(/^[0-9a-f]{12}$/);
+		expect(buildContentIndex(index).version).toBe(file.version);
+	});
+});
+
+describe('assignmentSlug', () => {
+	it.each([
+		['https://classroom50.org/O/c/assignments/pp-a-01-immobilienmakler/accept', 'pp-a-01-immobilienmakler'],
+		['https://classroom50.org/O/c/assignments/x/accept/', 'x'],
+		['https://classroom50.org/O/c/assignments/x/accept?a=1', 'x'],
+		['https://classroom50.org/O/c/assignments/x', undefined],
+		['https://classroom50.org/O/c/accept', undefined],
+		['', undefined],
+		[undefined, undefined]
+	])('%s -> %s', (url, slug) => expect(assignmentSlug(url)).toBe(slug));
 });

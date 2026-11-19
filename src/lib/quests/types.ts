@@ -64,11 +64,18 @@ export type ContentEntry = {
 	href: string;
 	/** Only for question groups: the unit they belong to. */
 	unit?: string;
+	/** Only for exercises: Classroom50 assignment slug (from classroomUrl), if the assignment exists. */
+	assignment?: string;
+	/** Only for exercises: how it is graded. */
+	grading?: 'auto' | 'teacher';
 };
 
+export type ContentModule = { slug: string; title: string };
+
 export type ContentIndexFile = {
-	/** Content hash of `entries`. */
+	/** Content hash of `modules` and `entries`. */
 	version: string;
 	generatedAt: string;
+	modules: ContentModule[];
 	entries: ContentEntry[];
 };
