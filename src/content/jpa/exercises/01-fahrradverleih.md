@@ -4,6 +4,7 @@ minutes: 60
 grading: auto
 classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/jpa-01-fahrradverleih/accept
 status: draft
+mindest: true
 rubric:
   erwartet: >-
     Beide Entities sind mit den Namen und Attributen aus dem UML-Diagramm umgesetzt, inklusive

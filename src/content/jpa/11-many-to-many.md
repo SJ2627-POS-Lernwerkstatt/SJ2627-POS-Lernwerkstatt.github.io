@@ -3,6 +3,7 @@ title: "@ManyToMany und @JoinTable"
 minutes: 12
 cheatsheet: 14
 status: draft
+mindest: true
 ---
 
 Ein Buch kann mehrere Autorinnen und Autoren haben, und eine Autorin schreibt mehrere Bücher. Im Diagramm stehen an beiden Enden Multiplizitäten mit `*` oder `n`:

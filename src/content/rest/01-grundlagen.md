@@ -3,6 +3,7 @@ title: REST-Grundlagen und Aufgabe 3
 minutes: 9
 cheatsheet: 20
 status: draft
+mindest: true
 ---
 
 In Aufgabe 3 baust du eine **RESTful API**: Endpunkte, die JSON lesen und schreiben, mit den richtigen HTTP-Methoden und Statuscodes – und Tests, die das beweisen. Der Service dahinter ist nur ein Stub; im Test ersetzt du ihn durch einen Mock.

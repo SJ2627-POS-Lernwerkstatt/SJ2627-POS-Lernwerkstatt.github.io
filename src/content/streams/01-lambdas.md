@@ -2,6 +2,7 @@
 title: Lambdas und Methodenreferenzen
 minutes: 8
 status: draft
+mindest: true
 ---
 
 Streams bestehen aus kleinen Bausteinen: *behalte die Volljährigen*, *nimm den Namen*, *sortiere nach Alter*. Jeder Baustein ist eine Funktion, die du als **Lambda** oder **Methodenreferenz** übergibst. Bevor es mit Streams losgeht, schauen wir uns diese Funktionen an.

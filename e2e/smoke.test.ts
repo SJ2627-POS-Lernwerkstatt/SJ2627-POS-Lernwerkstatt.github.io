@@ -10,6 +10,8 @@ test('unit page: read a unit and answer a Wissenscheck question', async ({ page 
 	await hydrated(page);
 	await page.getByRole('link', { name: 'Aufbau eines Tests' }).first().click();
 	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+	// The draft/review status is for the hidden /review page only.
+	await expect(page.getByText('Entwurf')).toHaveCount(0);
 
 	const first = page.getByRole('region', { name: 'Frage 1' });
 	const check = first.getByRole('button', { name: 'Antwort prüfen' });
@@ -190,4 +192,29 @@ test('with PUBLIC_API_URL the login is offered and /anmelden shows the email for
 	await page.goto('/anmelden');
 	await hydrated(page);
 	await expect(page.getByLabel(/E-Mail/i)).toBeVisible();
+});
+
+test('Mindestanforderung: badge only on tagged units, no Entwurf, module toggle filters', async ({ page }) => {
+	await page.goto('/testing/aufbau');
+	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+	await expect(page.getByTestId('mindest')).toBeVisible();
+	await expect(page.getByText('Entwurf')).toHaveCount(0);
+
+	await page.goto('/testing/lebenszyklus');
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+	await expect(page.getByTestId('mindest')).toHaveCount(0);
+
+	await page.goto('/testing');
+	await expect(page.getByText('Mindestanforderung = das brauchst du für ein Genügend. Alles andere bringt bessere Noten.')).toBeVisible();
+	await expect(page.getByText('Entwurf')).toHaveCount(0);
+	const lifecycle = page.getByRole('main').getByRole('link', { name: /Lebenszyklus/ });
+	const aufbau = page.getByRole('main').getByRole('link', { name: 'Aufbau eines Tests' });
+	await expect(lifecycle).toBeVisible();
+	await page.getByLabel('Nur Mindestanforderung zeigen').check();
+	await expect(lifecycle).toHaveCount(0);
+	await expect(aufbau).toBeVisible();
+	// Remembered across a reload.
+	await page.reload();
+	await expect(page.getByLabel('Nur Mindestanforderung zeigen')).toBeChecked();
+	await expect(lifecycle).toHaveCount(0);
 });

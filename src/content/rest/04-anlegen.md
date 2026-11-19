@@ -3,6 +3,7 @@ title: "Anlegen: @PostMapping und 201 Created"
 minutes: 9
 cheatsheet: 21
 status: draft
+mindest: true
 ---
 
 ## JSON lesen mit `@RequestBody`

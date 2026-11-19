@@ -8,6 +8,7 @@
 	let { data } = $props();
 
 	const next = $derived(nextUnit(data.modules, progress.data));
+	const mindestCount = (units: { mindest: boolean }[]) => units.filter((u) => u.mindest).length;
 	const started = $derived(Object.keys(progress.data.units).length > 0);
 </script>
 
@@ -76,6 +77,9 @@
 				>
 					<span style:width="{(100 * s.unitsRead) / s.units}%"></span>
 				</div>
+				{#if mindestCount(m.units) > 0}
+					<p class="meta">{mindestCount(m.units)} von {s.units} Einheiten sind Mindestanforderung</p>
+				{/if}
 				<p class="meta">
 					{s.unitsRead} / {s.units} Einheiten gelesen{s.groups ? ` · ${s.groupsKnown} / ${s.groups} Fragengruppen gekonnt` : ''}
 				</p>

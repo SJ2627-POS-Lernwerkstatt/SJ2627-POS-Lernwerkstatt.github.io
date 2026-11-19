@@ -40,7 +40,7 @@
 					<span class="meta">{t.description}</span>
 					<span class="meta">
 						{#if t.puzzleIds.length}
-							{done} von {t.puzzleIds.length} gelöst
+							{done} von {t.puzzleIds.length} gelöst{t.mindestCount ? ` · davon ${t.mindestCount} Mindestanforderung` : ''}
 						{:else}
 							folgt bald
 						{/if}

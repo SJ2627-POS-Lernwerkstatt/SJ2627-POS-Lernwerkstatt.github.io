@@ -2,37 +2,39 @@
 
 Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25, HATEOAS, pagination and `@JsonTest` are core REST units at the user's request because good grades need them). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
 
+(M) = Mindestanforderung: das brauchst du für ein Genügend. Im Frontmatter `mindest: true`, siehe SPEC.md. Tagged exercises: `jpa/uebungen/fahrradverleih`, `jpa/uebungen/fahrradverleih-beziehungen`, `rest/uebungen/konzertkasse`, `service/uebungen/ladestationen`.
+
 ## 0 · Fundament (Grundlagen: Klassen, Interfaces, Vererbung)
 
 Erstes Modul im Kurs, reines Java ohne Spring. Laufendes Beispiel: Bibliothek (`Book`, Mahngebühren). Einheiten 1–11 sind geschrieben.
 
-1. Klassen und Objekte: Felder, Methoden, `new`, Referenzen
-2. Konstruktoren: `this`, Überladen, Validierung im Konstruktor
-3. Interfaces: Vertrag und Implementierung, mehrere Implementierungen
-4. `@Override`: Methoden überschreiben, `toString`
-5. Vererbung und abstrakte Klassen
+1. (M) Klassen und Objekte: Felder, Methoden, `new`, Referenzen
+2. (M) Konstruktoren: `this`, Überladen, Validierung im Konstruktor
+3. (M) Interfaces: Vertrag und Implementierung, mehrere Implementierungen
+4. (M) `@Override`: Methoden überschreiben, `toString`
+5. (M) Vererbung und abstrakte Klassen
 6. `equals` und `hashCode`
-7. `List` und `Map`
-8. Generics
-9. Exceptions
+7. (M) `List` und `Map`
+8. (M) Generics
+9. (M) Exceptions
 10. Annotationen
-11. Was macht Spring für mich?
+11. (M) Was macht Spring für mich?
 
 ## 0 · Moderne Java Features (Grundlagen)
 
 Quelle der Inhalte: Vorlesung 3xHIF `01_Var_Records_Optional_Switch`.
 
 1. var – Typ dort, wo er offensichtlich ist: LVTI, Regel, Grenzen, Collections [2]
-2. Records – Datenklassen in einem Satz: generierte Members, kompakter Konstruktor, Record vs. Klasse [2]
-3. Optional – die Schachtel mit Deckel: Erzeugen, orElse/orElseGet/orElseThrow, Best Practices
+2. (M) Records – Datenklassen in einem Satz: generierte Members, kompakter Konstruktor, Record vs. Klasse [2]
+3. (M) Optional – die Schachtel mit Deckel: Erzeugen, orElse/orElseGet/orElseThrow, Best Practices
 4. Switch-Ausdrücke – Pfeil statt break: Arrow-Syntax, yield, Vollständigkeit, Pattern Matching an sealed [2]
 5. Git – die Begriffe: Working Directory, Staging, Commit, Branch, Merge, Remote, push/pull, Classroom50-Ablauf
 
 ## 1 · Unit Testing (Auffrischung)
-1. Aufbau eines Tests: Arrange / Act / Assert, `@Test`, die richtigen Imports (`org.junit.jupiter.api`) [4]
+1. (M) Aufbau eines Tests: Arrange / Act / Assert, `@Test`, die richtigen Imports (`org.junit.jupiter.api`) [4]
 2. Lebenszyklus: `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll` [4]
 3. Tests lesbar machen: `@DisplayName`, `@Nested`, `@Disabled`, Testnamen [4]
-4. AssertJ Grundlagen: `assertThat`, `isEqualTo`, `isNotNull`, `isTrue`, AssertJ vs. JUnit-Assertions [6]
+4. (M) AssertJ Grundlagen: `assertThat`, `isEqualTo`, `isNotNull`, `isTrue`, AssertJ vs. JUnit-Assertions [6]
 5. AssertJ Collections: `hasSize`, `contains`, `containsExactly(InAnyOrder)`, `extracting`, `isEmpty` [6]
 6. AssertJ verketten: `satisfies`, `hasValueSatisfying` (Optional) [6]
 7. Exceptions testen: `assertThatThrownBy`, `assertThatExceptionOfType`, `assertThrows`
@@ -43,28 +45,28 @@ Quelle der Inhalte: Vorlesung 3xHIF `01_Var_Records_Optional_Switch`.
 12. Mockito II: `verify`, `times`, `any()`, `doThrow` für void, `returnsFirstArg` [6]
 
 ## 2 · Stream API (Auffrischung)
-1. Lambdas und Methodenreferenzen: `Predicate`, `Function`, `Consumer`, `Supplier`
-2. Streams erzeugen, `filter`, `map`, `toList()` vs. `collect(Collectors.toList())` [2–3]
+1. (M) Lambdas und Methodenreferenzen: `Predicate`, `Function`, `Consumer`, `Supplier`
+2. (M) Streams erzeugen, `filter`, `map`, `toList()` vs. `collect(Collectors.toList())` [2–3]
 3. Sortieren: `sorted`, `Comparator.comparing`, `thenComparing`, `reversed` [3]
 4. `distinct`, `limit`, `skip`, `peek` [3]
 5. Prüfen und Finden: `anyMatch`/`allMatch`/`noneMatch`, `findFirst`, `min`/`max`, `Optional` richtig verwenden [3]
-6. Zahlen: `mapToInt`/`mapToLong`, `sum`, `average`, `reduce` [3]
+6. (M) Zahlen: `mapToInt`/`mapToLong`, `sum`, `average`, `reduce` [3]
 7. `flatMap`: verschachtelte Listen auflösen [2]
 8. Collectors: `groupingBy`, `counting`, `summingLong`, `toMap`, `partitioningBy`
 9. Datenklassen: Records, Konstruktor, `equals`/`hashCode`, Collections kapseln, Unveränderlichkeit [2]
 
 ## 3 · Spring Data JPA (Aufgabe 1)
-1. Vom UML zum Code: Entity, Value Object, Rich Type, Enumeration, `{nn}`. Wie lese ich die Angabe? [9–12]
-2. Das erste Entity: `@Entity`, `@Table`, `@Id`/`@GeneratedValue`, `AbstractPersistable` [8–9]
-3. Entity-Klassen richtig bauen: protected No-Args-Konstruktor, fachlicher Konstruktor, Getter, gekapselte Listen [2]
-4. Basisattribute: `@Column` (length, nullable, unique, precision/scale), `@NotNull`, `@Size`, reservierte Wörter [13]
-5. Repositories: `CrudRepository` vs. `JpaRepository`, der erste `@DataJpaTest` (Lifecycle-Test) [8, 17]
-6. Enums: das Ordinal-Problem, `@Enumerated(EnumType.STRING)`, null-sicherer `AttributeConverter` mit Codes [12]
-7. Value Objects: `@Embeddable` (Klasse oder Record), `@Embedded`, `@EmbeddedColumnNaming`, `@AttributeOverrides` [10, 14]
+1. (M) Vom UML zum Code: Entity, Value Object, Rich Type, Enumeration, `{nn}`. Wie lese ich die Angabe? [9–12]
+2. (M) Das erste Entity: `@Entity`, `@Table`, `@Id`/`@GeneratedValue`, `AbstractPersistable` [8–9]
+3. (M) Entity-Klassen richtig bauen: protected No-Args-Konstruktor, fachlicher Konstruktor, Getter, gekapselte Listen [2]
+4. (M) Basisattribute: `@Column` (length, nullable, unique, precision/scale), `@NotNull`, `@Size`, reservierte Wörter [13]
+5. (M) Repositories: `CrudRepository` vs. `JpaRepository`, der erste `@DataJpaTest` (Lifecycle-Test) [8, 17]
+6. (M) Enums: das Ordinal-Problem, `@Enumerated(EnumType.STRING)`, null-sicherer `AttributeConverter` mit Codes [12]
+7. (M) Value Objects: `@Embeddable` (Klasse oder Record), `@Embedded`, `@EmbeddedColumnNaming`, `@AttributeOverrides` [10, 14]
 8. Rich Types: eine Spalte via `@Converter` (z. B. `RoomName`, `Email`) [11]
-9. `@ManyToOne` und `@JoinColumn`, benannte Foreign Keys (`@ForeignKey`) [13]
-10. `@OneToMany` bidirektional: `mappedBy`, Hilfsmethoden, Cascade [14]
-11. `@ManyToMany` und `@JoinTable` [14–15]
+9. (M) `@ManyToOne` und `@JoinColumn`, benannte Foreign Keys (`@ForeignKey`) [13]
+10. (M) `@OneToMany` bidirektional: `mappedBy`, Hilfsmethoden, Cascade [14]
+11. (M) `@ManyToMany` und `@JoinTable` [14–15]
 12. `@OneToOne` [13–14]
 13. `@ElementCollection` und `@CollectionTable` [15]
 14. Vererbung: `SINGLE_TABLE`, `JOINED`, `TABLE_PER_CLASS`, Discriminator, `@MappedSuperclass` [13]
@@ -77,10 +79,10 @@ Quelle der Inhalte: Vorlesung 3xHIF `01_Var_Records_Optional_Switch`.
 Exercises (autograded): one per 2–3 units from unit 5 on, the last two in full Aufgabe-1 size.
 
 ## 4 · Service-Schicht (Aufgabe 2)
-1. Aufgabe 2 im Überblick: Schichtenmodell (Mermaid), die zwei Formen der Angabe, Beurteilung
-2. Von der Angabe zum Code: Datenklassen als Records, Pseudocode → Konstruktor und Signaturen
-3. Geschäftsregeln als eigene Methoden und Predicates („unter 5 Sekunden verwerfen“, „ab 85 % voll abrechnen“), Geld in Cent
-4. Ergebnisse zusammenfassen: Enum-Schlüssel, Ergebnis-Records, sortieren und `groupingBy`, `EnumMap` mit allen Schlüsseln
+1. (M) Aufgabe 2 im Überblick: Schichtenmodell (Mermaid), die zwei Formen der Angabe, Beurteilung
+2. (M) Von der Angabe zum Code: Datenklassen als Records, Pseudocode → Konstruktor und Signaturen
+3. (M) Geschäftsregeln als eigene Methoden und Predicates („unter 5 Sekunden verwerfen“, „ab 85 % voll abrechnen“), Geld in Cent
+4. (M) Ergebnisse zusammenfassen: Enum-Schlüssel, Ergebnis-Records, sortieren und `groupingBy`, `EnumMap` mit allen Schlüsseln
 5. Testdaten für alle Geschäftsfälle: Fall-Tabelle aus der Angabe, Randwerte parametrisiert, Fabrikmethoden
 6. Fehlerfälle: ungültige Argumente, eigene Exceptions, `assertThatThrownBy`
 7. Datenzugriff als Interface: Stub oder Mock
@@ -91,16 +93,16 @@ Exercises (autograded): one per 2–3 units from unit 5 on, the last two in full
 Exercises (teacher feedback, Aufgabe-2 size): Ladestationen (data passed in), Sportabzeichen (repository interface + Map), Kinoreservierung (Spring service, DTOs, Mockito).
 
 ## 5 · REST-Controller (Aufgabe 3)
-1. REST-Grundlagen: Ressourcen, Pfade, HTTP-Methoden, Statuscodes (Mermaid-Sequenz)
-2. `@RestController`, `@RequestMapping`, `@GetMapping`, `ResponseEntity` [20–21]
-3. `@PathVariable` und `@RequestParam` [21]
-4. Anlegen: `@PostMapping`, `@RequestBody`, `201 Created` mit `Location`-Header
-5. Ersetzen, Ändern, Löschen: `PUT`, `PATCH`, `DELETE`, idempotent? Was tun bei „existiert schon“ / „existiert nicht“?
+1. (M) REST-Grundlagen: Ressourcen, Pfade, HTTP-Methoden, Statuscodes (Mermaid-Sequenz)
+2. (M) `@RestController`, `@RequestMapping`, `@GetMapping`, `ResponseEntity` [20–21]
+3. (M) `@PathVariable` und `@RequestParam` [21]
+4. (M) Anlegen: `@PostMapping`, `@RequestBody`, `201 Created` mit `Location`-Header
+5. (M) Ersetzen, Ändern, Löschen: `PUT`, `PATCH`, `DELETE`, idempotent? Was tun bei „existiert schon“ / „existiert nicht“?
 6. Validierung: `@Valid`, Bean Validation auf DTOs, `400`, `BindingResult` [7, 21]
 7. Fehlerbehandlung: `ProblemDetail`, `@ExceptionHandler`, `@RestControllerAdvice` [21–22]
-8. JSON: Request- und Response-DTOs, verschachtelte Objekte, Jackson 3
-9. Das Service als Stub, `@WebMvcTest` und `@MockitoBean` [5, 22]
-10. MockMvc: `perform`, `status`, `jsonPath`, JSON-Body mit `ObjectMapper` [22]
+8. (M) JSON: Request- und Response-DTOs, verschachtelte Objekte, Jackson 3
+9. (M) Das Service als Stub, `@WebMvcTest` und `@MockitoBean` [5, 22]
+10. (M) MockMvc: `perform`, `status`, `jsonPath`, JSON-Body mit `ObjectMapper` [22]
 11. Teststrategie nach Beurteilung: Good Cases → Edge Cases → Exception Cases
 12. Unterressourcen: `/api/reservations/{id}/rooms`
 13. HATEOAS: `linkTo(methodOn(...))`, `EntityModel`, `CollectionModel` [22]

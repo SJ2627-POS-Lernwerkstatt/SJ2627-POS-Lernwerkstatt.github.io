@@ -3,6 +3,7 @@ title: Ersetzen, Ändern, Löschen
 minutes: 8
 cheatsheet: 21
 status: draft
+mindest: true
 ---
 
 ## `PUT`: ersetzen

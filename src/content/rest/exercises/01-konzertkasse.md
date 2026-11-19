@@ -4,6 +4,7 @@ minutes: 120
 grading: teacher
 classroomUrl: https://classroom50.org/SJ2627-POS-Lernwerkstatt/lernwerkstatt/assignments/rest-01-konzertkasse/accept
 status: draft
+mindest: true
 rubric:
   erwartet: >-
     Alle Endpunkte und JSON-Objekte sind umgesetzt, Pfade folgen den REST-Prinzipien, Methoden und

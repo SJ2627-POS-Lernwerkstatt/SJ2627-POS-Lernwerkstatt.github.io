@@ -2,6 +2,7 @@
 title: Was macht Spring eigentlich für mich?
 minutes: 9
 status: draft
+mindest: true
 ---
 
 Ohne Spring baust du alle Objekte selbst und steckst sie zusammen:

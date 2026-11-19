@@ -2,6 +2,7 @@
 title: Exceptions – werfen, fangen, eigene bauen
 minutes: 8
 status: draft
+mindest: true
 ---
 
 Eine **Exception** meldet: „Hier geht es nicht weiter.“ Sie unterbricht die Methode und wandert so lange nach oben, bis sie jemand fängt. Fängt sie niemand, stürzt das Programm ab und du siehst einen Stacktrace.

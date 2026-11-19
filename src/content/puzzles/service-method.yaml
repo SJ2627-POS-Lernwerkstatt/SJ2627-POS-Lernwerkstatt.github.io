@@ -4,6 +4,7 @@
 # Verify: node scripts/verify-puzzles.ts service-method
 
 - id: svc-record-validation
+  mindest: true
   kind: lines
   title: Buchung – Record mit Prüfungen
   prompt: |
@@ -129,6 +130,7 @@
     }
 
 - id: svc-fee-rule
+  mindest: true
   kind: template
   title: Verleih – die Gebühr
   prompt: |
@@ -188,6 +190,7 @@
     }
 
 - id: svc-stream-sum
+  mindest: true
   kind: template
   title: Verleih – Summe pro Kunde
   prompt: |

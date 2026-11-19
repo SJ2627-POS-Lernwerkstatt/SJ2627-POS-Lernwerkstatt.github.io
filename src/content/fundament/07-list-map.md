@@ -2,6 +2,7 @@
 title: List und Map – die zwei Sammlungen, die du immer brauchst
 minutes: 8
 status: draft
+mindest: true
 ---
 
 ## `List`: der Reihe nach, Duplikate erlaubt

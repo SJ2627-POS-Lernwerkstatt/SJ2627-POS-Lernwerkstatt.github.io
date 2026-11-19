@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { siteHref } from '#lib/quests/href.ts';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import Badge from '#lib/components/Badge.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import LoginGate from '#lib/components/LoginGate.svelte';
@@ -43,6 +44,7 @@
 			<p class="title" data-testid="suggestion">{suggestion.item.title}</p>
 			<p class="meta">
 				{suggestion.item.minutes} min
+				{#if suggestion.item.mindest}<MindestBadge />{/if}
 				{#if suggestion.from === 'catchUp'}<Badge tone="primary">Für dich</Badge>{/if}
 			</p>
 			<Button block href={siteHref(suggestion.item.href)}>Los geht's</Button>

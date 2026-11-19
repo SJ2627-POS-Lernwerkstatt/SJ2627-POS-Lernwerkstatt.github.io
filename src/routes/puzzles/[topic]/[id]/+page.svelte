@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import PuzzleRunner from '#lib/components/puzzle/PuzzleRunner.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
 
@@ -20,7 +21,10 @@
 	{data.puzzle.title}
 	{#if progress.isSolved(data.puzzle.id)}<span class="solved" title="gelöst">✓</span>{/if}
 </h1>
-<p class="muted">Puzzle {data.position} von {data.count} · {data.puzzle.kind === 'lines' ? 'Zeilen ordnen' : 'Lücken füllen'}</p>
+<p class="muted">
+	Puzzle {data.position} von {data.count} · {data.puzzle.kind === 'lines' ? 'Zeilen ordnen' : 'Lücken füllen'}
+	{#if data.mindest}<MindestBadge />{/if}
+</p>
 
 {#key data.puzzle.id}
 	<PuzzleRunner

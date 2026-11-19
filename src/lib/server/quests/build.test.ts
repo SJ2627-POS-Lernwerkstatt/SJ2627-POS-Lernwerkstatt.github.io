@@ -4,7 +4,7 @@ import { assignmentSlug, buildContentIndex, buildQuests } from './build.js';
 import { buildIndex } from '#lib/server/content/build.js';
 import { isoWeekOf, weekRange } from '#lib/quests/week.js';
 
-const unit = (title: string) => `---\ntitle: ${title}\nminutes: 8\n---\n\n# x\n`;
+const unit = (title: string, extra = '') => `---\ntitle: ${title}\nminutes: 8\n${extra}---\n\n# x\n`;
 const group = (id: string, u: string) => `
 - id: ${id}
   unit: ${u}
@@ -14,6 +14,7 @@ const group = (id: string, u: string) => `
 `;
 const puzzle = `
 - id: entity-room
+  mindest: true
   kind: lines
   title: Raum
   prompt: p
@@ -25,9 +26,9 @@ const puzzle = `
     }
 `;
 const { index, errors: contentErrors } = buildIndex({
-	units: { 'jpa/01-entity.md': unit('Entity'), 'modern-java/01-var.md': unit('Var') },
+	units: { 'jpa/01-entity.md': unit('Entity', 'mindest: true\n'), 'modern-java/01-var.md': unit('Var') },
 	exercises: {
-		'jpa/exercises/01-fahrradverleih.md': `---\ntitle: Fahrradverleih\ngrading: auto\nclassroomUrl: https://classroom50.org/org/course/assignments/jpa-01-fahrradverleih/accept\nminutes: 90\nrubric: { erwartet: a, genuegend: b, befriedigend: c, gut: d, sehrGut: e }\n---\n`
+		'jpa/exercises/01-fahrradverleih.md': `---\ntitle: Fahrradverleih\ngrading: auto\nclassroomUrl: https://classroom50.org/org/course/assignments/jpa-01-fahrradverleih/accept\nminutes: 90\nmindest: true\nrubric: { erwartet: a, genuegend: b, befriedigend: c, gut: d, sehrGut: e }\n---\n`
 	},
 	pools: { 'questions/jpa.yaml': group('jpa-enum-01', 'jpa/entity') },
 	puzzles: { 'puzzles/jpa-entity.yaml': puzzle }
@@ -70,6 +71,21 @@ describe('quest resolver', () => {
 		expect(w.items[2]).toMatchObject({ minutes: 4, href: '/puzzles/jpa-entity/entity-room' });
 		expect(w.items[3]).toMatchObject({ minutes: 3, href: '/ueben/jpa' });
 		expect(w.items[5]).toMatchObject({ minutes: 45, laptop: true, href: '/jpa/uebungen/fahrradverleih' });
+	});
+	it('marks mindest items (only when true; never review and group)', () => {
+		const { quests } = build(quest('', ['  - unit: jpa/entity', '  - review: { module: jpa, cards: 8 }', '  - puzzle: entity-room', '  - group: jpa-enum-01', '  - theory: modern-java/var', '  - exercise: jpa/01-fahrradverleih'].join('\n')));
+		const items = quests.weeks[0]!.items;
+		expect(items.map((i) => i.mindest)).toEqual([true, undefined, true, undefined, undefined, true]);
+		expect(items.every((i) => i.mindest !== false)).toBe(true);
+	});
+	it('content index entries carry mindest only when true', () => {
+		const { entries } = buildContentIndex(index, new Date('2027-01-01T00:00:00Z'));
+		const byId = Object.fromEntries(entries.map((e) => [e.id, e]));
+		expect(byId['jpa/entity']!.mindest).toBe(true);
+		expect(byId['entity-room']!.mindest).toBe(true);
+		expect(byId['jpa/uebungen/fahrradverleih']!.mindest).toBe(true);
+		expect('mindest' in byId['modern-java/var']!).toBe(false);
+		expect('mindest' in byId['jpa-enum-01']!).toBe(false);
 	});
 	it.each([
 		['unit: jpa/nope', 'unit "jpa/nope" does not exist'],

@@ -2,6 +2,7 @@
 title: Geschäftsregeln als eigene Methoden
 minutes: 10
 status: draft
+mindest: true
 ---
 
 Jede Regel aus der Angabe bekommt eine eigene, kleine Methode. So kannst du jede Regel für sich testen, und die Hauptmethode liest sich wie die Angabe.

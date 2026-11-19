@@ -3,6 +3,7 @@ title: Streams erzeugen, filtern, umwandeln
 minutes: 8
 cheatsheet: 2
 status: draft
+mindest: true
 ---
 
 Ein Stream ist eine **Pipeline**: Daten kommen aus einer Quelle, laufen durch Zwischenschritte und werden am Ende zu einem Ergebnis zusammengefasst.

@@ -3,6 +3,7 @@ title: Entities mit Lombok
 minutes: 13
 cheatsheet: 2
 status: draft
+mindest: true
 ---
 
 `@Entity` und eine Id reichen, damit Hibernate eine Tabelle anlegt. Für die volle Punktzahl braucht ein Entity aber noch mehr: einen Konstruktor für JPA, einen fachlichen Konstruktor, Getter und Setter. Das meiste davon schreibst du nicht selbst – **Lombok** erzeugt es beim Kompilieren aus vier Annotationen.

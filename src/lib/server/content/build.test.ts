@@ -37,6 +37,27 @@ describe('buildIndex', () => {
 		expect(index.units[1]).toMatchObject({ module: 'jpa', slug: 'enums', order: 6, core: true, status: 'draft', cheatsheet: 12 });
 	});
 
+	it('mindest defaults to false and can be set on units, exercises and puzzles', () => {
+		const ex = (extra: string) =>
+			`---\ntitle: X\ngrading: auto\nminutes: 30\nrubric: { erwartet: a, genuegend: b, befriedigend: c, gut: d, sehrGut: e }\n${extra}\n---\n`;
+		const pz = (extra: string) => `- id: p-one\n  kind: lines\n  title: P\n  prompt: p\n  explanation: e\n${extra}\n  solution: |\n    a\n    b\n    c\n`;
+		const { index, errors } = build({
+			units: { 'jpa/01-a.md': okUnit, 'jpa/02-b.md': unit('title: B\nminutes: 8\nmindest: true') },
+			exercises: { 'jpa/exercises/01-a.md': ex(''), 'jpa/exercises/02-b.md': ex('mindest: true') },
+			puzzles: { 'puzzles/jpa-entity.yaml': pz('  mindest: true') }
+		});
+		expect(errors).toEqual([]);
+		expect(index.units.map((u) => u.mindest)).toEqual([false, true]);
+		expect(index.exercises.map((x) => x.mindest)).toEqual([false, true]);
+		expect(index.puzzles[0]!.mindest).toBe(true);
+		expect(build({ puzzles: { 'puzzles/jpa-entity.yaml': pz('') } }).index.puzzles[0]!.mindest).toBe(false);
+	});
+
+	it('rejects a non-boolean mindest', () => {
+		const { errors } = build({ units: { 'jpa/01-a.md': unit('title: A\nminutes: 8\nmindest: ja') } });
+		expect(errors.join()).toMatch(/mindest/);
+	});
+
 	it('reports bad file names, unknown modules and invalid frontmatter', () => {
 		const { errors } = build({
 			units: {

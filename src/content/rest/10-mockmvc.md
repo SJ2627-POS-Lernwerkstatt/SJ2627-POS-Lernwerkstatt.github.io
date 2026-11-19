@@ -3,6 +3,7 @@ title: "MockMvc: Anfragen und Erwartungen"
 minutes: 10
 cheatsheet: 22
 status: draft
+mindest: true
 ---
 
 ## Eine Anfrage schicken

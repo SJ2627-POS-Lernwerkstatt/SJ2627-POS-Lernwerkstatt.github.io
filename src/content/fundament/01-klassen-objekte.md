@@ -2,6 +2,7 @@
 title: Klasse und Objekt – Bauplan und Ding
 minutes: 7
 status: draft
+mindest: true
 ---
 
 Eine **Klasse** ist ein Bauplan. Ein **Objekt** ist ein Ding, das nach diesem Bauplan gebaut wurde. Aus einer Klasse `Book` kannst du beliebig viele Bücher bauen, und jedes hat seine eigenen Werte.

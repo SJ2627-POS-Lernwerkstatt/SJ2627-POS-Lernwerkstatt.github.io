@@ -2,6 +2,7 @@
 title: Generics lesen – was bedeutet <Book, Long>?
 minutes: 6
 status: draft
+mindest: true
 ---
 
 Die spitzen Klammern sagen, **mit welchem Typ** eine Klasse oder ein Interface arbeitet. `List<Book>` ist „eine Liste von Büchern“: Der Compiler lässt nur Bücher hinein, und was herauskommt, ist sicher ein `Book`.

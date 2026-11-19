@@ -2,6 +2,7 @@
 title: Vererbung und abstrakte Klassen
 minutes: 8
 status: draft
+mindest: true
 ---
 
 Mit `extends` übernimmt eine Klasse alles von einer **Oberklasse** und kann Neues dazubauen. Ein E-Book *ist ein* Medium, ein Hörbuch auch:

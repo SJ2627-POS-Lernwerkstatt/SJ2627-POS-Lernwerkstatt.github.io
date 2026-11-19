@@ -4,6 +4,7 @@
 # Verify: node scripts/verify-puzzles.ts jpa-relation
 
 - id: rel-player-team-fk
+  mindest: true
   kind: template
   title: Spieler und Team – der Fremdschlüssel
   prompt: |
@@ -54,6 +55,7 @@
     Viele Spieler gehören zu einem Team: `@ManyToOne` auf der „viele“-Seite. Die Multiplizität `"1"` heißt Pflicht, also `nullable = false`. `@ForeignKey(name = …)` ersetzt den generierten Constraint-Namen durch einen sprechenden. `team` ist eine Beziehung und deshalb nicht im fachlichen Konstruktor.
 
 - id: rel-vehicle-constructor
+  mindest: true
   kind: lines
   title: Fahrzeug – Entity mit Beziehung
   prompt: |
@@ -145,6 +147,7 @@
     `CascadeType.PERSIST` gibt nur das Speichern weiter – so machen es die Musterlösungen. `ALL` würde auch das Löschen weitergeben: Ein gelöschter LKW nähme seinen Fahrer mit, obwohl der vielleicht noch andere LKWs fährt. Ohne Cascade scheitert der Flush mit `TransientPropertyValueException`.
 
 - id: rel-album-songs-mapped-by
+  mindest: true
   kind: template
   title: Album und Songs – beide Seiten
   prompt: |
@@ -381,6 +384,7 @@
     Ohne Gegenseite gibt es kein `mappedBy`. Damit Hibernate keine Zwischentabelle `playlists_tracks` anlegt, steht `@JoinColumn` direkt an der Liste: Die Spalte `playlist_id` landet trotzdem in `tracks`. `Track` hat hier keine Beziehung und darf deshalb `@AllArgsConstructor` verwenden.
 
 - id: rel-seminar-participants-join-table
+  mindest: true
   kind: template
   title: Seminar und Teilnehmer – Zwischentabelle
   prompt: |

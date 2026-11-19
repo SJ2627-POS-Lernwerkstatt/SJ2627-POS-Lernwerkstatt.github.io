@@ -3,6 +3,7 @@ title: JSON und DTOs
 minutes: 9
 cheatsheet: 21
 status: draft
+mindest: true
 ---
 
 Die Angabe zeigt die JSON-Objekte der Schnittstelle. Für jedes schreibst du einen **Record** – und sorgst dafür, dass Spring genau dieses JSON liest und schreibt. Spring Boot 4 verwendet dafür **Jackson 3**.

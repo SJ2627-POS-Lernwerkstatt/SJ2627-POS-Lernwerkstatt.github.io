@@ -2,6 +2,7 @@
 title: Ergebnisse zusammenfassen
 minutes: 11
 status: draft
+mindest: true
 ---
 
 Viele Angaben verlangen kein einzelnes Ergebnis, sondern eine **Auswertung**:
