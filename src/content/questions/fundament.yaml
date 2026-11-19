@@ -1,0 +1,303 @@
+- id: fundament-objekte-new
+  unit: fundament/klassen-objekte
+  main:
+    kind: single
+    prompt: "Wie viele `Book`-Objekte gibt es nach diesem Code?"
+    code: |
+      Book a = new Book();
+      Book b = new Book();
+      Book c = a;
+      Book d = null;
+    options:
+      - "2"
+      - "3"
+      - "4"
+      - "1"
+    answer: 0
+    explanation: |
+      Nur `new` baut ein Objekt – zweimal `new`, also zwei Bücher. `c = a` kopiert den **Zeiger**: `c` und `a` zeigen
+      auf dasselbe Buch. `d` zeigt auf gar nichts (`null`).
+  followUps:
+    - kind: single
+      prompt: "Was gibt die letzte Zeile aus?"
+      code: |
+        Book a = new Book();
+        a.pages = 100;
+        Book c = a;
+        c.pages = 200;
+        System.out.println(a.pages);
+      options:
+        - "200"
+        - "100"
+        - "0"
+        - "Kompilierfehler"
+      answer: 0
+      explanation: |
+        `a` und `c` zeigen auf **dasselbe** Objekt. Eine Änderung über `c` sieht man auch über `a`.
+
+- id: fundament-objekte-static
+  unit: fundament/klassen-objekte
+  main:
+    kind: single
+    prompt: "Welcher Aufruf kompiliert?"
+    code: |
+      public class Book {
+          String title;
+          static boolean isValidIsbn(String isbn) { return isbn.length() == 13; }
+          int titleLength() { return title.length(); }
+      }
+    options:
+      - "`Book.isValidIsbn(\"9783608938289\")`"
+      - "`Book.titleLength()`"
+      - "`Book.title`"
+      - "`new Book().isValidIsbn` ohne Klammern"
+    answer: 0
+    explanation: |
+      `static`-Methoden gehören der Klasse und werden über den Klassennamen aufgerufen. `titleLength()` und `title`
+      gehören einem **konkreten** Buch – dafür brauchst du ein Objekt, z. B. `new Book().titleLength()`.
+  followUps:
+    - kind: single
+      prompt: "Warum meldet der Compiler hier *non-static variable title cannot be referenced from a static context*?"
+      code: |
+        public class Book {
+            String title;
+            static String shout() { return title.toUpperCase(); }
+        }
+      options:
+        - "Eine `static`-Methode hat kein „aktuelles Buch“, also ist unklar, wessen `title` gemeint ist."
+        - "`toUpperCase` darf man in `static`-Methoden nicht verwenden."
+        - "`title` müsste `private` sein."
+        - "`static`-Methoden dürfen nichts zurückgeben."
+      answer: 0
+      explanation: |
+        Felder ohne `static` gibt es einmal **pro Objekt**. Eine `static`-Methode läuft ohne Objekt, also gibt es
+        kein `title`, das sie lesen könnte.
+
+- id: fundament-objekte-npe
+  unit: fundament/klassen-objekte
+  main:
+    kind: single
+    prompt: "Was passiert beim Ausführen?"
+    code: |
+      Book b = null;
+      System.out.println(b.isThick());
+    options:
+      - "`NullPointerException` zur Laufzeit"
+      - "Kompilierfehler"
+      - "Ausgabe `false`"
+      - "Ausgabe `null`"
+    answer: 0
+    explanation: |
+      Der Code kompiliert (`b` hat den Typ `Book`, und `Book` hat `isThick()`). Zur Laufzeit zeigt `b` aber auf
+      nichts – ein Methodenaufruf auf `null` wirft eine `NullPointerException`.
+
+- id: fundament-konstruktor-erkennen
+  unit: fundament/konstruktoren
+  main:
+    kind: single
+    prompt: "Welche Zeile ist ein Konstruktor der Klasse `Book`?"
+    options:
+      - "`public Book(String title) { … }`"
+      - "`public void Book(String title) { … }`"
+      - "`public Book create(String title) { … }`"
+      - "`public static Book(String title) { … }`"
+    answer: 0
+    explanation: |
+      Ein Konstruktor heißt genau wie die Klasse und hat **keinen** Rückgabetyp – nicht einmal `void`.
+      `public void Book(…)` ist eine (verwirrend benannte) normale Methode.
+
+- id: fundament-konstruktor-this
+  unit: fundament/konstruktoren
+  main:
+    kind: single
+    prompt: "Was gibt `new Book(\"Der Hobbit\").getTitle()` zurück?"
+    code: |
+      public class Book {
+          private String title;
+
+          public Book(String title) {
+              title = title;
+          }
+
+          public String getTitle() {
+              return title;
+          }
+      }
+    options:
+      - "`null`"
+      - "`\"Der Hobbit\"`"
+      - "Kompilierfehler"
+      - "Leerer String"
+    answer: 0
+    explanation: |
+      Im Konstruktor meint `title` den **Parameter**. `title = title` weist den Parameter sich selbst zu, das Feld
+      bleibt `null`. Richtig: `this.title = title;`.
+  followUps:
+    - kind: template
+      prompt: "Ergänze den Konstruktor so, dass ein Buch immer gültig ist."
+      template: |
+        public class Book {
+            {{private}} String title;
+            {{private}} int pages;
+
+            public {{Book(String title, int pages)}} {
+                if (pages <= 0) {
+                    throw new {{IllegalArgumentException}}("pages must be positive");
+                }
+                {{this.title = title;}}
+                {{this.pages = pages;}}
+            }
+        }
+      redHerrings:
+        - "void Book(String title, int pages)"
+        - "title = title;"
+        - "public"
+      reusable:
+        - "private"
+      explanation: |
+        Felder `private`, Konstruktor ohne Rückgabetyp, zuerst prüfen, dann mit `this.` zuweisen.
+
+- id: fundament-konstruktor-default
+  unit: fundament/konstruktoren
+  main:
+    kind: single
+    prompt: "Warum kompiliert `new Book()` nicht mehr?"
+    code: |
+      public class Book {
+          private String title;
+
+          public Book(String title) {
+              this.title = title;
+          }
+      }
+
+      Book b = new Book();
+    options:
+      - "Sobald es einen eigenen Konstruktor gibt, erzeugt Java keinen leeren `Book()` mehr."
+      - "Weil `title` `private` ist."
+      - "Weil Konstruktoren immer Parameter brauchen."
+      - "Weil `Book` keinen Getter hat."
+    answer: 0
+    explanation: |
+      Den leeren Standardkonstruktor gibt es nur, solange du **keinen** eigenen schreibst. JPA braucht ihn aber –
+      darum steht an jedem Entity `@NoArgsConstructor(access = AccessLevel.PROTECTED)`.
+
+- id: fundament-interface-implements
+  unit: fundament/interfaces
+  main:
+    kind: single
+    prompt: "Warum kompiliert `CheapPolicy` nicht?"
+    code: |
+      public interface LateFeePolicy {
+          int feeInCents(int daysLate);
+          String name();
+      }
+
+      public class CheapPolicy implements LateFeePolicy {
+          @Override
+          public int feeInCents(int daysLate) {
+              return daysLate * 10;
+          }
+      }
+    options:
+      - "`name()` fehlt – wer ein Interface implementiert, muss alle seine Methoden ausprogrammieren."
+      - "Ein Interface darf nur eine Methode haben."
+      - "Es müsste `extends LateFeePolicy` heißen."
+      - "`@Override` ist bei Interfaces verboten."
+    answer: 0
+    explanation: |
+      `implements` heißt: Ich halte den ganzen Vertrag. Fehlt eine Methode, meldet der Compiler
+      *CheapPolicy is not abstract and does not override abstract method name()*.
+
+- id: fundament-interface-new
+  unit: fundament/interfaces
+  main:
+    kind: multi
+    prompt: "Welche Zeilen kompilieren? (`LateFeePolicy` ist ein Interface, `StandardPolicy implements LateFeePolicy`.)"
+    options:
+      - "`LateFeePolicy p = new StandardPolicy();`"
+      - "`LateFeePolicy p = new LateFeePolicy();`"
+      - "`List<String> names = new ArrayList<>();`"
+      - "`StandardPolicy s = new LateFeePolicy();`"
+    answer: [0, 2]
+    explanation: |
+      Links darf das Interface stehen, rechts muss eine **konkrete** Klasse mit `new` gebaut werden.
+      Ein Interface allein hat keinen Code und lässt sich nicht erzeugen.
+
+- id: fundament-interface-repository
+  unit: fundament/interfaces
+  main:
+    kind: single
+    prompt: "Wer schreibt den Code für die Methoden von `BookRepository`?"
+    code: |
+      public interface BookRepository extends JpaRepository<Book, Long> {
+          List<Book> findByTitleContaining(String part);
+      }
+    options:
+      - "Spring Data – es erzeugt beim Start automatisch eine Klasse, die das Interface implementiert."
+      - "Du musst eine Klasse `BookRepositoryImpl` schreiben."
+      - "Niemand – der Aufruf wirft immer eine Exception."
+      - "Hibernate liest dafür eine XML-Datei."
+    answer: 0
+    explanation: |
+      Das ist der Trick von Spring Data: Du schreibst nur den Vertrag (das Interface), Spring baut die Implementierung
+      selbst – auch für `findBy…`-Methoden, aus deren Namen.
+
+- id: fundament-override-tippfehler
+  unit: fundament/override
+  main:
+    kind: single
+    prompt: "Was passiert, wenn du hier `@Override` darüber schreibst?"
+    code: |
+      public class Book {
+          private String title;
+
+          public String toSting() {
+              return "Book " + title;
+          }
+      }
+    options:
+      - "Kompilierfehler: Die Methode überschreibt nichts – so fällt der Tippfehler sofort auf."
+      - "Nichts, `@Override` ist nur ein Kommentar."
+      - "Java korrigiert den Namen automatisch zu `toString`."
+      - "Laufzeitfehler beim Aufruf."
+    answer: 0
+    explanation: |
+      `@Override` lässt den Compiler prüfen, dass es die Methode in einem Obertyp gibt. `toSting` gibt es nicht –
+      ohne `@Override` wäre das eine neue Methode, und `System.out.println(book)` würde weiterhin `Book@1b6d3586`
+      ausgeben.
+
+- id: fundament-override-equals
+  unit: fundament/override
+  main:
+    kind: single
+    prompt: "Welche Signatur überschreibt `equals` von `Object` wirklich?"
+    options:
+      - "`public boolean equals(Object o)`"
+      - "`public boolean equals(Book other)`"
+      - "`public boolean equals(Book a, Book b)`"
+      - "`public static boolean equals(Object o)`"
+    answer: 0
+    explanation: |
+      Überschreiben verlangt **dieselbe Signatur**: Name, Parametertypen, Rückgabetyp. `equals(Book other)` ist eine
+      zusätzliche Methode (überladen) – Collections und JPA rufen sie nie auf. `@Override` deckt so etwas auf.
+
+- id: fundament-override-polymorphie
+  unit: fundament/override
+  main:
+    kind: single
+    prompt: "Was gibt der Code aus?"
+    code: |
+      // StandardPolicy: daysLate * 50
+      // StudentPolicy:  Math.max(0, daysLate - 3) * 20
+      LateFeePolicy policy = new StudentPolicy();
+      System.out.println(policy.feeInCents(4));
+    options:
+      - "20"
+      - "200"
+      - "80"
+      - "Kompilierfehler, weil `policy` den Typ `LateFeePolicy` hat"
+    answer: 0
+    explanation: |
+      Es läuft die Methode des **echten Objekts** (`StudentPolicy`): `max(0, 4 - 3) * 20 = 20`.
+      Der Typ der Variable bestimmt nur, welche Methoden du aufrufen darfst.
