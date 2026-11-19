@@ -49,6 +49,9 @@
 
 	// The drawer on narrow screens closes after following a link.
 	afterNavigate(() => {
+		// Offline use: have the service worker keep every page that was opened (see service-worker/index.ts).
+		if ('serviceWorker' in navigator)
+			navigator.serviceWorker.controller?.postMessage({ type: 'CACHE_PAGE', url: location.pathname });
 		widePanel = false;
 		if (isNarrow() && panelOpen) {
 			panelOpen = false;

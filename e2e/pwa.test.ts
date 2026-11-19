@@ -19,16 +19,28 @@ test('service worker registers, precaches pages and serves them offline', async 
 	await page.reload();
 	await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
 
+	// Only the core pages are precached.
 	const cached = await page.evaluate(async () => {
 		const names = await caches.keys();
 		const cache = await caches.open(names[0]);
-		return { names: names.length, pages: (await cache.keys()).length };
+		return { names: names.length, urls: (await cache.keys()).map((r) => new URL(r.url).pathname) };
 	});
 	expect(cached.names).toBe(1);
-	expect(cached.pages).toBeGreaterThan(50);
+	expect(cached.urls).toEqual(expect.arrayContaining(['/', '/woche', '/datenschutz', '/offline.html']));
+	expect(cached.urls.length).toBeLessThan(80);
+	expect(cached.urls.some((u) => u.includes('/puzzles/'))).toBe(false);
+
+	// A unit page visited online is available offline afterwards; one never visited shows the offline page.
+	await page.goto('/');
+	await page.getByRole('link', { name: 'Aufbau eines Tests' }).first().click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+	const unitPath = new URL(page.url()).pathname;
+	await page.goto('/datenschutz');
 
 	await context.setOffline(true);
-	await page.goto('/datenschutz');
-	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+	await page.goto(unitPath);
+	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+	await page.goto('/jpa');
+	await expect(page.getByText('Du bist offline – diese Seite war noch nicht geladen.')).toBeVisible();
 	await context.setOffline(false);
 });
