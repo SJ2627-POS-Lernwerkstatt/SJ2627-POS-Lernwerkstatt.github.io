@@ -1,0 +1,14 @@
+week: 2027-W04
+title: "JPA III – OneToMany, ManyToMany, Queries"
+goal: 3
+items:
+  - unit: jpa/one-to-many
+  - puzzle: rel-album-songs-mapped-by
+  - unit: jpa/many-to-many
+  - unit: jpa/abgeleitete-queries
+  - puzzle: repo-movie-interface
+  - puzzle: repo-lifecycle-test
+  - review: { module: jpa, cards: 10 }
+  - exercise: jpa/uebungen/fahrradverleih-beziehungen
+    laptop: true
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

@@ -1,0 +1,12 @@
+week: 2027-W08
+title: "Service I – von der Angabe zum Code"
+goal: 3
+items:
+  - unit: service/aufgabe-2
+  - unit: service/angabe-zu-code
+  - puzzle: svc-record-validation
+  - unit: service/geschaeftsregeln
+  - puzzle: svc-fee-rule
+  - unit: testing/aufbau
+  - review: { module: service, cards: 8 }
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

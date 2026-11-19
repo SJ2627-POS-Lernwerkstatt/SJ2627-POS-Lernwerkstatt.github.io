@@ -1,0 +1,9 @@
+# Mittwoch, 17. März 2027: Probematura. Nur noch wiederholen, nichts Neues.
+week: 2027-W11
+title: "Endspurt – nur wiederholen, du schaffst das"
+goal: 2
+items:
+  - review: { module: jpa, cards: 10 }
+  - review: { module: rest, cards: 8 }
+  - review: { module: service, cards: 8 }
+  - review: { module: theorie, cards: 8 }

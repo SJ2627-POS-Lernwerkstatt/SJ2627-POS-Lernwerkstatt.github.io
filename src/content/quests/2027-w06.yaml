@@ -1,0 +1,12 @@
+week: 2027-W06
+title: "REST I – Controller, GET und Pfade"
+goal: 3
+items:
+  - unit: rest/grundlagen
+  - unit: rest/restcontroller
+  - puzzle: rest-controller-skeleton
+  - unit: rest/parameter
+  - puzzle: rest-path-variable
+  - review: { module: rest, cards: 8 }
+  - theory: theorie/optimistic-locking
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

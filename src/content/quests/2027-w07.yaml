@@ -1,0 +1,14 @@
+week: 2027-W07
+title: "REST II – Anlegen, Ändern, Fehler, erster MockMvc-Test"
+goal: 3
+items:
+  - unit: rest/anlegen
+  - puzzle: rest-post-created
+  - unit: rest/aendern-loeschen
+  - unit: rest/fehlerbehandlung
+  - unit: rest/webmvctest
+  - puzzle: rt-get-ok
+  - review: { module: rest, cards: 10 }
+  - exercise: rest/uebungen/konzertkasse
+    laptop: true
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

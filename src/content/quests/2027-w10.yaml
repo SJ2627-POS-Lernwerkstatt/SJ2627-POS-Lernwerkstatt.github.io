@@ -1,0 +1,10 @@
+week: 2027-W10
+title: "Generalprobe – eine ganze Probeprüfung"
+goal: 2
+items:
+  - exercise: pruefungen/uebungen/autowerkstatt-und-fahrschule
+    laptop: true
+  - review: { module: jpa, cards: 10 }
+  - review: { module: theorie, cards: 10 }
+  - theory: theorie/rekursion
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
