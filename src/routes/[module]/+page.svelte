@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import Badge from '#lib/components/Badge.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import { moduleSummary } from '#lib/progress/summary.js';
 
@@ -25,7 +24,6 @@
 				<span class="check" aria-label={progress.isRead(u.id) ? 'gelesen' : 'noch nicht gelesen'}></span>
 				<a href={resolve('/[module]/[unit]', { module: data.module.slug, unit: u.slug })}>{u.title}</a>
 				<span class="meta">
-					{#if u.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
 					{u.minutes} min
 				</span>
 			</li>
@@ -59,7 +57,6 @@
 				<span class="check" aria-label={done ? 'abgegeben' : 'noch nicht abgegeben'}></span>
 				<a href={resolve('/[module]/uebungen/[slug]', { module: data.module.slug, slug: x.slug })}>{x.title}</a>
 				<span class="meta">
-					{#if x.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
 					{x.minutes} min
 				</span>
 			</li>

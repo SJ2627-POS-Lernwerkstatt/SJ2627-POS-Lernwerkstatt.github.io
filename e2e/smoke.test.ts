@@ -10,6 +10,8 @@ test('unit page: read a unit and answer a Wissenscheck question', async ({ page 
 	await hydrated(page);
 	await page.getByRole('link', { name: 'Aufbau eines Tests' }).first().click();
 	await expect(page.getByRole('heading', { level: 1, name: 'Aufbau eines Tests' })).toBeVisible();
+	// The draft/review status is for the hidden /review page only.
+	await expect(page.getByText('Entwurf')).toHaveCount(0);
 
 	const first = page.getByRole('region', { name: 'Frage 1' });
 	const check = first.getByRole('button', { name: 'Antwort prüfen' });

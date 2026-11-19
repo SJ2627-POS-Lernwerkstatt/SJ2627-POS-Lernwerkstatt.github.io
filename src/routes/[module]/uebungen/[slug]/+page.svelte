@@ -38,7 +38,6 @@
 	<div class="meta">
 		<span>ca. {x.minutes} min</span>
 		<Badge tone="primary">{x.grading === 'auto' ? 'automatisch bewertet' : 'Feedback der Lehrkraft'}</Badge>
-		{#if x.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
 	</div>
 </header>
 

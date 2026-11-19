@@ -33,7 +33,6 @@
 	<div class="meta">
 		<span>{data.unit.minutes} min</span>
 		{#if !data.unit.core}<Badge tone="primary">Vertiefung</Badge>{/if}
-		{#if data.unit.status === 'draft'}<Badge tone="warn">Entwurf</Badge>{/if}
 		{#if data.unit.cheatsheet}
 			<a href={cheatSheetPage(data.unit.cheatsheet)} target="_blank" rel="noopener">
 				Spickzettel S. {data.unit.cheatsheet}
