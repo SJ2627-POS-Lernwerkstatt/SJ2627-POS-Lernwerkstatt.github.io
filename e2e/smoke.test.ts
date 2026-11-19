@@ -158,7 +158,10 @@ test('puzzles: long puzzles keep the pieces in view (side by side, or docked on 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto(url);
 	await hydrated(page);
+	// Narrow screens start in tap mode: select the piece, then tap the gap.
 	await pool.getByText('Entity', { exact: true }).click();
+	await page.waitForTimeout(300); // taps right after selecting are ignored
+	await page.getByTestId('gap-0').click();
 	await expect(page.getByText('einblenden')).toBeVisible();
 	await page.mouse.wheel(0, 400);
 	await expect(pool).toBeInViewport();
