@@ -6,12 +6,15 @@
 import { resolve } from '$app/paths';
 import { loadProgress } from '#lib/progress/storage.ts';
 import { STORAGE_KEY, progressSchema, type Progress } from '#lib/progress/schema.ts';
-import type { CatchUpItem, CurrentQuest, CurrentQuestItem, MeSummary } from './api.ts';
+import type { CatchUpItem, CurrentQuest, DiagnosticRequest, CurrentQuestItem, MeSummary } from './api.ts';
 import type { Quest, QuestItem, QuestsFile } from '#lib/quests/types.ts';
 
 export const MOCK_CODE = '123456';
 const MOCK_STATE_KEY = 'lernwerkstatt:mock';
 const MOCK_TOKEN = 'mock-token';
+
+/** Diagnostic submissions of this page load (the real server overwrites per student, so only the last counts). */
+export const mockDiagnostics: DiagnosticRequest[] = [];
 
 type MockState = { marks: Record<string, string>; serverProgress: Progress | null };
 
@@ -212,6 +215,12 @@ export async function mockFetch(url: string, init: RequestInit = {}): Promise<Re
 		writeState(state);
 		return noContent();
 	}
-	if (method === 'POST' && path === '/diagnostic') return noContent();
+	if (method === 'POST' && path === '/diagnostic') {
+		const answers = (body as Partial<DiagnosticRequest>).answers;
+		if (!Array.isArray(answers)) return error(400, 'BAD_REQUEST', 'Ungültige Antworten.');
+		mockDiagnostics.length = 0;
+		mockDiagnostics.push({ answers });
+		return noContent();
+	}
 	return error(404, 'NOT_FOUND', 'Unbekannte Route.');
 }
