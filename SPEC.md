@@ -59,6 +59,7 @@ Success looks like: a student opens the site, works through a unit in about 10 m
 | 3 | `jpa` | Spring Data JPA | exam task 1 |
 | 4 | `service` | Service-Schicht | exam task 2 |
 | 5 | `rest` | REST-Controller | exam task 3 |
+| 5a | `theorie` | Theoriefragen (Zusatzaufgabe, Bonuspunkte) | theory questions |
 | 6 | `pruefungen` | Probeprüfungen | mock exams |
 
 All modules are open; the start page suggests the order. Unit outline: `CURRICULUM.md`.
