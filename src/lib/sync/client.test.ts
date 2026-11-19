@@ -21,6 +21,15 @@ describe('api client', () => {
 		expect(init!.body).toBe('{"itemId":"unit:jpa/entity"}');
 	});
 
+	it('posts the diagnostic answers', async () => {
+		const { api, fetch } = make(() => json(204));
+		await api.submitDiagnostic({ answers: [{ id: 'diag-a', answer: [0, 2] }] });
+		const [url, init] = fetch.mock.calls[0];
+		expect(url).toBe('https://x.test/api/diagnostic');
+		expect(init!.method).toBe('POST');
+		expect(init!.body).toBe('{"answers":[{"id":"diag-a","answer":[0,2]}]}');
+	});
+
 	it('url-encodes the item id when removing a mark', async () => {
 		const { api, fetch } = make(() => json(204));
 		await api.unmark('unit:jpa/entity');

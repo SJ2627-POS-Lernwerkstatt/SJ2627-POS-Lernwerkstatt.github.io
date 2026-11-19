@@ -1,6 +1,7 @@
 import type {
 	ApiErrorBody,
 	CurrentQuest,
+	DiagnosticRequest,
 	MeSummary,
 	ProgressResponse,
 	PutProgressResponse,
@@ -94,6 +95,7 @@ export function createClient(opts: ClientOptions) {
 		summary: () => request<MeSummary>('GET', '/me/summary'),
 		currentQuest: () => request<CurrentQuest>('GET', '/quest/current'),
 		mark: (itemId: string) => request<void>('POST', '/quest/marks', { body: { itemId } }),
+		submitDiagnostic: (body: DiagnosticRequest) => request<void>('POST', '/diagnostic', { body }),
 		unmark: (itemId: string) => request<void>('DELETE', `/quest/marks/${encodeURIComponent(itemId)}`)
 	};
 }
