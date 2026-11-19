@@ -110,14 +110,12 @@ Exercises (teacher feedback, Aufgabe-2 size): Ladestationen (data passed in), Sp
 Exercises (teacher feedback): 3 tasks in Aufgabe-3 size, one with a sub-resource, one with pagination.
 
 ## 5a · Theoriefragen (Zusatzaufgabe: leichte Bonuspunkte)
-Typical theory questions (extra task). Each unit: the question as asked, a writing exercise (5 min, in keywords), background, model answer, checklist in a `:::pruefung` callout. No question groups, no puzzles.
+Typical theory questions (extra task). Each unit: the question as asked, a writing exercise (5 min, in keywords), background, model answer, checklist in a `:::pruefung` callout. Flashcards in `questions/theorie.yaml` (12 groups), no puzzles.
 
 Done:
 1. Dependency Injection
 2. Java-Laufzeit (JDK/JRE/JVM, Bytecode)
 3. MVC (REST-API vs. server-side rendering)
-
-Planned:
 4. REST-Schreiboperationen: PUT vs. PATCH
 5. Gleichzeitiges Bearbeiten: Optimistic Locking
 6. Arten automatisierter Tests
