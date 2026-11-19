@@ -167,11 +167,27 @@ test('puzzles: long puzzles keep the pieces in view (side by side, or docked on 
 	await expect(pool).toBeInViewport();
 });
 
+// Which build is under test: set PUBLIC_API_URL to the same value the build used ('mock' is covered by login.test.ts).
+const apiUrl = process.env.PUBLIC_API_URL ?? '';
+
 test('without PUBLIC_API_URL there is no login UI', async ({ page }) => {
+	test.skip(apiUrl !== '', 'this build has the login enabled');
 	await page.goto('/');
 	await hydrated(page);
 	await expect(page.getByRole('link', { name: /Anmelden|Lernwerkstatt-Login|Woche/ })).toHaveCount(0);
 	await page.goto('/fortschritt');
 	await hydrated(page);
 	await expect(page.getByRole('button', { name: 'Abmelden' })).toHaveCount(0);
+});
+
+test('with PUBLIC_API_URL the login is offered and /anmelden shows the email form', async ({ page }) => {
+	test.skip(apiUrl === '' || apiUrl === 'mock', 'needs a build with a real PUBLIC_API_URL');
+	// Rendering should not need the API; answer anything that does (e.g. a session check) as logged out.
+	await page.route(`${apiUrl.replace(/\/$/, '')}/**`, (route) => route.fulfill({ status: 401, json: {} }));
+	await page.goto('/');
+	await hydrated(page);
+	await expect(page.getByRole('link', { name: 'Lernwerkstatt-Login' }).first()).toBeVisible();
+	await page.goto('/anmelden');
+	await hydrated(page);
+	await expect(page.getByLabel(/E-Mail/i)).toBeVisible();
 });
