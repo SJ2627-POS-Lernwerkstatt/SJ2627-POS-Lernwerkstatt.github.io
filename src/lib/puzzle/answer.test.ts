@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { lineMarks, puzzleCorrect, puzzlePercent } from './answer.js';
 import type { PuzzleView } from './view.js';
 
-const common = { id: 'p', topic: 'jpa-entity', title: 'P', promptHtml: '', explanationHtml: '', solutionHtml: '', layout: 'stacked' as const };
+const common = { id: 'p', topic: 'jpa-entity', title: 'P', promptHtml: '', explanationHtml: '', solutionHtml: '', layout: 'stacked' as const, long: false };
 
 const lines: PuzzleView = {
 	...common,

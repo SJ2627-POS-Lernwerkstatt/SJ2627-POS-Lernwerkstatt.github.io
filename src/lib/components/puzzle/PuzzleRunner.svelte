@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import Button from '#lib/components/Button.svelte';
 	import TemplatePuzzle from '#lib/components/quiz/TemplatePuzzle.svelte';
 	import TemplateReview from '#lib/components/quiz/TemplateReview.svelte';
@@ -8,6 +8,7 @@
 	import type { PuzzleView } from '#lib/puzzle/view.js';
 	import { reviewLines } from '#lib/quiz/answer.js';
 	import { shuffled } from '#lib/quiz/shuffle.js';
+	import { ghostGuard, puzzleMode } from '#lib/puzzle/mode.svelte.js';
 	import LinePuzzle from './LinePuzzle.svelte';
 
 	interface Props {
@@ -25,6 +26,8 @@
 	const indents = untrack(() =>
 		puzzle.kind === 'lines' ? Object.fromEntries(puzzle.tiles.map((t, i) => [`t${i}`, t.indent])) : {}
 	);
+
+	onMount(() => puzzleMode.watch());
 
 	let gaps = $state<Gaps>({});
 	let checked = $state(false);
@@ -74,7 +77,7 @@
 	}
 </script>
 
-<div class="frame">
+<div class="frame" use:ghostGuard>
 	<div class="runner" class:split bind:clientWidth={width}>
 		<details class="brief" bind:open={briefOpen}>
 			<summary>
@@ -100,6 +103,9 @@
 		</details>
 
 		<div class="work">
+			{#if puzzle.long && puzzleMode.narrow}
+				<p class="laptop" role="note"><b>Laptop empfohlen.</b> Dieses Puzzle ist lang. Am Handy kannst du es trotzdem lösen.</p>
+			{/if}
 			{#key round}
 				{#if puzzle.kind === 'lines'}
 					<LinePuzzle
@@ -235,6 +241,18 @@
 		overflow-x: auto;
 		border-radius: var(--radius-lg);
 		font-size: 13px;
+	}
+	.laptop {
+		margin: 0;
+		padding: 10px 12px;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-lg);
+		background: var(--surface-alt);
+		font-size: 14px;
+	}
+	.runner,
+	.work {
+		min-width: 0;
 	}
 	.actions {
 		display: flex;

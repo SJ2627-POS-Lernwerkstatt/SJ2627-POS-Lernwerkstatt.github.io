@@ -65,11 +65,16 @@ const withGap = (board: Board, gap: number, chips: Chip[]): Board => ({
 export const setGap = withGap;
 
 /** Appends a pool chip to a gap. A reusable chip stays in the pool; the gap gets a copy. */
-export function addToGap(board: Board, chipId: string, gap: number): Board {
+export const addToGap = (board: Board, chipId: string, gap: number): Board => insertIntoGap(board, chipId, gap, Infinity);
+
+/** Puts a pool chip into a gap at `index` (clamped; past the end appends). Same pool rules as `addToGap`. */
+export function insertIntoGap(board: Board, chipId: string, gap: number, index: number): Board {
 	const chip = board.pool.find((c) => c.id === chipId);
 	if (!chip || gap < 0 || gap >= board.gaps.length) return board;
 	const placed = chip.reusable ? chipOf(chip) : chip;
-	const next = withGap(board, gap, [...board.gaps[gap]!, placed]);
+	const chips = [...board.gaps[gap]!];
+	chips.splice(Math.max(0, Math.min(index, chips.length)), 0, placed);
+	const next = withGap(board, gap, chips);
 	return chip.reusable ? next : { ...next, pool: board.pool.filter((c) => c.id !== chipId) };
 }
 

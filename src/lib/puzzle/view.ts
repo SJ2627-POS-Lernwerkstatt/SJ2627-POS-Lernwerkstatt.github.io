@@ -17,6 +17,8 @@ export type PuzzleView = {
 	solutionHtml: string;
 	/** split = task | code | pieces side by side when the screen is wide enough; stacked = always one column. */
 	layout: 'stacked' | 'split';
+	/** Given code + solution lines exceed `SPLIT_FROM_LINES`: a phone shows "Laptop empfohlen". */
+	long: boolean;
 } & (
 	| {
 			kind: 'lines';
