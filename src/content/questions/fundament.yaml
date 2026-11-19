@@ -301,3 +301,304 @@
     explanation: |
       Es läuft die Methode des **echten Objekts** (`StudentPolicy`): `max(0, 4 - 3) * 20 = 20`.
       Der Typ der Variable bestimmt nur, welche Methoden du aufrufen darfst.
+
+- id: fundament-vererbung-super
+  unit: fundament/vererbung
+  main:
+    kind: single
+    prompt: "Warum kompiliert der Konstruktor von `Ebook` nicht?"
+    code: |
+      public class Medium {
+          private final String title;
+          public Medium(String title) { this.title = title; }
+      }
+
+      public class Ebook extends Medium {
+          private final double sizeMb;
+          public Ebook(String title, double sizeMb) {
+              this.sizeMb = sizeMb;
+          }
+      }
+    options:
+      - "`super(title);` fehlt – `Medium` hat keinen leeren Konstruktor, also muss `Ebook` den vorhandenen aufrufen."
+      - "`sizeMb` darf nicht `final` sein."
+      - "Unterklassen dürfen keine eigenen Felder haben."
+      - "`Ebook` müsste `implements Medium` heißen."
+    answer: 0
+    explanation: |
+      Jeder Konstruktor ruft zuerst einen Konstruktor der Oberklasse auf. Schreibst du nichts, versucht Java `super()` –
+      den gibt es in `Medium` aber nicht. Also: `super(title);` als **erste** Zeile.
+  followUps:
+    - kind: single
+      prompt: "`Ebook extends Medium`, `Medium` hat ein `private String title`. Was geht in einer Methode von `Ebook`?"
+      options:
+        - "`getTitle()` aufrufen"
+        - "`title` direkt lesen"
+        - "`this.title = \"x\"` setzen"
+        - "`super.title` lesen"
+      answer: 0
+      explanation: |
+        `private` heißt: nur in **dieser** Klasse sichtbar – auch Unterklassen sehen das Feld nicht. Geerbt wird aber der
+        öffentliche Getter.
+
+- id: fundament-vererbung-abstract
+  unit: fundament/vererbung
+  main:
+    kind: multi
+    prompt: "Was stimmt für `public abstract class Medium` mit der Methode `public abstract int loanDays();`?"
+    options:
+      - "`new Medium(\"x\")` kompiliert nicht."
+      - "Jede nicht-abstrakte Unterklasse muss `loanDays()` ausprogrammieren."
+      - "`Medium` darf trotzdem Felder und fertige Methoden haben."
+      - "`Medium` darf keinen Konstruktor haben."
+    answer: [0, 1, 2]
+    explanation: |
+      Eine abstrakte Klasse ist halb fertig: nicht direkt erzeugbar, darf aber Felder, Konstruktoren (für `super(…)`) und
+      fertigen Code haben. Abstrakte Methoden muss jede konkrete Unterklasse liefern.
+
+- id: fundament-equals-string
+  unit: fundament/equals-hashcode
+  main:
+    kind: single
+    prompt: "Wie prüfst du richtig, ob der Titel „Momo“ ist?"
+    options:
+      - "`\"Momo\".equals(book.getTitle())`"
+      - "`book.getTitle() == \"Momo\"`"
+      - "`book.getTitle() = \"Momo\"`"
+      - "`book.getTitle().hashCode() == 0`"
+    answer: 0
+    explanation: |
+      Strings sind Objekte: `==` vergleicht, ob es **dasselbe** Objekt ist, und das ist oft nicht der Fall, obwohl der
+      Text gleich ist. `equals` vergleicht den Inhalt. `"Momo".equals(…)` hat den Bonus, dass es bei `null` einfach
+      `false` liefert statt einer `NullPointerException`.
+
+- id: fundament-equals-hashset
+  unit: fundament/equals-hashcode
+  main:
+    kind: single
+    prompt: "`Isbn` überschreibt nur `equals`, nicht `hashCode`. Was gibt der Code höchstwahrscheinlich aus?"
+    code: |
+      Set<Isbn> seen = new HashSet<>();
+      seen.add(new Isbn("9783608938289"));
+      System.out.println(seen.contains(new Isbn("9783608938289")));
+    options:
+      - "`false` – das HashSet sucht über `hashCode` in der falschen Schublade."
+      - "`true` – `equals` reicht."
+      - "Kompilierfehler"
+      - "`NullPointerException`"
+    answer: 0
+    explanation: |
+      Gleiche Objekte müssen den gleichen `hashCode` haben. Ohne eigenes `hashCode` bekommen die zwei ISBNs fast sicher
+      verschiedene Werte, und `contains` vergleicht gar nicht erst mit `equals`. Darum: immer **beide** überschreiben –
+      oder gleich einen `record` nehmen.
+
+- id: fundament-list-map-basics
+  unit: fundament/list-map
+  main:
+    kind: single
+    prompt: "Was gibt der Code aus?"
+    code: |
+      Map<String, Integer> loans = new HashMap<>();
+      loans.put("Mitte", 12);
+      loans.put("Nord", 5);
+      loans.put("Mitte", 13);
+      System.out.println(loans.size() + " " + loans.get("Mitte") + " " + loans.get("Süd"));
+    options:
+      - "`2 13 null`"
+      - "`3 12 null`"
+      - "`3 13 0`"
+      - "`2 25 0`"
+    answer: 0
+    explanation: |
+      Ein Schlüssel kommt in einer Map nur **einmal** vor: Das zweite `put("Mitte", …)` überschreibt den Wert.
+      Für einen fehlenden Schlüssel liefert `get` `null` – mit `getOrDefault("Süd", 0)` bekämst du `0`.
+  followUps:
+    - kind: single
+      prompt: "Was passiert in der zweiten Zeile?"
+      code: |
+        List<String> titles = List.of("Momo", "Der Hobbit");
+        titles.add("Krabat");
+      options:
+        - "`UnsupportedOperationException` – `List.of` ist unveränderlich."
+        - "Die Liste hat danach drei Einträge."
+        - "Kompilierfehler"
+        - "Nichts, `add` wird ignoriert."
+      answer: 0
+      explanation: |
+        `List.of(…)` liefert eine unveränderliche Liste. Zum Befüllen nimm `new ArrayList<>()`, oder kopiere:
+        `new ArrayList<>(List.of(…))`.
+
+- id: fundament-list-map-index
+  unit: fundament/list-map
+  main:
+    kind: single
+    prompt: "`titles` enthält `[\"Momo\", \"Der Hobbit\", \"Krabat\"]`. Was liefert `titles.get(1)`?"
+    options:
+      - "`\"Der Hobbit\"`"
+      - "`\"Momo\"`"
+      - "`\"Krabat\"`"
+      - "`IndexOutOfBoundsException`"
+    answer: 0
+    explanation: |
+      Der Index beginnt bei **0**: `get(0)` ist „Momo“, `get(1)` „Der Hobbit“, `get(2)` „Krabat“. `get(3)` würde eine
+      `IndexOutOfBoundsException` werfen.
+
+- id: fundament-generics-repository
+  unit: fundament/generics
+  main:
+    kind: single
+    prompt: "Das Entity `Book` erbt von `AbstractPersistable<Long>`. Welche Zeile ist richtig?"
+    options:
+      - "`interface BookRepository extends JpaRepository<Book, Long>`"
+      - "`interface BookRepository extends JpaRepository<Long, Book>`"
+      - "`interface BookRepository extends JpaRepository<Book, long>`"
+      - "`class BookRepository implements JpaRepository<Book>`"
+    answer: 0
+    explanation: |
+      Zuerst das Entity, dann der Typ der Id. In spitzen Klammern dürfen keine primitiven Typen stehen, also `Long` statt
+      `long`. Und das Repository ist ein **Interface**, das Spring Data implementiert.
+  followUps:
+    - kind: template
+      prompt: "Ergänze die Typen."
+      template: |
+        public class GenreConverter implements AttributeConverter<{{Genre}}, {{String}}> { … }
+
+        Optional<{{Book}}> found = repository.findById(42L);
+        List<{{Integer}}> pages = new ArrayList<{{}}>();
+        ResponseEntity<{{Void}}> deleted = ResponseEntity.noContent().build();
+      redHerrings:
+        - "int"
+        - "void"
+        - "Optional"
+      explanation: |
+        `AttributeConverter<JavaTyp, DbTyp>`, `findById` liefert `Optional<Entity>`, Listen brauchen den Wrapper
+        `Integer`, rechts reicht der Diamant `<>`, und eine Antwort ohne Body ist `ResponseEntity<Void>` mit großem V.
+
+- id: fundament-exceptions-flow
+  unit: fundament/exceptions
+  main:
+    kind: single
+    prompt: "Was gibt der Code aus, wenn das Buch schon verliehen ist und `borrow` dann eine `IllegalStateException` wirft?"
+    code: |
+      try {
+          library.borrow(book);
+          System.out.println("A");
+      } catch (IllegalStateException e) {
+          System.out.println("B");
+      }
+      System.out.println("C");
+    options:
+      - "`B` und `C`"
+      - "`A`, `B` und `C`"
+      - "nur `B`"
+      - "`A` und `C`"
+    answer: 0
+    explanation: |
+      Die Exception bricht den `try`-Block sofort ab – `A` wird nicht mehr ausgegeben. Der passende `catch`-Block läuft,
+      danach geht es normal weiter mit `C`.
+
+- id: fundament-exceptions-own
+  unit: fundament/exceptions
+  main:
+    kind: template
+    prompt: "Baue eine eigene, unchecked Exception für ein fehlendes Buch."
+    template: |
+      public class BookNotFoundException {{extends RuntimeException}} {
+          public BookNotFoundException(long id) {
+              {{super("Book " + id + " not found");}}
+          }
+      }
+    redHerrings:
+      - "extends Exception"
+      - "implements RuntimeException"
+      - "return \"Book \" + id + \" not found\";"
+    explanation: |
+      Unchecked heißt `extends RuntimeException` – dann verlangt der Compiler kein `throws`. Die Nachricht gibst du mit
+      `super(…)` an die Oberklasse weiter; `getMessage()` liefert sie später.
+  followUps:
+    - kind: single
+      prompt: "Welche eingebaute Exception passt, wenn `pages` beim Anlegen eines Buches negativ ist?"
+      options:
+        - "`IllegalArgumentException`"
+        - "`IllegalStateException`"
+        - "`NullPointerException`"
+        - "`IOException`"
+      answer: 0
+      explanation: |
+        Ein **Parameter** ist ungültig → `IllegalArgumentException`. `IllegalStateException` ist für einen falschen
+        **Zustand** (z. B. Buch schon verliehen).
+
+- id: fundament-annotationen-wer
+  unit: fundament/annotationen
+  main:
+    kind: single
+    prompt: "Du hast `@Entity` an `Book` vergessen. Was passiert?"
+    options:
+      - "Der Code kompiliert, aber Hibernate legt keine Tabelle an – der Fehler zeigt sich erst beim Start oder im Test."
+      - "Der Compiler meldet sofort einen Fehler."
+      - "Nichts, `@Entity` ist optional."
+      - "IntelliJ ergänzt die Annotation beim Kompilieren automatisch."
+    answer: 0
+    explanation: |
+      Annotationen sind Zettel, die ein Werkzeug liest. `@Entity` liest Hibernate – der Compiler kümmert sich nicht darum.
+      Darum kompiliert der Code, und z. B. das Repository scheitert erst beim Start mit *Not a managed type: class Book*.
+  followUps:
+    - kind: single
+      prompt: "Welcher Import gehört zu `@Test` in der Matura?"
+      options:
+        - "`org.junit.jupiter.api.Test`"
+        - "`org.junit.Test`"
+        - "`org.springframework.boot.test.Test`"
+        - "`jakarta.persistence.Test`"
+      answer: 0
+      explanation: |
+        JUnit 5 (Jupiter) liegt in `org.junit.jupiter.api`. `org.junit.Test` ist JUnit 4 – damit werden deine Tests im
+        Seed-Projekt nicht gefunden.
+
+- id: fundament-spring-di-constructor
+  unit: fundament/spring-di
+  main:
+    kind: single
+    prompt: "Wie bekommt `BookController` sein `BookService`?"
+    code: |
+      @RestController
+      @RequiredArgsConstructor
+      public class BookController {
+          private final BookService service;
+      }
+    options:
+      - "Spring baut beim Start ein `BookService` (eine Bean) und übergibt es dem Konstruktor, den Lombok erzeugt."
+      - "Gar nicht – `service` bleibt `null`, man muss `new BookService()` schreiben."
+      - "Über eine statische Methode `BookService.getInstance()`."
+      - "Hibernate lädt es aus der Datenbank."
+    answer: 0
+    explanation: |
+      Das ist Dependency Injection: `@RequiredArgsConstructor` erzeugt einen Konstruktor für alle `final`-Felder, und
+      Spring ruft ihn mit der passenden Bean auf. Selbst `new` zu schreiben würde die Austauschbarkeit im Test zerstören.
+  followUps:
+    - kind: single
+      prompt: "Beim Start: *required a bean of type 'BookService' that could not be found*. Was ist die wahrscheinlichste Ursache?"
+      options:
+        - "An der Klasse `BookService` fehlt `@Service`."
+        - "`BookController` hat kein `@GetMapping`."
+        - "Die Datenbank ist leer."
+        - "`service` ist `final`."
+      answer: 0
+      explanation: |
+        Spring baut nur Beans aus Klassen mit `@Service`, `@Repository`, `@Component`, `@RestController` … Fehlt die
+        Annotation, gibt es nichts zu übergeben.
+
+- id: fundament-spring-di-why
+  unit: fundament/spring-di
+  main:
+    kind: multi
+    prompt: "Welche Aussagen über Dependency Injection stimmen?"
+    options:
+      - "Eine Klasse baut ihre Abhängigkeiten nicht selbst, sie bekommt sie von außen."
+      - "Im Test kann man statt der echten Abhängigkeit einen Mock übergeben."
+      - "DI funktioniert nur mit Datenbanken."
+      - "In Spring ist der Konstruktor der übliche Weg, Abhängigkeiten zu bekommen."
+    answer: [0, 1, 3]
+    explanation: |
+      Genau das sind die Punkte für die Theoriefrage: Abhängigkeit kommt von außen (Container = Spring), Konstruktor-
+      Injection, Austauschbarkeit (Mock im Test, andere Implementierung im Betrieb). Mit Datenbanken hat DI nichts zu tun.
