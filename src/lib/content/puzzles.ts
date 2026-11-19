@@ -12,6 +12,12 @@ export type PuzzleTopic = {
 /** Puzzle topics in course order. Each has a pool `src/content/puzzles/<slug>.yaml`. */
 export const PUZZLE_TOPICS = [
 	{
+		slug: 'fundament',
+		module: 'fundament',
+		title: 'Java-Grundlagen',
+		description: 'Klassen, Konstruktoren, Interfaces und @Override in reinem Java: kleine Bausteine der Bibliothek.'
+	},
+	{
 		slug: 'jpa-entity',
 		module: 'jpa',
 		title: 'Entity aus UML',
