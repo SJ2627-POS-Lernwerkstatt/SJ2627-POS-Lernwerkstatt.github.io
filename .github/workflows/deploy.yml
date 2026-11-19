@@ -45,7 +45,10 @@ jobs:
           restore-keys: plantuml-
       - run: npm run check
       - run: npm test
+      # Login is only built in when the repository variable API_URL is set (see README); empty hides it.
       - run: npm run build
+        env:
+          PUBLIC_API_URL: ${{ vars.API_URL }}
       # Smoke test against the prerendered site (unit page, Wissenscheck, exercise run, exercise page).
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

@@ -20,3 +20,7 @@ npm run build    # static site into build/
 ```
 
 Pushing to `main` builds and deploys to GitHub Pages (`.github/workflows/deploy.yml`).
+
+## Lernwerkstatt-Login
+
+The optional login (weekly quests, sync) is built in only if the repository variable `API_URL` is set (GitHub: Settings, Secrets and variables, Actions, Variables) to `https://<domain>/api`. Unset or empty: the login is hidden and the site works as before. The backend's `ALLOWED_ORIGINS` must contain the Pages origin. The app is installable as a PWA (manifest, service worker); with login enabled it starts at `/woche`.
