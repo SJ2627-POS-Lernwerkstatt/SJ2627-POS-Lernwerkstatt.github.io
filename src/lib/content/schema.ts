@@ -84,6 +84,9 @@ const templateQuestion = z.strictObject({
 	reusable: z.array(z.string().min(1)).default([])
 });
 
+/** Questions that are answered by ticking options (the launch diagnostic allows only these). */
+export const choiceQuestion = z.discriminatedUnion('kind', [singleQuestion, multiQuestion]);
+
 export const question = z.discriminatedUnion('kind', [singleQuestion, multiQuestion, templateQuestion]);
 export type Question = z.infer<typeof question>;
 
