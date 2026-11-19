@@ -81,3 +81,64 @@ test('link token: only the button redeems it; next is honoured, bad next falls b
 	await page.getByRole('button', { name: 'Anmelden' }).click();
 	await expect(page).toHaveURL(/\/woche$/);
 });
+
+test('Einstiegstest: answer three questions, skip the rest, submit, card is gone', async ({ page }) => {
+	await page.goto('/anmelden?t=abc123');
+	await page.getByRole('button', { name: 'Anmelden' }).click();
+	await expect(page).toHaveURL(/\/woche$/);
+
+	// The card on /woche leads to the test.
+	const card = page.getByRole('link', { name: 'Einstiegstest (5 Min.)' });
+	await expect(card).toBeVisible();
+	await card.click();
+	await expect(page).toHaveURL(/\/einstieg$/);
+	await expect(page.getByText(/10 Fragen, ca\. 5 Minuten/)).toBeVisible();
+	await page.getByRole('button', { name: /Los geht/ }).click();
+
+	const choice = page.locator('.option input');
+	for (let n = 1; n <= 3; n++) {
+		await expect(page.getByText(`Frage ${n} von 10`)).toBeVisible();
+		await choice.first().check();
+		// No feedback while answering.
+		await expect(page.getByText(/^(Richtig!|Leider falsch)/)).toHaveCount(0);
+		await expect(page.locator('.option.right, .option.wrong, .result')).toHaveCount(0);
+		await noHorizontalScroll(page);
+		await page.getByRole('button', { name: 'Weiter' }).click();
+	}
+
+	// A reload keeps the answers and the position.
+	await page.reload();
+	await expect(page.getByText('Frage 4 von 10')).toBeVisible();
+	await page.getByRole('button', { name: 'Zurück' }).click();
+	await expect(page.getByText('Frage 3 von 10')).toBeVisible();
+	await expect(choice.first()).toBeChecked();
+
+	// Skip the rest.
+	for (let n = 3; n < 10; n++) await page.getByRole('button', { name: 'Weiter' }).click();
+	await expect(page.getByText('Frage 10 von 10')).toBeVisible();
+	await expect(page.getByText('7 Fragen ohne Antwort')).toBeVisible();
+	await page.getByRole('button', { name: 'Abschicken' }).click();
+	await expect(page.getByText('Danke!')).toBeVisible();
+	await noHorizontalScroll(page);
+
+	await page.getByRole('link', { name: 'Zu dieser Woche' }).click();
+	await expect(page.getByRole('heading', { level: 2, name: 'Wochenziel' })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Einstiegstest (5 Min.)' })).toHaveCount(0);
+
+	// Done: /einstieg says so and offers a second go.
+	await page.goto('/einstieg');
+	await expect(page.getByText('Schon abgegeben – danke!')).toBeVisible();
+	await page.getByRole('button', { name: 'Nochmal ausfüllen' }).click();
+	await expect(page.getByText(/10 Fragen, ca\. 5 Minuten/)).toBeVisible();
+});
+
+test('Einstiegstest: the card on /woche can be dismissed', async ({ page }) => {
+	await page.goto('/anmelden?t=abc123');
+	await page.getByRole('button', { name: 'Anmelden' }).click();
+	await expect(page.getByRole('link', { name: 'Einstiegstest (5 Min.)' })).toBeVisible();
+	await page.getByRole('button', { name: 'Einstiegstest ausblenden' }).click();
+	await expect(page.getByRole('link', { name: 'Einstiegstest (5 Min.)' })).toHaveCount(0);
+	await page.reload();
+	await expect(page.getByRole('heading', { level: 2, name: 'Wochenziel' })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Einstiegstest (5 Min.)' })).toHaveCount(0);
+});
