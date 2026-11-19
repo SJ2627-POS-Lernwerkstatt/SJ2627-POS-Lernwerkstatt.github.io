@@ -1,4 +1,4 @@
-export const MODULE_SLUGS = ['modern-java', 'testing', 'streams', 'jpa', 'service', 'rest', 'pruefungen'] as const;
+export const MODULE_SLUGS = ['fundament', 'modern-java', 'testing', 'streams', 'jpa', 'service', 'rest', 'pruefungen'] as const;
 export type ModuleSlug = (typeof MODULE_SLUGS)[number];
 
 export type Module = {
@@ -8,8 +8,9 @@ export type Module = {
 	note: string;
 };
 
-/** The seven modules in their suggested order. */
+/** The eight modules in their suggested order. */
 export const MODULES: readonly Module[] = [
+	{ slug: 'fundament', title: 'Fundament', note: 'Grundlagen: Klassen, Interfaces, Vererbung' },
 	{ slug: 'modern-java', title: 'Moderne Java Features', note: 'Grundlagen' },
 	{ slug: 'testing', title: 'Unit Testing', note: 'Auffrischung' },
 	{ slug: 'streams', title: 'Stream API', note: 'Auffrischung' },

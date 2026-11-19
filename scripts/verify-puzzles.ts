@@ -108,6 +108,7 @@ const SUBPROJECTS: Record<string, { dir: string; base: string; sourceSet: 'main'
 };
 
 const TOPIC_SUBPROJECT: Record<string, keyof typeof SUBPROJECTS> = {
+	fundament: 'service',
 	'jpa-entity': 'jpa',
 	'jpa-relation': 'jpa',
 	'jpa-repository': 'jpa',

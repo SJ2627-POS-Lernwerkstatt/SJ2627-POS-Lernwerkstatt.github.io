@@ -1,0 +1,148 @@
+# Puzzles "Fundament" (plain Java: classes, constructors, interfaces, @Override). Format: src/lib/content/schema.ts (puzzle).
+# Running example: library (Book, late fees).
+# `check` is a hidden JUnit test run against the solution by scripts/verify-puzzles.ts (never shown to students).
+# Verify: node scripts/verify-puzzles.ts fundament
+
+- id: fund-book-class
+  kind: lines
+  title: Buch – Felder, Konstruktor, Getter
+  prompt: |
+    Schreib die Klasse `Book` mit den privaten Feldern `title` und `pages`, einem Konstruktor, der beide setzt, und einem Getter für `title`.
+  solution: |
+    public class Book {
+        private String title;
+        private int pages;
+
+        public Book(String title, int pages) {
+            this.title = title;
+            this.pages = pages;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+    }
+  redHerrings:
+    - "    public void Book(String title, int pages) {"
+    - "        title = title;"
+    - "    public String getTitle(String title) {"
+  explanation: |
+    Ein Konstruktor heißt wie die Klasse und hat **keinen** Rückgabetyp – mit `void` wäre es eine normale Methode. `this.title = title` schreibt den Parameter ins Feld; `title = title` würde das Feld leer lassen. Ein Getter braucht keinen Parameter.
+  check: |
+    class BookCheck {
+        @Test
+        void check() {
+            assertThat(new Book("Der Hobbit", 310).getTitle()).isEqualTo("Der Hobbit");
+        }
+    }
+
+- id: fund-book-validation
+  kind: lines
+  title: Buch – nur gültige Objekte
+  prompt: |
+    Ergänze den Konstruktor: Ist `pages` nicht größer als 0, soll eine `IllegalArgumentException` fliegen. Erst danach werden die Felder gesetzt.
+  given: |
+    public class Book {
+        private final String title;
+        private final int pages;
+
+        // ✎ Konstruktor
+
+        public int getPages() {
+            return pages;
+        }
+    }
+  solution: |
+    public Book(String title, int pages) {
+        if (pages <= 0) {
+            throw new IllegalArgumentException("pages must be positive");
+        }
+        this.title = title;
+        this.pages = pages;
+    }
+  redHerrings:
+    - "    if (pages < 0) {"
+    - "        return null;"
+    - "    this.pages = 0;"
+  explanation: |
+    „Nicht größer als 0“ heißt `pages <= 0` – auch 0 Seiten sind ungültig. Ein Konstruktor kann nichts zurückgeben, also bleibt nur die Exception. Weil die Felder `final` sind, muss der Konstruktor beide genau einmal setzen.
+  check: |
+    class BookValidationCheck {
+        @Test
+        void check() {
+            assertThat(new Book("Momo", 300).getPages()).isEqualTo(300);
+            assertThatThrownBy(() -> new Book("Leer", 0)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new Book("Minus", -1)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+- id: fund-interface-policy
+  kind: lines
+  title: Mahngebühr – Interface implementieren
+  prompt: |
+    `StudentPolicy` hält den Vertrag `LateFeePolicy`: Die ersten 3 Tage sind gratis, danach kostet jeder Tag 20 Cent.
+  given: |
+    public interface LateFeePolicy {
+        int feeInCents(int daysLate);
+    }
+
+    // ✎ StudentPolicy
+  solution: |
+    public class StudentPolicy implements LateFeePolicy {
+        @Override
+        public int feeInCents(int daysLate) {
+            return Math.max(0, daysLate - 3) * 20;
+        }
+    }
+  redHerrings:
+    - "public class StudentPolicy extends LateFeePolicy {"
+    - "public interface StudentPolicy implements LateFeePolicy {"
+    - "    public int feeInCents(int daysLate);"
+  explanation: |
+    Eine Klasse **implementiert** ein Interface (`implements`), `extends` gilt für Oberklassen. Die Methode braucht einen Rumpf – nur das Interface darf sie ohne `{ … }` aufschreiben. `@Override` lässt den Compiler prüfen, dass Name und Parameter zum Interface passen. `Math.max(0, …)` verhindert negative Gebühren bei 1–3 Tagen.
+  check: |
+    class StudentPolicyCheck {
+        @Test
+        void check() {
+            LateFeePolicy p = new StudentPolicy();
+            assertThat(p.feeInCents(0)).isZero();
+            assertThat(p.feeInCents(3)).isZero();
+            assertThat(p.feeInCents(4)).isEqualTo(20);
+            assertThat(p.feeInCents(10)).isEqualTo(140);
+        }
+    }
+
+- id: fund-override-tostring
+  kind: template
+  title: Buch – toString überschreiben
+  prompt: |
+    `System.out.println(book)` soll `Der Hobbit (310 Seiten)` ausgeben. Ergänze die Methode.
+  template: |
+    public class Book {
+        private final String title;
+        private final int pages;
+
+        public Book(String title, int pages) {
+            this.title = title;
+            this.pages = pages;
+        }
+
+        @{{Override}}
+        public {{String}} {{toString()}} {
+            return title + " (" + pages + " Seiten)";
+        }
+    }
+  redHerrings:
+    - "toSting()"
+    - "void"
+    - "toString(Book book)"
+    - "Overload"
+  explanation: |
+    `toString()` kommt von `Object` und gibt einen `String` zurück, ohne Parameter. `@Override` fängt Tippfehler wie `toSting` ab – ohne die Annotation würde `println` weiterhin `Book@1b6d3586` ausgeben.
+  check: |
+    class BookToStringCheck {
+        @Test
+        void check() {
+            assertThat(new Book("Der Hobbit", 310).toString()).isEqualTo("Der Hobbit (310 Seiten)");
+        }
+    }

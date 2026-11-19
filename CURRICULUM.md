@@ -2,6 +2,22 @@
 
 Draft unit list per module (core units only; Vertiefung units were dropped on 2026-10-25, HATEOAS, pagination and `@JsonTest` are core REST units at the user's request because good grades need them). Numbers in brackets = cheat sheet page. Each unit gets 2–4 question groups in the pool.
 
+## 0 · Fundament (Grundlagen: Klassen, Interfaces, Vererbung)
+
+Erstes Modul im Kurs, reines Java ohne Spring. Laufendes Beispiel: Bibliothek (`Book`, Mahngebühren). Einheiten 1–4 sind geschrieben, 5–11 geplant.
+
+1. Klassen und Objekte: Felder, Methoden, `new`, Referenzen
+2. Konstruktoren: `this`, Überladen, Validierung im Konstruktor
+3. Interfaces: Vertrag und Implementierung, mehrere Implementierungen
+4. `@Override`: Methoden überschreiben, `toString`
+5. (geplant) Vererbung und abstrakte Klassen
+6. (geplant) `equals` und `hashCode`
+7. (geplant) `List` und `Map`
+8. (geplant) Generics
+9. (geplant) Exceptions
+10. (geplant) Annotationen
+11. (geplant) Was macht Spring für mich?
+
 ## 0 · Moderne Java Features (Grundlagen)
 
 Quelle der Inhalte: Vorlesung 3xHIF `01_Var_Records_Optional_Switch`.
