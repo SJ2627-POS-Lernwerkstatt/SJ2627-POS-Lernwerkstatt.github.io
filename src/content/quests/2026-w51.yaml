@@ -1,14 +1,12 @@
-# Quest week 2026-W51 (14.–20. Dezember). Format: src/lib/quests/schema.ts, docs in SPEC.md ("Quests").
-# Fundament II, first half. The rest (Exceptions, Annotationen, Spring-DI) follows in the holiday weeks.
+# Quest week 2026-W51 (14.–20. Dezember): Fundament festigen, zwei Theoriefragen, erster Blick auf JPA.
 week: 2026-W51
-title: "Fundament II – Vererbung, equals, List und Map"
+title: "Fundament-Abschluss – Theorie und ein Blick auf JPA"
 goal: 3
 items:
-  - unit: fundament/vererbung
-  - puzzle: fund-inheritance-ebook
-  - unit: fundament/equals-hashcode
-  - unit: fundament/list-map
-  - puzzle: fund-map-count
-  - unit: fundament/generics
-  - review: { module: fundament, cards: 8 }
+  - review: { module: fundament, cards: 10 }
+  - theory: theorie/java-laufzeit
+  - theory: theorie/mvc
+  - unit: jpa/uml
+  - puzzle: fund-book-validation
+  - review: { module: theorie, cards: 6 }
 classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

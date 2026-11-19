@@ -1,0 +1,15 @@
+# Quest week 2026-W48 (23.–29. November). Launch: Lernwerkstatt-Stunde am Freitag, 27. November – alle melden sich dort an.
+# No mails before 2026-11-27 (backend MAIL_START); the recall cards of this Friday lesson come with the Monday mail of W49.
+week: 2026-W48
+title: "Fundament I – Klassen, Konstruktoren, Interfaces"
+lesson: 2026-11-27
+goal: 3
+items:
+  - unit: fundament/klassen-objekte
+  - unit: fundament/konstruktoren
+  - puzzle: fund-book-class
+  - unit: fundament/interfaces
+  - puzzle: fund-interface-policy
+  - unit: fundament/override
+  - review: { module: fundament, cards: 6 }
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

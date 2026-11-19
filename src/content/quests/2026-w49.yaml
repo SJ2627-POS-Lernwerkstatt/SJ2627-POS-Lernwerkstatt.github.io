@@ -1,0 +1,13 @@
+# Quest week 2026-W49 (30. November – 6. Dezember).
+week: 2026-W49
+title: "Fundament II – Vererbung, equals, List und Map"
+goal: 3
+items:
+  - unit: fundament/vererbung
+  - puzzle: fund-inheritance-ebook
+  - unit: fundament/equals-hashcode
+  - unit: fundament/list-map
+  - puzzle: fund-map-count
+  - unit: fundament/generics
+  - review: { module: fundament, cards: 8 }
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
