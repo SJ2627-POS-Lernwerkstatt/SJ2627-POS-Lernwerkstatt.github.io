@@ -6,6 +6,7 @@
 	import '../app.css';
 	import CourseNav from '#lib/components/CourseNav.svelte';
 	import Logo from '#lib/components/Logo.svelte';
+	import UpdateToast from '#lib/components/UpdateToast.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
@@ -48,6 +49,9 @@
 
 	// The drawer on narrow screens closes after following a link.
 	afterNavigate(() => {
+		// Offline use: have the service worker keep every page that was opened (see service-worker/index.ts).
+		if ('serviceWorker' in navigator)
+			navigator.serviceWorker.controller?.postMessage({ type: 'CACHE_PAGE', url: location.pathname });
 		widePanel = false;
 		if (isNarrow() && panelOpen) {
 			panelOpen = false;
@@ -110,6 +114,7 @@
 		</div>
 	</div>
 </div>
+<UpdateToast />
 
 <style>
 	.page {
