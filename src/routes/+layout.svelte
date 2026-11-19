@@ -6,6 +6,7 @@
 	import '../app.css';
 	import CourseNav from '#lib/components/CourseNav.svelte';
 	import Logo from '#lib/components/Logo.svelte';
+	import UpdateToast from '#lib/components/UpdateToast.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
@@ -110,6 +111,7 @@
 		</div>
 	</div>
 </div>
+<UpdateToast />
 
 <style>
 	.page {
