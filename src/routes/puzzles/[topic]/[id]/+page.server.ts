@@ -19,6 +19,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		wide: puzzle.layout === 'split',
 		topic,
 		puzzle,
+		mindest: puzzles[i]!.mindest,
 		position: i + 1,
 		count: puzzles.length,
 		prev: link(puzzles[i - 1]),

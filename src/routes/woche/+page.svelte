@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { siteHref } from '#lib/quests/href.ts';
 	import Badge from '#lib/components/Badge.svelte';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import InstallHint from '#lib/components/InstallHint.svelte';
 	import LoginGate from '#lib/components/LoginGate.svelte';
 	import Bar from '#lib/components/quest/Bar.svelte';
@@ -106,6 +107,7 @@
 							<a href={siteHref(item.href)}>{item.title}</a>
 							<span class="meta">
 								{item.minutes} min
+								{#if item.mindest}<MindestBadge />{/if}
 								{#if item.laptop}<Badge tone="warn">Laptop</Badge>{/if}
 								{#if st?.source === 'mark'}<Badge>in der Stunde</Badge>{/if}
 							</span>
@@ -128,6 +130,7 @@
 								<a href={siteHref(item.href)}>{item.title}</a>
 								<span class="meta">
 									{item.minutes} min · {item.reason === 'due-review' ? 'Zeit zum Wiederholen' : 'noch offen'}
+									{#if item.mindest}<MindestBadge />{/if}
 									{#if item.laptop}<Badge tone="warn">Laptop</Badge>{/if}
 								</span>
 							</div>

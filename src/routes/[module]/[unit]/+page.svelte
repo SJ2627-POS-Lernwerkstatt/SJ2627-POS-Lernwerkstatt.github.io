@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import CheckGroup from '#lib/components/quiz/CheckGroup.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
@@ -32,6 +33,7 @@
 	<h1>{data.unit.title}</h1>
 	<div class="meta">
 		<span>{data.unit.minutes} min</span>
+		{#if data.unit.mindest}<MindestBadge />{/if}
 		{#if !data.unit.core}<Badge tone="primary">Vertiefung</Badge>{/if}
 		{#if data.unit.cheatsheet}
 			<a href={cheatSheetPage(data.unit.cheatsheet)} target="_blank" rel="noopener">

@@ -1,12 +1,36 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import { moduleSummary } from '#lib/progress/summary.js';
 
 	let { data } = $props();
 
-	const core = $derived(data.units.filter((u) => u.core));
-	const extra = $derived(data.units.filter((u) => !u.core));
+	const KEY = 'lernwerkstatt.mindestOnly';
+	let mindestOnly = $state(false);
+	onMount(() => {
+		try {
+			mindestOnly = localStorage.getItem(KEY) === '1';
+		} catch {
+			// Storage blocked: the filter just is not remembered.
+		}
+	});
+	function setMindestOnly(on: boolean) {
+		mindestOnly = on;
+		try {
+			localStorage.setItem(KEY, on ? '1' : '0');
+		} catch {
+			// see above
+		}
+	}
+
+	const hasMindest = $derived(data.units.some((u) => u.mindest) || data.exercises.some((x) => x.mindest));
+	const only = $derived(hasMindest && mindestOnly);
+	const units = $derived(only ? data.units.filter((u) => u.mindest) : data.units);
+	const exercises = $derived(only ? data.exercises.filter((x) => x.mindest) : data.exercises);
+	const core = $derived(units.filter((u) => u.core));
+	const extra = $derived(units.filter((u) => !u.core));
 	const summary = $derived(moduleSummary(data.units, data.groupIds, progress.data));
 </script>
 
@@ -17,6 +41,16 @@
 <p class="kicker">{data.module.note}</p>
 <h1>{data.module.title}</h1>
 
+{#if hasMindest}
+	<div class="legend">
+		<p>Mindestanforderung = das brauchst du für ein Genügend. Alles andere bringt bessere Noten.</p>
+		<label>
+			<input type="checkbox" checked={mindestOnly} onchange={(e) => setMindestOnly(e.currentTarget.checked)} />
+			Nur Mindestanforderung zeigen
+		</label>
+	</div>
+{/if}
+
 {#snippet list(units: typeof data.units)}
 	<ol class="units">
 		{#each units as u (u.id)}
@@ -24,6 +58,7 @@
 				<span class="check" aria-label={progress.isRead(u.id) ? 'gelesen' : 'noch nicht gelesen'}></span>
 				<a href={resolve('/[module]/[unit]', { module: data.module.slug, unit: u.slug })}>{u.title}</a>
 				<span class="meta">
+					{#if u.mindest}<MindestBadge />{/if}
 					{u.minutes} min
 				</span>
 			</li>
@@ -33,7 +68,7 @@
 
 {#if data.units.length === 0 && data.exercises.length === 0}
 	<p class="empty">Die Einheiten zu diesem Modul erscheinen bald.</p>
-{:else if data.units.length}
+{:else if units.length}
 	{#if progress.loaded}
 		<p class="summary">
 			{summary.unitsRead} / {summary.units} Einheiten gelesen{summary.groups ? ` · ${summary.groupsKnown} / ${summary.groups} Fragengruppen gekonnt` : ''}
@@ -48,15 +83,16 @@
 	{/if}
 {/if}
 
-{#if data.exercises.length}
+{#if exercises.length}
 	<h2>Programmieraufgaben</h2>
 	<ol class="units">
-		{#each data.exercises as x (x.id)}
+		{#each exercises as x (x.id)}
 			{@const done = Boolean(progress.data.exercises[x.id]?.submittedAt)}
 			<li class:read={done}>
 				<span class="check" aria-label={done ? 'abgegeben' : 'noch nicht abgegeben'}></span>
 				<a href={resolve('/[module]/uebungen/[slug]', { module: data.module.slug, slug: x.slug })}>{x.title}</a>
 				<span class="meta">
+					{#if x.mindest}<MindestBadge />{/if}
 					{x.minutes} min
 				</span>
 			</li>
@@ -79,6 +115,30 @@
 	h2 {
 		margin: 32px 0 12px;
 		font-size: 20px;
+	}
+	.legend {
+		display: grid;
+		gap: 8px;
+		margin: -8px 0 8px;
+		padding: 10px 14px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+	}
+	.legend p {
+		margin: 0;
+	}
+	.legend label {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 14px;
+		cursor: pointer;
+	}
+	.legend input {
+		width: 18px;
+		height: 18px;
+		accent-color: var(--success);
 	}
 	.summary {
 		margin: -16px 0 0;

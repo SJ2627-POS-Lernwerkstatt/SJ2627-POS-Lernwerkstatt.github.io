@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
+	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import { reportIssueUrl } from '#lib/content/links.js';
 	import { renderMermaid } from '#lib/diagrams/mermaid.js';
@@ -37,6 +38,7 @@
 	<h1>{x.title}</h1>
 	<div class="meta">
 		<span>ca. {x.minutes} min</span>
+		{#if x.mindest}<MindestBadge />{/if}
 		<Badge tone="primary">{x.grading === 'auto' ? 'automatisch bewertet' : 'Feedback der Lehrkraft'}</Badge>
 	</div>
 </header>
