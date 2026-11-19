@@ -120,6 +120,15 @@ Target for 2026-12-01: about 30 groups per module that is live.
 
 `src/content/<module>/exercises/<nn>-<slug>.md` with frontmatter `title`, `classroomUrl`, `grading: auto | teacher`, `minutes`. The page shows the task (UML, JSON examples), the Classroom50 accept link and the four-tier rubric for self-assessment. The student can tick "abgegeben" (stored locally).
 
+### Quests (Advent of Matura)
+
+One file per ISO week: `src/content/quests/<yyyy>-w<ww>.yaml` with `week` (`2027-W02`, must match the file name), `title`, optional `lesson` (date inside the week), `goal` (items for the week streak, 1..items), optional `holiday`, `items` and optional `classGoal {weeks, minStudents, reward}`. Each item has exactly one of `unit`, `review: {module, cards 1..20}`, `puzzle`, `group`, `theory` (a unit id), `exercise` (site id `jpa/uebungen/<slug>` or file style `jpa/01-<slug>`), plus optional `laptop: true` and `minutes` (override). Every id must exist, items are unique per week; any error fails `npm test` and the build. Schema: `src/lib/quests/schema.ts`, resolver: `src/lib/server/quests/`.
+
+Build output (prerendered, fetched by the Advent-of-Matura backend; types in `src/lib/quests/types.ts`):
+- `/data/quests.json`: all weeks sorted, items resolved (`itemId` = `<kind>:<ref>`, `kind`, `ref`, `title`, `minutes`, `laptop`, `href`).
+- `/data/content-index.json`: every unit, question group, puzzle and exercise (`id`, `kind`, `module`, `title`, `minutes`, `href`, groups also `unit`).
+- Minute estimates where the content has none: lines puzzle `3 + ceil(solution lines / 4)`, template puzzle 4, question group `2 + follow-ups`, review run `ceil(cards / 2)`. A group has no page of its own: its `href` is the module's exercise mode `/ueben/<module>`.
+
 ### Mock exam
 
 Same as an exercise, in module `pruefungen`, one page per exam with `size: small | medium | full`;
@@ -199,9 +208,11 @@ docs/                         cheat-sheet-errors.md (the PDF stays private, see 
 src/
   content/<module>/           units (*.md), exercises/
   content/questions/          <module>.yaml
+  content/quests/             <yyyy>-w<ww>.yaml (Advent of Matura weeks)
   lib/
     content/                  module list, zod schemas (shared with the browser)
     server/content/           content index: parsing, cross-checks (build time only)
+    quests/, server/quests/   quest schema + types for the backend; resolver and build output
     quiz/                     question kinds, scoring, run selection, Leitner
     puzzle/                   template.ts (from parsonxam), TemplatePuzzle.svelte
     progress/                 store, export/import, migration
@@ -213,6 +224,7 @@ src/
     [module]/uebungen/[id]/   exercise / mock exam
     ueben/                    exercise mode (scope picker, run, result)
     review/
+    data/                     quests.json, content-index.json (prerendered)
 scripts/
   plantuml.ts                 build-time rendering
 .github/workflows/deploy.yml
