@@ -21,6 +21,8 @@ export type QuestItem = {
 	href: string;
 	/** Only for kind "review": number of cards in the run. */
 	cards?: number;
+	/** Mindestanforderung: the unit/puzzle/exercise/theory is needed for a Genügend. Only set when true; never for review and group items. */
+	mindest?: boolean;
 };
 
 export type ClassGoal = { weeks: number; minStudents: number; reward: string };
@@ -68,6 +70,8 @@ export type ContentEntry = {
 	assignment?: string;
 	/** Only for exercises: how it is graded. */
 	grading?: 'auto' | 'teacher';
+	/** Mindestanforderung (needed for a Genügend): units, puzzles and exercises. Only set when true. */
+	mindest?: boolean;
 };
 
 export type ContentModule = { slug: string; title: string };

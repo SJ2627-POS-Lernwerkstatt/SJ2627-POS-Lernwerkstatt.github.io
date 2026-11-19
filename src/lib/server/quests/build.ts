@@ -26,7 +26,7 @@ export function assignmentSlug(classroomUrl: string | undefined): string | undef
 export function contentEntries(content: ContentIndex): ContentEntry[] {
 	const unitHref = (id: string) => `/${id}`;
 	return [
-		...content.units.map((u) => ({ id: u.id, kind: 'unit' as const, module: u.module, title: u.title, minutes: u.minutes, href: unitHref(u.id) })),
+		...content.units.map((u) => ({ id: u.id, kind: 'unit' as const, module: u.module, title: u.title, minutes: u.minutes, href: unitHref(u.id), ...(u.mindest ? { mindest: true } : {}) })),
 		...content.groups.map((g) => ({
 			id: g.id,
 			kind: 'group' as const,
@@ -43,7 +43,8 @@ export function contentEntries(content: ContentIndex): ContentEntry[] {
 			module: puzzleTopic(p.topic)?.module ?? p.topic,
 			title: p.title,
 			minutes: puzzleMinutes(p),
-			href: `/puzzles/${p.topic}/${p.id}`
+			href: `/puzzles/${p.topic}/${p.id}`,
+			...(p.mindest ? { mindest: true } : {})
 		})),
 		...content.exercises.map((x) => {
 			const assignment = assignmentSlug(x.classroomUrl);
@@ -55,7 +56,8 @@ export function contentEntries(content: ContentIndex): ContentEntry[] {
 				minutes: x.minutes,
 				href: `/${x.id}`,
 				...(assignment ? { assignment } : {}),
-				grading: x.grading
+				grading: x.grading,
+				...(x.mindest ? { mindest: true } : {})
 			};
 		})
 	];
@@ -70,14 +72,15 @@ export function buildContentIndex(content: ContentIndex, now = new Date()): Cont
 type Lookup = Map<string, ContentEntry>;
 
 function resolveItem(raw: QuestItemInput, byKind: Record<ContentEntry['kind'], Lookup>, exerciseAlias: Map<string, string>, content: ContentIndex): QuestItem | string {
-	const base = (kind: QuestItem['kind'], ref: string, entry: { title: string; minutes: number; href: string }): QuestItem => ({
+	const base = (kind: QuestItem['kind'], ref: string, entry: { title: string; minutes: number; href: string; mindest?: boolean }): QuestItem => ({
 		itemId: `${kind}:${ref}`,
 		kind,
 		ref,
 		title: entry.title,
 		minutes: raw.minutes ?? entry.minutes,
 		laptop: raw.laptop,
-		href: entry.href
+		href: entry.href,
+		...(entry.mindest ? { mindest: true } : {})
 	});
 	const lookup = (kind: ContentEntry['kind'], what: string, ref: string) => {
 		const e = byKind[kind].get(ref);

@@ -6,13 +6,17 @@ export const CHEAT_SHEET_PAGES = 22;
 
 const status = z.enum(['draft', 'reviewed']).default('draft');
 
+/** Mindestanforderung: needed for a Genügend. Everything else is for better grades. */
+const mindest = z.boolean().default(false);
+
 export const unitFrontmatter = z.strictObject({
 	title: z.string().min(1),
 	minutes: z.int().min(1).max(30),
 	/** false = Vertiefung (optional unit). */
 	core: z.boolean().default(true),
 	cheatsheet: z.int().min(1).max(CHEAT_SHEET_PAGES).optional(),
-	status
+	status,
+	mindest
 });
 export type UnitFrontmatter = z.infer<typeof unitFrontmatter>;
 
@@ -46,7 +50,8 @@ export const exerciseFrontmatter = z.strictObject({
 	/** Only for mock exams. */
 	size: z.enum(['small', 'medium', 'full']).optional(),
 	rubric,
-	status
+	status,
+	mindest
 });
 export type ExerciseFrontmatter = z.infer<typeof exerciseFrontmatter>;
 
@@ -126,7 +131,8 @@ const puzzleBase = {
 	mutants: z.array(z.strictObject({ find: z.string().min(1), replace: z.string() })).default([]),
 	/** auto = side by side on wide screens when the puzzle is long (see puzzleLayout), else stacked. */
 	layout: z.enum(['auto', 'stacked', 'split']).default('auto'),
-	status
+	status,
+	mindest
 };
 
 /** Order whole lines. `solution` is the code in the right order; leading spaces (×4) set the indentation. */
