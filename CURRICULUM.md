@@ -4,19 +4,19 @@ Draft unit list per module (core units only; Vertiefung units were dropped on 20
 
 ## 0 · Fundament (Grundlagen: Klassen, Interfaces, Vererbung)
 
-Erstes Modul im Kurs, reines Java ohne Spring. Laufendes Beispiel: Bibliothek (`Book`, Mahngebühren). Einheiten 1–4 sind geschrieben, 5–11 geplant.
+Erstes Modul im Kurs, reines Java ohne Spring. Laufendes Beispiel: Bibliothek (`Book`, Mahngebühren). Einheiten 1–11 sind geschrieben.
 
 1. Klassen und Objekte: Felder, Methoden, `new`, Referenzen
 2. Konstruktoren: `this`, Überladen, Validierung im Konstruktor
 3. Interfaces: Vertrag und Implementierung, mehrere Implementierungen
 4. `@Override`: Methoden überschreiben, `toString`
-5. (geplant) Vererbung und abstrakte Klassen
-6. (geplant) `equals` und `hashCode`
-7. (geplant) `List` und `Map`
-8. (geplant) Generics
-9. (geplant) Exceptions
-10. (geplant) Annotationen
-11. (geplant) Was macht Spring für mich?
+5. Vererbung und abstrakte Klassen
+6. `equals` und `hashCode`
+7. `List` und `Map`
+8. Generics
+9. Exceptions
+10. Annotationen
+11. Was macht Spring für mich?
 
 ## 0 · Moderne Java Features (Grundlagen)
 
