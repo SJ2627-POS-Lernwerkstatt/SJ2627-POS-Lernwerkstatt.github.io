@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildQuests } from './build.js';
 import { buildIndex } from '#lib/server/content/build.js';
@@ -115,8 +116,28 @@ describe('week helpers', () => {
 
 describe('real quest files', () => {
 	it('resolve against the real content', async () => {
+		// importing the index throws if any real quest file fails to resolve
 		const { quests } = await import('./index.js');
-		expect(quests.weeks.map((w) => w.week)).toEqual(['2026-W50', '2026-W51']);
-		for (const w of quests.weeks) expect(w.goal).toBe(3);
+		const weeks = quests.weeks.map((w) => w.week);
+		expect(weeks.length).toBeGreaterThan(0);
+		expect(weeks).toContain('2026-W50');
+		expect(weeks).toEqual([...weeks].sort());
+		expect(new Set(weeks).size).toBe(weeks.length);
+		const files = readdirSync(new URL('../../../content/quests/', import.meta.url))
+			.filter((f) => f.endsWith('.yaml'))
+			.map((f) => f.replace(/\.yaml$/, ''))
+			.sort();
+		expect(files).toEqual(weeks.map((w) => w.toLowerCase()));
+		for (const w of quests.weeks) {
+			expect(w.goal).toBeGreaterThan(0);
+			expect(w.items.length).toBeGreaterThan(0);
+		}
+	});
+
+	it('marks holiday weeks', async () => {
+		const { quests } = await import('./index.js');
+		for (const week of ['2026-W52', '2026-W53', '2027-W05']) {
+			expect(quests.weeks.find((w) => w.week === week)?.holiday, week).toBe(true);
+		}
 	});
 });
