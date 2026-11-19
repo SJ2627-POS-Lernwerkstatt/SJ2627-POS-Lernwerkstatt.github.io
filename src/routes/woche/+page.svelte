@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { siteHref } from '#lib/quests/href.ts';
 	import Badge from '#lib/components/Badge.svelte';
+	import InstallHint from '#lib/components/InstallHint.svelte';
 	import LoginGate from '#lib/components/LoginGate.svelte';
 	import Bar from '#lib/components/quest/Bar.svelte';
 	import { formatRange } from '#lib/quests/format.ts';
@@ -39,6 +40,7 @@
 <h1>Diese Woche</h1>
 
 <LoginGate>
+	<InstallHint />
 	{#if showDiagnostic}
 		<aside class="diag" aria-label="Einstiegstest">
 			<div>
