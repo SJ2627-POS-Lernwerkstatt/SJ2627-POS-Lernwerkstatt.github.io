@@ -1,10 +1,10 @@
 # Weihnachtsferien I (21.–27. Dezember): optional, streak paused.
 week: 2026-W52
-title: "Ferien I – Exceptions und zwei Theoriefragen"
+title: "Ferien I – zwei Theoriefragen zum Mitnehmen"
 holiday: true
 goal: 2
 items:
-  - unit: fundament/exceptions
-  - theory: theorie/dependency-injection
-  - theory: theorie/java-laufzeit
+  - theory: theorie/rest-schreiben
+  - theory: theorie/testarten
+  - review: { module: theorie, cards: 6 }
   - review: { module: fundament, cards: 8 }

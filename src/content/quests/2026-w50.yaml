@@ -1,14 +1,13 @@
-# Quest week 2026-W50 (7.–13. Dezember). Format: src/lib/quests/schema.ts, docs in SPEC.md ("Quests").
-# Launch week: everyone logs in during the lesson. Fundament I.
+# Quest week 2026-W50 (7.–13. Dezember).
 week: 2026-W50
-title: "Fundament I – Klassen, Konstruktoren, Interfaces"
+title: "Fundament III – Exceptions, Annotationen, was Spring für dich tut"
 goal: 3
 items:
-  - unit: fundament/klassen-objekte
-  - unit: fundament/konstruktoren
-  - puzzle: fund-book-class
-  - unit: fundament/interfaces
-  - puzzle: fund-interface-policy
-  - unit: fundament/override
-  - review: { module: fundament, cards: 6 }
+  - unit: fundament/exceptions
+  - puzzle: fund-exception-not-found
+  - unit: fundament/annotationen
+  - unit: fundament/spring-di
+  - puzzle: fund-equals-isbn
+  - theory: theorie/dependency-injection
+  - review: { module: fundament, cards: 8 }
 classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

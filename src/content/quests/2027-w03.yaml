@@ -9,5 +9,5 @@ items:
   - puzzle: rel-player-team-fk
   - puzzle: rel-vehicle-constructor
   - review: { module: jpa, cards: 8 }
-  - theory: theorie/testarten
+  - review: { module: theorie, cards: 4 }
 classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
