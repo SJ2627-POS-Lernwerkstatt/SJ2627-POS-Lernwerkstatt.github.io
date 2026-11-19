@@ -85,6 +85,10 @@ Body: Markdown with
 
 A unit is one concept, 5–10 minutes, one or two code examples. Units are marked as read by the student (button at the end).
 
+### Mindestanforderung
+
+Optional `mindest: true` (default `false`) in the frontmatter of a unit or exercise and on a puzzle marks what a student needs for a Genügend; everything else brings better grades. The site shows a "Mindestanforderung" badge (unit page, module lists, puzzle lists and pages, `/woche`, `/heute`), a legend and the toggle "Nur Mindestanforderung zeigen" (remembered in localStorage) on module pages, and per module "x von y Einheiten sind Mindestanforderung" on the start page. `ContentEntry.mindest` and `QuestItem.mindest` (only set when true; a quest item takes it from its unit, theory unit, puzzle or exercise, never for `review` and `group`) are in `/data/content-index.json` and `/data/quests.json`. The `status` field (draft/reviewed) is no longer shown to students, only on the hidden `/review` page. Tagged items are listed with "(M)" in `CURRICULUM.md`.
+
 ### Question pool
 
 One file per module: `src/content/questions/<module>.yaml`. A **question group** is one main question plus 0–2 Vertiefungsfragen on the same topic.
