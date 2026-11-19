@@ -1,0 +1,14 @@
+week: 2027-W02
+title: "JPA I – Entities, Spalten, Enums, Repository"
+goal: 3
+items:
+  - unit: jpa/konstruktoren
+  - unit: jpa/basisattribute
+  - puzzle: entity-book-columns
+  - unit: jpa/enums
+  - puzzle: entity-car-enum
+  - unit: jpa/repositories
+  - review: { module: jpa, cards: 8 }
+  - exercise: jpa/uebungen/fahrradverleih
+    laptop: true
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

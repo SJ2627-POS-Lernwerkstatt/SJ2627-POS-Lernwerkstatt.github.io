@@ -1,0 +1,10 @@
+# Weihnachtsferien II (28. Dezember – 3. Jänner): optional, streak paused.
+week: 2026-W53
+title: "Ferien II – Annotationen, Spring und MVC"
+holiday: true
+goal: 2
+items:
+  - unit: fundament/annotationen
+  - unit: fundament/spring-di
+  - theory: theorie/mvc
+  - review: { module: theorie, cards: 6 }

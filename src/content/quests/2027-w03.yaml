@@ -1,0 +1,13 @@
+week: 2027-W03
+title: "JPA II – Value Objects, Converter, ManyToOne"
+goal: 3
+items:
+  - unit: jpa/value-objects
+  - puzzle: entity-member-address
+  - unit: jpa/rich-types
+  - unit: jpa/many-to-one
+  - puzzle: rel-player-team-fk
+  - puzzle: rel-vehicle-constructor
+  - review: { module: jpa, cards: 8 }
+  - theory: theorie/testarten
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

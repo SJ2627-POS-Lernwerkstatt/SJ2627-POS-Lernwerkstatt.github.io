@@ -1,0 +1,11 @@
+# Semesterferien Wien (1.–6. Februar 2027): optional, streak paused.
+week: 2027-W05
+title: "Semesterferien – JPA festigen, erste kleine Probeprüfung"
+holiday: true
+goal: 2
+items:
+  - review: { module: jpa, cards: 12 }
+  - puzzle: repo-concert-path
+  - theory: theorie/vererbung-tabellen
+  - exercise: pruefungen/uebungen/immobilienmakler
+    laptop: true

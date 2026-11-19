@@ -1,0 +1,11 @@
+# 4.–10. Jänner (Schule ab 7. Jänner): Wiedereinstieg, Brücke zu JPA.
+week: 2027-W01
+title: "Neustart – vom UML-Diagramm zum Entity"
+goal: 3
+items:
+  - unit: jpa/uml
+  - unit: jpa/entity
+  - puzzle: entity-room-fields
+  - review: { module: fundament, cards: 8 }
+  - theory: theorie/rest-schreiben
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }

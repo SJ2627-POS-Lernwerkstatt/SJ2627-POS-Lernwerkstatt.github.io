@@ -1,0 +1,14 @@
+week: 2027-W09
+title: "Service II – auswerten, testen, Fehlerfälle"
+goal: 3
+items:
+  - unit: service/ergebnisse-zusammenfassen
+  - puzzle: svc-stream-sum
+  - unit: service/testdaten
+  - puzzle: ut-csv-boundaries
+  - unit: service/fehlerfaelle
+  - review: { module: service, cards: 10 }
+  - exercise: service/uebungen/ladestationen
+    laptop: true
+  - theory: theorie/template-method
+classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
