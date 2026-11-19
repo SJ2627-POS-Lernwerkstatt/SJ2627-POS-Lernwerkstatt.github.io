@@ -7,12 +7,18 @@
 	import { formatRange } from '#lib/quests/format.ts';
 	import { questState as q } from '#lib/sync/quest.svelte.ts';
 	import { session } from '#lib/sync/session.svelte.ts';
+	import { dismiss, isDismissed, isDone, local } from '#lib/diagnostic/state.ts';
+	import { resolve } from '$app/paths';
+
+	// Hidden until mounted: the flags live in localStorage.
+	let showDiagnostic = $state(false);
 
 	// Load once logged in, and again whenever the tab becomes visible (the server may know more by then).
 	$effect(() => {
 		if (session.loggedIn) void q.load();
 	});
 	onMount(() => {
+		showDiagnostic = !isDone(local()) && !isDismissed(local());
 		const onVisible = () => {
 			if (document.visibilityState === 'visible' && session.loggedIn) void q.load();
 		};
@@ -33,6 +39,24 @@
 <h1>Diese Woche</h1>
 
 <LoginGate>
+	{#if showDiagnostic}
+		<aside class="diag" aria-label="Einstiegstest">
+			<div>
+				<a class="title" href={resolve('/einstieg')}>Einstiegstest (5 Min.)</a>
+				<p class="meta">10 Fragen, kein Test mit Note. Hilft deiner Lehrkraft beim Start.</p>
+			</div>
+			<button
+				type="button"
+				class="close"
+				aria-label="Einstiegstest ausblenden"
+				onclick={() => {
+					dismiss(local());
+					showDiagnostic = false;
+				}}>×</button
+			>
+		</aside>
+	{/if}
+
 	{#if q.error}
 		<p class="note error" role="alert">{q.error}</p>
 	{/if}
@@ -260,6 +284,39 @@
 		padding: 10px 14px;
 		border-radius: var(--radius);
 		background: var(--surface-alt);
+	}
+	.diag {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+		margin: 0 0 16px;
+		padding: 12px 14px;
+		background: var(--primary-soft);
+		border: 1px solid var(--primary);
+		border-radius: var(--radius-lg);
+	}
+	.diag p {
+		margin: 2px 0 0;
+	}
+	.title {
+		font-weight: 600;
+		color: var(--text);
+	}
+	.close {
+		flex: none;
+		width: 32px;
+		height: 32px;
+		border: 0;
+		border-radius: var(--radius);
+		background: transparent;
+		color: var(--text-muted);
+		font-size: 22px;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.close:hover {
+		color: var(--text);
 	}
 	.error {
 		background: var(--danger-soft);
