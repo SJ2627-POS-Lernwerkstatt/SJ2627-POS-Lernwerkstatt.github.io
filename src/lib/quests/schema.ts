@@ -41,7 +41,7 @@ export const questFile = z
 		holiday: z.boolean().default(false),
 		items: z.array(questItem).min(1),
 		classGoal: z
-			.strictObject({ weeks: z.int().min(1), minStudents: z.int().min(1), reward: z.string().min(1) })
+			.strictObject({ weeks: z.int().min(1), minStudents: z.int().min(1) })
 			.optional()
 	})
 	.refine((q) => q.goal <= q.items.length, { path: ['goal'], message: 'goal must be between 1 and the number of items' });

@@ -53,7 +53,7 @@ export type CurrentQuest = {
 	classTotal: number;
 	/** Students who reached the goal this week (anonymous). */
 	classGoalMet: number;
-	classGoal: { weeks: number; minStudents: number; reward: string; weeksInRow: number } | null;
+	classGoal: { weeks: number; minStudents: number; weeksInRow: number } | null;
 	/** Max 5. */
 	catchUp: CatchUpItem[];
 };

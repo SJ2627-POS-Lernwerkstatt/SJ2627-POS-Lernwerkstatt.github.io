@@ -11,4 +11,4 @@ items:
   - review: { module: rest, cards: 10 }
   - exercise: rest/uebungen/konzertkasse
     laptop: true
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

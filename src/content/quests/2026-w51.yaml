@@ -9,4 +9,4 @@ items:
   - unit: jpa/uml
   - puzzle: fund-book-validation
   - review: { module: theorie, cards: 6 }
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

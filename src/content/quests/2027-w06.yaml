@@ -9,4 +9,4 @@ items:
   - puzzle: rest-path-variable
   - review: { module: rest, cards: 8 }
   - theory: theorie/optimistic-locking
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

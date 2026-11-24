@@ -12,4 +12,4 @@ items:
   - puzzle: fund-interface-policy
   - unit: fundament/override
   - review: { module: fundament, cards: 6 }
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

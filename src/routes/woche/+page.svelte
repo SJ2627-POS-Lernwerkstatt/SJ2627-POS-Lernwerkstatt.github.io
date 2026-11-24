@@ -166,7 +166,7 @@
 				{#if quest.classGoal}
 					<p class="meta">
 						Klassenziel: {quest.classGoal.minStudents} Personen {quest.classGoal.weeks}
-						{quest.classGoal.weeks === 1 ? 'Woche' : 'Wochen'} in Folge – Belohnung: {quest.classGoal.reward}.
+						{quest.classGoal.weeks === 1 ? 'Woche' : 'Wochen'} in Folge.
 						Bisher {quest.classGoal.weeksInRow} von {quest.classGoal.weeks}.
 					</p>
 				{/if}

@@ -11,4 +11,4 @@ items:
   - review: { module: jpa, cards: 8 }
   - exercise: jpa/uebungen/fahrradverleih
     laptop: true
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

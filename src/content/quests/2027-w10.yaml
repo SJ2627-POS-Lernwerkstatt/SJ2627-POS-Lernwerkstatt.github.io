@@ -7,4 +7,4 @@ items:
   - review: { module: jpa, cards: 10 }
   - review: { module: theorie, cards: 10 }
   - theory: theorie/rekursion
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

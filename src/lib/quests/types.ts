@@ -25,7 +25,7 @@ export type QuestItem = {
 	mindest?: boolean;
 };
 
-export type ClassGoal = { weeks: number; minStudents: number; reward: string };
+export type ClassGoal = { weeks: number; minStudents: number };
 
 export type Quest = {
 	/** ISO week, e.g. "2026-W50". */

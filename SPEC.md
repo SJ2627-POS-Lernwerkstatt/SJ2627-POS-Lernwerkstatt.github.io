@@ -128,7 +128,7 @@ Target for 2026-12-01: about 30 groups per module that is live.
 
 ### Quests (Advent of Matura)
 
-One file per ISO week: `src/content/quests/<yyyy>-w<ww>.yaml` with `week` (`2027-W02`, must match the file name), `title`, optional `lesson` (date inside the week), `goal` (items for the week streak, 1..items), optional `holiday`, `items` and optional `classGoal {weeks, minStudents, reward}`. Each item has exactly one of `unit`, `review: {module, cards 1..20}`, `puzzle`, `group`, `theory` (a unit id), `exercise` (site id `jpa/uebungen/<slug>` or file style `jpa/01-<slug>`), plus optional `laptop: true` and `minutes` (override). Every id must exist, items are unique per week; any error fails `npm test` and the build. Schema: `src/lib/quests/schema.ts`, resolver: `src/lib/server/quests/`.
+One file per ISO week: `src/content/quests/<yyyy>-w<ww>.yaml` with `week` (`2027-W02`, must match the file name), `title`, optional `lesson` (date inside the week), `goal` (items for the week streak, 1..items), optional `holiday`, `items` and optional `classGoal {weeks, minStudents}`. Each item has exactly one of `unit`, `review: {module, cards 1..20}`, `puzzle`, `group`, `theory` (a unit id), `exercise` (site id `jpa/uebungen/<slug>` or file style `jpa/01-<slug>`), plus optional `laptop: true` and `minutes` (override). Every id must exist, items are unique per week; any error fails `npm test` and the build. Schema: `src/lib/quests/schema.ts`, resolver: `src/lib/server/quests/`.
 
 Build output (prerendered, fetched by the Advent-of-Matura backend; types in `src/lib/quests/types.ts`):
 - `/data/quests.json`: all weeks sorted, items resolved (`itemId` = `<kind>:<ref>`, `kind`, `ref`, `title`, `minutes`, `laptop`, `href`).

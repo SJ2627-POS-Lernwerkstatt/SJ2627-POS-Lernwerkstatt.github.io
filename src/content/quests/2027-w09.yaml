@@ -11,4 +11,4 @@ items:
   - exercise: service/uebungen/ladestationen
     laptop: true
   - theory: theorie/template-method
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }

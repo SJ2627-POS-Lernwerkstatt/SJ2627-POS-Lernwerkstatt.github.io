@@ -8,4 +8,4 @@ items:
   - puzzle: entity-author-lombok
   - review: { module: fundament, cards: 8 }
   - review: { module: jpa, cards: 4 }
-classGoal: { weeks: 3, minStudents: 6, reward: "Pizza in der Lernwerkstatt" }
+classGoal: { weeks: 3, minStudents: 6 }
