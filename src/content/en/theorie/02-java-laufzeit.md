@@ -4,7 +4,7 @@ title: "Theory question: how does Java work?"
 
 This is how the question could be asked:
 
-> Describe the way from Java source code to the running program. Why does the same program run on Windows, Linux and macOS, and what has to be present on the computer for that? Compare a TypeScript application and a program written in C, Rust or Go.
+> You ship the same `.jar` file to three customers – one on Windows, one on Linux, one on macOS. What happens between writing the source code and the moment the program runs on the customer's machine, and what does the customer need to have installed? How would that look if the application were written in TypeScript, or in a language like C, Rust or Go?
 
 ## Writing exercise
 

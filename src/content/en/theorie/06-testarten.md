@@ -4,7 +4,7 @@ title: "Theory question: kinds of automated tests"
 
 This is how the question could be asked:
 
-> Which kinds of automated tests do you know? Explain for each kind what it checks and how it basically works, and name tools you use to write them in your technology stack.
+> Before a new version of your application is shipped, a pipeline should automatically check that everything still works. Which kinds of tests would you write for it? For each one, describe which part of the application it covers and how it is built, and name the libraries or annotations you use for it in Spring Boot.
 
 You write three of these kinds of tests yourself in the Matura – you only have to be able to name them.
 

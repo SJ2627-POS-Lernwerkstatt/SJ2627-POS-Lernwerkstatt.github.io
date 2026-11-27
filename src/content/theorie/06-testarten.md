@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Welche Arten von automatisierten Tests kennst du? Erkläre für jede Art, was sie prüft und wie sie grundsätzlich funktioniert, und nenne Werkzeuge, mit denen du sie in deinem Technologiestack schreibst.
+> Bevor eine neue Version deiner Anwendung ausgeliefert wird, soll eine Pipeline automatisch prüfen, ob noch alles funktioniert. Welche Arten von Tests würdest du dafür schreiben? Beschreib für jede, welchen Teil der Anwendung sie abdeckt und wie sie aufgebaut ist, und nenne die Bibliotheken bzw. Annotationen, die du in Spring Boot dafür verwendest.
 
 Du schreibst in der Matura selbst drei dieser Testarten – du musst sie nur benennen können.
 

@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Beschreibe den Weg vom Java-Quellcode bis zum laufenden Programm. Warum läuft dasselbe Programm unter Windows, Linux und macOS, und was muss dafür auf dem Rechner vorhanden sein? Stell dem eine TypeScript-Anwendung sowie ein in C, Rust oder Go geschriebenes Programm gegenüber.
+> Du lieferst dieselbe `.jar`-Datei an drei Kunden aus – einer arbeitet unter Windows, einer unter Linux, einer unter macOS. Was passiert zwischen dem Schreiben des Quellcodes und dem Moment, in dem das Programm beim Kunden läuft, und was muss der Kunde dafür installiert haben? Wie sähe das aus, wenn die Anwendung in TypeScript oder in einer Sprache wie C, Rust oder Go geschrieben wäre?
 
 ## Schreibübung
 

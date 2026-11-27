@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Erkläre, was man unter **Dependency Injection** versteht und wofür man sie braucht. Welche Rollen sind daran beteiligt, und wie sieht das in deinem Framework aus? Zeig es an einem kurzen Codebeispiel.
+> Ein Kollege erzeugt in seinem `OrderService` alle benötigten Objekte selbst mit `new` und wundert sich, warum er die Klasse nicht vernünftig testen kann. Erklär ihm, was **Dependency Injection** an dieser Stelle ändern würde: Wer übernimmt dann welche Aufgabe, und wie erledigt Spring das für dich? Untermauere deine Erklärung mit ein paar Zeilen Code.
 
 Die Grundlagen stehen in [Was macht Spring eigentlich für mich?](/fundament/spring-di). Hier geht es darum, eine **gute Antwort zu schreiben**.
 

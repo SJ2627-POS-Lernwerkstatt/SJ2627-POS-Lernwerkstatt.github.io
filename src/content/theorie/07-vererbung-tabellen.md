@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Dein Domänenmodell enthält eine Vererbungshierarchie, die in einer relationalen Datenbank gespeichert werden soll. Welche Strategien gibt es dafür? Vergleiche ihre Vor- und Nachteile und begründe, wann du welche wählst.
+> In einem Fuhrpark-System gibt es die Oberklasse `Fahrzeug` und davon abgeleitet `Pkw` und `Lkw` mit jeweils eigenen Attributen. Wie lässt sich so eine Hierarchie auf die Tabellen einer relationalen Datenbank abbilden? Stell die Möglichkeiten einander gegenüber und begründe, nach welchen Kriterien du dich entscheidest.
 
 Den Code dazu kennst du aus [Vererbung in JPA](/jpa/vererbung). Hier geht es um die **Begründung**.
 

@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Mit welchen HTTP-Methoden ändert man in einer REST-API Daten? Vergleiche sie: Wofür ist welche gedacht, wie kommen die Daten zum Server, und was antwortet der Server jeweils? Worauf musst du bei der Umsetzung achten?
+> Über eine REST-API sollen Bücher neu angelegt, vollständig ersetzt, in einzelnen Feldern geändert und entfernt werden können. Welche HTTP-Methode setzt du für welchen Fall ein, und worin unterscheiden sie sich – beim Request-Body, bei der Antwort und beim Statuscode? Welche Stolperfallen gibt es bei der Umsetzung in Spring?
 
 ## Schreibübung
 

@@ -4,7 +4,7 @@ title: "Theory question: Model View Controller"
 
 This is how the question could be asked:
 
-> Explain the architectural pattern **Model View Controller**: which parts are there, what is the job of each part, and how do they work together on a request? Where is the pattern used? Show how it looks in a REST API and in a web application with server-rendered pages.
+> Many web frameworks split their code along the **Model View Controller** pattern. Describe what each of the three parts is responsible for and what happens, step by step, when a request comes in. Contrast a Spring application that returns JSON with one that builds finished HTML pages on the server – what is the view in each case? Where else do you come across the pattern?
 
 ## Writing exercise
 

@@ -4,7 +4,7 @@ title: "Theory question: template method"
 
 This is how the question could be asked:
 
-> Explain the design pattern **template method** with a small class diagram. How do you implement it in Java, and what role do classes, abstract classes, interfaces and lambdas play in it?
+> Several classes run through a process in the same order but differ in individual steps. Show how the **template method** design pattern solves this, and sketch the classes involved in a diagram. How do you implement it in Java – and when do you reach for an abstract class, when for an interface or a lambda?
 
 Prerequisite: [Inheritance and abstract classes](/fundament/vererbung).
 

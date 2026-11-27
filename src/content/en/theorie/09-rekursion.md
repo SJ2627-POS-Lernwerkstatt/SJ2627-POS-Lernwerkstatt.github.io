@@ -4,7 +4,7 @@ title: "Theory question: recursion"
 
 This is how the question could be asked:
 
-> What is **recursion**? Explain with an example how a recursive call runs and what a recursive solution consists of. Which properties must a problem have for it to be solvable recursively, and for which typical tasks is recursion used?
+> A method that calls itself: explain what **recursion** is about. Walk through an example of your choice step by step to show what happens during the call, and name the parts every recursive solution needs. How do you recognise that a problem can be solved recursively, and where is recursion typically used?
 
 ## Writing exercise
 

@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Was ist **Rekursion**? Erkläre an einem Beispiel, wie ein rekursiver Aufruf abläuft und woraus eine rekursive Lösung besteht. Welche Eigenschaften muss ein Problem haben, damit man es rekursiv lösen kann, und für welche typischen Aufgaben setzt man Rekursion ein?
+> Eine Methode, die sich selbst aufruft: Erkläre, was hinter **Rekursion** steckt. Spiel an einem selbst gewählten Beispiel Schritt für Schritt durch, was beim Aufruf passiert, und benenne die Teile, die jede rekursive Lösung braucht. Woran erkennst du, dass sich ein Problem rekursiv lösen lässt, und wo setzt man Rekursion typischerweise ein?
 
 ## Schreibübung
 

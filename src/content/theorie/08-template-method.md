@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Erkläre das Entwurfsmuster **Template Method** mit einem kleinen Klassendiagramm. Wie setzt du es in Java um, und welche Rolle spielen dabei Klassen, abstrakte Klassen, Interfaces und Lambdas?
+> Mehrere Klassen arbeiten einen Ablauf in derselben Reihenfolge ab, unterscheiden sich aber in einzelnen Schritten. Zeig, wie das Entwurfsmuster **Template Method** diese Situation löst, und skizziere die beteiligten Klassen in einem Diagramm. Wie setzt du das in Java um – und wann greifst du zu einer abstrakten Klasse, wann zu einem Interface oder einem Lambda?
 
 Voraussetzung: [Vererbung und abstrakte Klassen](/fundament/vererbung).
 

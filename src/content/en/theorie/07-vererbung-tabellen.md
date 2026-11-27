@@ -4,7 +4,7 @@ title: "Theory question: mapping inheritance to tables"
 
 This is how the question could be asked:
 
-> Your domain model contains an inheritance hierarchy that is to be stored in a relational database. Which strategies exist for that? Compare their advantages and disadvantages and justify when you choose which.
+> A fleet management system has a superclass `Vehicle` with the subclasses `Car` and `Truck`, each with attributes of its own. How can such a hierarchy be mapped to the tables of a relational database? Compare the options and justify the criteria you use to decide.
 
 You know the code for it from [Inheritance in JPA](/jpa/vererbung). Here it is about the **justification**.
 

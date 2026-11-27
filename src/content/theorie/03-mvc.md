@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Erkläre das Architekturmuster **Model View Controller**: Welche Teile gibt es, welche Aufgabe hat jeder Teil, und wie arbeiten sie bei einer Anfrage zusammen? Wo wird das Muster verwendet? Zeig, wie es in einer REST-API und in einer Webanwendung mit serverseitig erzeugten Seiten aussieht.
+> Viele Web-Frameworks teilen den Code nach dem Muster **Model View Controller** auf. Beschreibe, wofür die drei Teile jeweils verantwortlich sind und was der Reihe nach passiert, wenn eine Anfrage eintrifft. Stell dabei eine Spring-Anwendung, die JSON liefert, einer gegenüber, die fertige HTML-Seiten am Server erzeugt – was ist jeweils die View? Wo begegnet dir das Muster sonst noch?
 
 ## Schreibübung
 

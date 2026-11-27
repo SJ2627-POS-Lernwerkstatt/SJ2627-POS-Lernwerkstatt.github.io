@@ -4,7 +4,7 @@ title: "Theory question: two people editing at the same time"
 
 This is how the question could be asked:
 
-> Two people open the same record in an application at the same time, change it and then save it via PUT or PATCH. What can go wrong? Which solutions do you know, and how do you implement them?
+> The front desk and the back office edit the same reservation at the same time; both save their change through the REST API shortly one after the other. Describe the problem this causes, which approaches exist to solve it, and how you implement your chosen approach in JPA and at the HTTP level.
 
 ## Writing exercise
 

@@ -4,7 +4,7 @@ title: "Theory question: write operations – POST, PUT, PATCH, DELETE"
 
 This is how the question could be asked:
 
-> Which HTTP methods are used to change data in a REST API? Compare them: what is each one meant for, how does the data get to the server, and what does the server answer in each case? What do you have to watch out for when implementing them?
+> A REST API should let clients create books, replace them completely, change single fields and remove them. Which HTTP method do you use for which case, and how do they differ – in the request body, in the response and in the status code? What pitfalls are there when you implement them in Spring?
 
 ## Writing exercise
 

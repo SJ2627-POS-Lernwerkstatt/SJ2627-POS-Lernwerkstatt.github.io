@@ -4,7 +4,7 @@ title: "Theory question: dependency injection"
 
 This is how the question could be asked:
 
-> Explain what is meant by **dependency injection** and what it is needed for. Which roles are involved, and how does it look in your framework? Show it with a short code example.
+> A colleague creates every object their `OrderService` needs with `new` and wonders why the class is so hard to test. Explain to them what **dependency injection** would change here: who takes on which job, and how does Spring do it for you? Back up your explanation with a few lines of code.
 
 The basics are in [What does Spring actually do for me?](/fundament/spring-di). Here it is about **writing a good answer**.
 

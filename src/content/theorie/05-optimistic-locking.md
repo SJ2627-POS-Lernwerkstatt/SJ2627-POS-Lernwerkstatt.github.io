@@ -6,7 +6,7 @@ status: draft
 
 So könnte die Fragestellung lauten:
 
-> Zwei Personen öffnen gleichzeitig denselben Datensatz in einer Anwendung, ändern ihn und speichern danach per PUT oder PATCH. Was kann dabei schiefgehen? Welche Lösungen kennst du, und wie setzt du sie um?
+> Am Empfang und im Büro wird zur selben Zeit dieselbe Reservierung bearbeitet; beide speichern ihre Änderung kurz hintereinander über die REST-API. Beschreibe, welches Problem dabei entsteht, welche Lösungsansätze es dafür gibt und wie du den gewählten Ansatz in JPA und auf HTTP-Ebene umsetzt.
 
 ## Schreibübung
 
