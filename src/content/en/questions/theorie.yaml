@@ -1,0 +1,188 @@
+# English text for src/content/questions/theorie.yaml (same ids, same number of options and follow-ups).
+
+- id: theorie-di-definition
+  main:
+    prompt: Which sentence best describes dependency injection?
+    options:
+      - A class does not create its dependencies itself, but gets them passed in from outside.
+      - A class loads its dependencies from the database at runtime.
+      - Every class inherits its dependencies from a superclass.
+      - "Dependencies are stored globally as `static` fields."
+    explanation: |
+      Passed in from outside instead of created with `new` – usually via the constructor.
+  followUps:
+    - prompt: Which three roles exist in dependency injection?
+      options:
+        - Dependency (service)
+        - Client (the class that needs it)
+        - "Injector / container (in Spring: ApplicationContext)"
+        - Database
+        - Browser
+      explanation: |
+        Dependency, client and injector. The container builds the beans and passes them in.
+
+- id: theorie-di-nutzen
+  main:
+    prompt: Which problem does dependency injection mainly solve?
+    options:
+      - "Tight coupling: without DI the dependency cannot be replaced by a mock, e.g. in the test."
+      - Slow database queries
+      - Missing HTTP status codes
+      - JAR files that are too big
+    explanation: |
+      Loose coupling and replaceability – especially important for tests with mocks.
+
+- id: theorie-java-bytecode
+  main:
+    prompt: What does `javac` create from a `.java` file?
+    options: ["Bytecode (`.class`) that the JVM runs", "Machine code for the current processor", "JavaScript", "An `.exe` file"]
+    explanation: |
+      Bytecode is platform-independent; the JVM translates it into machine code at runtime (JIT).
+  followUps:
+    - prompt: Why does the same `.jar` run on Windows, Linux and macOS?
+      options:
+        - Because there is a JVM for every system that runs the same bytecode.
+        - "Because the `.jar` contains machine code for all processors."
+        - Because Java runs in the browser.
+        - Because the operating system understands Java source code directly.
+      explanation: |
+        "Write once, run anywhere": the JVM is platform-specific, the bytecode is not.
+
+- id: theorie-java-vergleich
+  main:
+    prompt: What has to be installed on the target system to run a program compiled in Go or Rust?
+    options:
+      - Normally nothing – it is already machine code, but has to be compiled per platform.
+      - A JVM
+      - Node.js
+      - The Go or Rust compiler
+    explanation: |
+      Natively compiled programs need no runtime, but are tied to operating system and processor. TypeScript, in contrast, is transpiled into JavaScript and needs a browser or Node.js.
+
+- id: theorie-mvc-rollen
+  main:
+    prompt: What is the job of the controller in the MVC pattern?
+    options:
+      - It accepts requests, calls the model and passes the result to the view.
+      - It stores the data in the database.
+      - It presents the data as HTML.
+      - It contains the business rules.
+    explanation: |
+      The controller mediates between the request, the model (data + logic) and the view (presentation).
+  followUps:
+    - prompt: What is the "view" in a REST API with `@RestController`?
+      options: ["The JSON representation of the returned DTOs", "A Thymeleaf template", "The entity", "The database table"]
+      explanation: |
+        Jackson creates JSON from the return value – that is the presentation for the client.
+
+- id: theorie-rest-put-patch
+  main:
+    prompt: What is the difference between PUT and PATCH?
+    options:
+      - PUT replaces the whole resource, PATCH only changes the fields that are sent.
+      - PUT creates, PATCH deletes.
+      - PUT is for lists, PATCH for single objects.
+      - There is no difference.
+    explanation: |
+      With PUT missing fields count as empty; with PATCH a missing field means "do not change".
+  followUps:
+    - prompt: Which response is usual after a successful `POST /api/books`?
+      options: ["`201 Created` with a `Location` header", "`204 No Content`", "`200 OK` without a body", "`202 Accepted`"]
+      explanation: |
+        New resource → 201 and the path to the new resource in the `Location` header.
+
+- id: theorie-rest-idempotent
+  main:
+    prompt: Which HTTP methods are idempotent (sending several times = the same effect as once)?
+    options: ["PUT", "DELETE", "POST", "GET"]
+    explanation: |
+      POST creates a new resource every time it is sent and is therefore not idempotent.
+
+- id: theorie-locking-lost-update
+  main:
+    prompt: Two users load the same book and save one after the other with PUT. What is the problem called?
+    options:
+      - Lost update – the first change is overwritten.
+      - Deadlock
+      - N+1 problem
+      - Race condition in the browser
+    explanation: |
+      The second PUT sends the old state of the other fields along and overwrites the first change unnoticed.
+  followUps:
+    - prompt: How do you implement optimistic locking in JPA, and what does the REST API answer on a conflict?
+      options:
+        - "A field with `@Version`; on a conflict `409 Conflict`"
+        - "`@Lock` on the repository; on a conflict `404`"
+        - "`synchronized` on the controller; on a conflict `500`"
+        - "`@Transactional`; on a conflict `200`"
+      explanation: |
+        Hibernate checks and increases the version on every update and otherwise throws an `OptimisticLockException`.
+
+- id: theorie-tests-arten
+  main:
+    prompt: Which kind of test is a `@WebMvcTest` with MockMvc and `@MockitoBean`?
+    options:
+      - "A test of the web layer (slice test): only the controller, the service is mocked."
+      - An end-to-end test in the browser
+      - A load test
+      - A pure unit test without Spring
+    explanation: |
+      Spring only starts the MVC layer; HTTP requests are simulated.
+  followUps:
+    - prompt: What does the test pyramid describe?
+      options:
+        - Many fast unit tests at the bottom, fewer integration tests, few end-to-end tests at the top.
+        - Many end-to-end tests at the bottom, few unit tests at the top.
+        - The order in which tests are run.
+        - How many asserts a test may have.
+      explanation: |
+        The higher, the slower and more expensive – that is why there are fewer of them.
+
+- id: theorie-vererbung-strategien
+  main:
+    prompt: Which JPA strategy stores the whole hierarchy in one table with a discriminator column?
+    options: ["`SINGLE_TABLE`", "`JOINED`", "`TABLE_PER_CLASS`", "`@MappedSuperclass`"]
+    explanation: |
+      SINGLE_TABLE is the default: fast, but the columns of the subclasses have to be nullable.
+  followUps:
+    - prompt: Subclasses have many mandatory attributes of their own, data integrity is important. Which strategy fits?
+      options: ["`JOINED`", "`SINGLE_TABLE`", "`TABLE_PER_CLASS`", "none, inheritance does not work in JPA"]
+      explanation: |
+        JOINED: one table per class, `NOT NULL` possible – but joins when reading.
+
+- id: theorie-template-method
+  main:
+    prompt: What does the template method do?
+    options:
+      - It defines the fixed flow in the superclass and calls steps that subclasses implement.
+      - It creates objects without knowing the concrete class.
+      - It makes sure that there is only one instance.
+      - It translates HTML templates.
+    explanation: |
+      The flow is `final` in the abstract superclass, the steps are `abstract` methods (or hooks).
+  followUps:
+    - prompt: How does the template method differ from strategy?
+      options:
+        - Template method uses inheritance, strategy composition (a replaceable object is passed in).
+        - Strategy always needs a database.
+        - Template method only works with interfaces.
+        - There is no difference.
+      explanation: |
+        Steps in subclasses vs. behaviour as an object passed in (e.g. a lambda).
+
+- id: theorie-rekursion
+  main:
+    prompt: Which parts does every correct recursive solution have?
+    options:
+      - a termination condition (base case)
+      - a call to itself with a smaller problem
+      - a loop
+      - a global variable
+    explanation: |
+      Base case plus recursive step; without a base case you get a `StackOverflowError`.
+  followUps:
+    - prompt: |
+        What does `factorial(4)` return if `factorial(n) = n <= 1 ? 1 : n * factorial(n - 1)`?
+      options: ["24", "10", "4", "StackOverflowError"]
+      explanation: |
+        4 · 3 · 2 · 1 = 24.

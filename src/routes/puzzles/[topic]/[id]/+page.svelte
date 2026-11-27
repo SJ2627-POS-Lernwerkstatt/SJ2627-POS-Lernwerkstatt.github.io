@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Bi from '#lib/components/Bi.svelte';
 	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import PuzzleRunner from '#lib/components/puzzle/PuzzleRunner.svelte';
+	import { pick } from '#lib/lang.js';
 	import { progress } from '#lib/progress/store.svelte.js';
 
 	let { data } = $props();
@@ -11,14 +13,14 @@
 </script>
 
 <svelte:head>
-	<title>{data.puzzle.title} · Puzzles · POS Lernwerkstatt</title>
+	<title>{pick(progress.data.settings.lang, data.puzzle.title, data.puzzle.en?.title)} · Puzzles · POS Lernwerkstatt</title>
 </svelte:head>
 
 <nav class="crumbs">
 	<a href={resolve('/puzzles')}>Puzzles</a> › <a href={topicHref}>{data.topic.title}</a>
 </nav>
 <h1>
-	{data.puzzle.title}
+	<Bi de={data.puzzle.title} en={data.puzzle.en?.title} />
 	{#if progress.isSolved(data.puzzle.id)}<span class="solved" title="gelöst">✓</span>{/if}
 </h1>
 <p class="muted">
@@ -36,8 +38,8 @@
 {/key}
 
 <nav class="pager">
-	{#if data.prev}<a href={href(data.prev.id)}>← {data.prev.title}</a>{:else}<span></span>{/if}
-	{#if data.next}<a href={href(data.next.id)}>{data.next.title} →</a>{/if}
+	{#if data.prev}<a href={href(data.prev.id)}>← <Bi de={data.prev.title} en={data.prev.titleEn} /></a>{:else}<span></span>{/if}
+	{#if data.next}<a href={href(data.next.id)}><Bi de={data.next.title} en={data.next.titleEn} /> →</a>{/if}
 </nav>
 
 <style>

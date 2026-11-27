@@ -157,3 +157,60 @@ export const puzzle = z.discriminatedUnion('kind', [linePuzzle, templatePuzzle])
 export type Puzzle = z.infer<typeof puzzle>;
 
 export const puzzlePool = z.array(puzzle);
+
+/*
+ * English translations live in src/content/en/ and mirror the German files. They carry only the text;
+ * everything else (answers, templates, solutions, flags) comes from the German original.
+ */
+
+/** Frontmatter of src/content/en/<module>/<nn>-<slug>.md. */
+export const unitTranslationFrontmatter = z.strictObject({
+	title: z.string().min(1)
+});
+
+const questionText = z.strictObject({
+	prompt: z.string().min(1),
+	/** Only if the German question shows code with German text in it. */
+	code: z.string().optional(),
+	explanation: z.string().min(1),
+	/** single/multi only, same number and order as in German. */
+	options: options.optional(),
+	/**
+	 * template only, and only if the German pieces are German text: the same gaps and pieces in the same order.
+	 * Answers are stored by piece position, so piece n must mean the same in both languages.
+	 */
+	template: z.string().min(1).optional(),
+	redHerrings: z.array(z.string().min(1)).optional(),
+	reusable: z.array(z.string().min(1)).optional()
+});
+export type QuestionText = z.infer<typeof questionText>;
+
+/** One entry of src/content/en/questions/<module>.yaml. */
+export const groupTranslation = z.strictObject({
+	id: z.string().min(1),
+	main: questionText,
+	/** Same number and order as in German. */
+	followUps: z.array(questionText).max(2).default([])
+});
+export type GroupTranslation = z.infer<typeof groupTranslation>;
+export const groupTranslationPool = z.array(groupTranslation);
+
+/** One entry of src/content/en/puzzles/<topic>.yaml. */
+export const puzzleTranslation = z.strictObject({
+	id: z.string().min(1),
+	title: z.string().min(1).max(80),
+	prompt: z.string().min(1),
+	explanation: z.string().min(1),
+	/** Only if the German `given` has German comments. Display only: checks and mutants use the German one. */
+	given: z
+		.union([z.string().min(1), z.array(z.string().min(1)).min(1)])
+		.transform((g) => (Array.isArray(g) ? g.map((s) => s.trimEnd()).join('\n\n') + '\n' : g))
+		.optional(),
+	/**
+	 * Text replacements for German comments in the code, applied to `given` and to the fixed text of a template
+	 * (never to its pieces – the build checks that the gaps stay the same). Display only.
+	 */
+	replace: z.array(z.strictObject({ find: z.string().min(1), replace: z.string() })).default([])
+});
+export type PuzzleTranslation = z.infer<typeof puzzleTranslation>;
+export const puzzleTranslationPool = z.array(puzzleTranslation);

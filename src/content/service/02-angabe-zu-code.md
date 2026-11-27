@@ -49,8 +49,12 @@ package businessservice.model;
 public record Member(String name, MemberType type) {
 
     public Member {
-        Objects.requireNonNull(name, "name");
-        Objects.requireNonNull(type, "type");
+        if (name == null) {
+            throw new IllegalArgumentException("name must not be null");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("type must not be null");
+        }
     }
 }
 
@@ -99,7 +103,10 @@ public class LateFeeService {
     private final List<Loan> loans;
 
     public LateFeeService(List<Loan> loans) {
-        this.loans = List.copyOf(Objects.requireNonNull(loans, "loans"));
+        if (loans == null) {
+            throw new IllegalArgumentException("loans must not be null");
+        }
+        this.loans = List.copyOf(loans);
     }
 
     public int feeFor(Member member, LocalDate today) {

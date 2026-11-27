@@ -8,6 +8,15 @@ describe('transformCallouts', () => {
 		);
 	});
 
+	it('uses English default titles for files under content/en/', () => {
+		expect(transformCallouts(':::merke\nText\n:::', '/x/src/content/en/jpa/08-rich-types.md')).toContain(
+			'<p class="callout-title">Remember</p>'
+		);
+		expect(transformCallouts(':::info\nText\n:::', 'src/content/jpa/08-rich-types.md')).toContain(
+			'<p class="callout-title">Gut zu wissen</p>'
+		);
+	});
+
 	it('uses a custom title', () => {
 		expect(transformCallouts(':::achtung Falscher Import\nx\n:::')).toContain(
 			'<p class="callout-title">Falscher Import</p>'

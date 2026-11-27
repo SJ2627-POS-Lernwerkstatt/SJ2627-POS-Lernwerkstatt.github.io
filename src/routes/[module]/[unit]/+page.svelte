@@ -2,27 +2,34 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Badge from '#lib/components/Badge.svelte';
+	import Bi from '#lib/components/Bi.svelte';
 	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import CheckGroup from '#lib/components/quiz/CheckGroup.svelte';
 	import { cheatSheetPage, reportIssueUrl } from '#lib/content/links.js';
 	import { renderMermaid } from '#lib/diagrams/mermaid.js';
+	import { pick } from '#lib/lang.js';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import '#lib/styles/prose.css';
 
 	let { data } = $props();
 	const Unit = $derived(data.component);
+	const UnitEn = $derived(data.componentEn);
 	const read = $derived(progress.isRead(data.unit.id));
+	const lang = $derived(progress.data.settings.lang);
 
 	let article: HTMLElement;
 	$effect(() => {
 		void data.component; // re-run after navigating to another unit
-		renderMermaid(article);
+		void lang; // and after switching the language: mermaid only draws visible diagrams
+		// After the layout has applied data-lang, so the right diagrams are visible.
+		const frame = requestAnimationFrame(() => renderMermaid(article));
+		return () => cancelAnimationFrame(frame);
 	});
 </script>
 
 <svelte:head>
-	<title>{data.unit.title} · {data.module.title} · POS Lernwerkstatt</title>
+	<title>{pick(lang, data.unit.title, data.unit.en?.title)} · {data.module.title} · POS Lernwerkstatt</title>
 </svelte:head>
 
 <nav class="crumbs" aria-label="Brotkrümel">
@@ -30,7 +37,7 @@
 </nav>
 
 <header class="unit-head">
-	<h1>{data.unit.title}</h1>
+	<h1><Bi de={data.unit.title} en={data.unit.en?.title} /></h1>
 	<div class="meta">
 		<span>{data.unit.minutes} min</span>
 		{#if data.unit.mindest}<MindestBadge />{/if}
@@ -44,7 +51,13 @@
 </header>
 
 <article class="prose" bind:this={article}>
-	<Unit />
+	{#if UnitEn}
+		<div class="bi-de" lang="de"><Unit /></div>
+		<div class="bi-en" lang="en"><UnitEn /></div>
+	{:else}
+		<p class="bi-en untranslated" lang="en">This unit is not available in English yet. Here is the German version.</p>
+		<Unit />
+	{/if}
 </article>
 
 {#if data.checks.length}
@@ -69,12 +82,12 @@
 	<nav class="pager" aria-label="Einheiten">
 		{#if data.prev}
 			<a class="prev" href={resolve('/[module]/[unit]', { module: data.module.slug, unit: data.prev.slug })}>
-				<span>Zurück</span>{data.prev.title}
+				<span>Zurück</span><Bi de={data.prev.title} en={data.prev.titleEn} />
 			</a>
 		{/if}
 		{#if data.next}
 			<a class="next" href={resolve('/[module]/[unit]', { module: data.module.slug, unit: data.next.slug })}>
-				<span>Weiter</span>{data.next.title}
+				<span>Weiter</span><Bi de={data.next.title} en={data.next.titleEn} />
 			</a>
 		{/if}
 	</nav>
@@ -109,6 +122,12 @@
 		gap: 8px 12px;
 		font-size: 14px;
 		color: var(--text-muted);
+	}
+	.untranslated {
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		background: var(--warn-soft);
+		font-size: 15px;
 	}
 	.checks {
 		display: flex;

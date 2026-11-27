@@ -1,0 +1,112 @@
+# English text for src/content/puzzles/rest-endpoint.yaml (same ids).
+
+- id: rest-controller-skeleton
+  title: Books – the controller
+  prompt: |
+    Write the controller for `/api/books`. The service comes via the constructor (Lombok). `GET /api/books` returns all books.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `@RestController` writes the return value into the body as JSON; a plain `@Controller` would expect a view name. `@RequestMapping` on the class is the common path – a `@GetMapping("/api/books")` below it would give `/api/books/api/books`. `@RequiredArgsConstructor` only takes `final` fields into the constructor.
+
+- id: rest-path-variable
+  title: Books – one via the path
+  prompt: |
+    `GET /api/books/{isbn}` returns a book with `200`, or `404` without a body if the ISBN does not exist.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `@PathVariable` takes the part `{isbn}` from the path. `Optional.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build())` is the usual pattern: with a book `200` and a body, without one `404` without a body. Returning `null` would give `200` with an empty body.
+
+- id: rest-request-param
+  title: Books – optional filter
+  prompt: |
+    `GET /api/books?author=Paul Celan` filters by author. Without the parameter all books come back.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `@RequestParam` takes query parameters (`?author=…`). By default it is mandatory – if it is missing, Spring answers with `400`. `required = false` makes it optional, then `author` is `null`.
+
+- id: rest-post-created
+  title: Books – creating with 201
+  prompt: |
+    `POST /api/books` creates a book. The body is validated. The response is `201 Created` with the new book in the body and its address in the `Location` header.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `@RequestBody` reads the JSON into the record, `@Valid` checks its annotations – without `@Valid`, `@NotBlank` & co. would be ignored. `ResponseEntity.created(uri)` sets status `201` and the `Location` header in one go.
+
+- id: rest-delete
+  title: Books – deleting with 204
+  prompt: |
+    Write the controller with `DELETE /api/books/{isbn}`. The response is `204 No Content`.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    After deleting there is nothing to return: `204 No Content`, as `ResponseEntity<Void>` with `noContent().build()`. `ok()` would be `200`. The ISBN is in the path, not in the body – a `DELETE` usually has no body.
+
+- id: rest-put-replace
+  title: Books – replacing with PUT
+  prompt: |
+    `PUT /api/books/{isbn}` replaces title and author of a book. The body is validated, the response is the changed book with `200`.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `PUT` replaces an existing resource at its address: ISBN from the path, new data from the body. `PATCH` would be a partial change, `POST` creates something new. A return value without `ResponseEntity` is answered with `200`.
+
+- id: rest-validation
+  title: Members – validating input
+  prompt: |
+    Name and email must not be empty, the email has to be a valid address, members are at least 14 years old. Spring then answers invalid input with `400`.
+  explanation: |
+    `@NotBlank` rejects `null`, `""` and `" "` – `@NotNull` would let the empty text through. `@Email` checks the format, `@Min(14)` the lower limit of a number (`@Size` applies to lengths of texts and lists). They only take effect with `@Valid` on the parameter in the controller.
+
+- id: rest-nested-valid
+  title: Recipes – nested validation
+  prompt: |
+    A recipe needs a name and a list of ingredients. Every ingredient has a name and an amount above 0 – and that should be checked **inside** the list too.
+  explanation: |
+    Bean Validation only checks nested objects with `@Valid`: without `@Valid` on the list an ingredient with amount `0` would get through. `@NotNull` demands that the list is sent at all. "Above 0" is `@Positive`; `@Min(0)` and `@PositiveOrZero` would allow `0`.
+
+- id: rest-exception-handler
+  title: Books – errors as ProblemDetail
+  prompt: |
+    An unknown ISBN becomes `404 Not Found`, an ISBN that already exists `409 Conflict` – each as a `ProblemDetail` with the message of the exception. Spring's own errors (e.g. `400` for invalid input) should be kept.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `@RestControllerAdvice` applies to all controllers, `@ExceptionHandler` maps an exception to a method. A returned `ProblemDetail` sets status and body. `extends ResponseEntityExceptionHandler` makes sure that Spring's own errors like `400` with `@Valid` are still answered cleanly.
+
+- id: rest-sub-resource
+  title: Reviews – a sub-resource
+  prompt: |
+    The reviews of a book are under `/api/books/{isbn}/reviews`. Write the controller for them: `GET` returns all reviews of the book.
+  replace:
+    - { find: "/** Stub für die Prüfung. */", replace: "/** Stub for the exam. */" }
+  explanation: |
+    A sub-resource hangs at the path of its parent resource: `/api/books/{isbn}/reviews`. The placeholder may also be in the `@RequestMapping` of the class – every method takes it with `@PathVariable`. That way the path shows which book the reviews belong to.
+
+- id: rest-hateoas-links
+  title: Books – links with HATEOAS
+  prompt: |
+    `GET /api/books/{isbn}` returns the book with two links: `self` to itself and `books` to the list of all books.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    `EntityModel.of(content, links…)` attaches links. `linkTo(methodOn(Controller.class).method(…))` builds the URL from the mapping of the method – if the path changes, the links are still right. In the JSON they appear under `_links`. The linked methods return `ResponseEntity`: with a record as the return type `methodOn` fails ("Could not generate CGLIB subclass").
+
+- id: rest-pagination
+  title: Books – page by page
+  prompt: |
+    `GET /api/books` returns the books page by page, 20 per page by default. Page and size come from `?page=…&size=…`.
+  replace:
+    - { find: "/** Stub für die Prüfung: hält die Bücher im Speicher. */", replace: "/** Stub for the exam: keeps the books in memory. */" }
+  explanation: |
+    Spring fills a `Pageable` parameter itself from `page`, `size` and `sort`; `@PageableDefault` sets the values when they are missing. Returning a `Page` directly gives an unstable JSON (Spring warns in the log) – `new PagedModel<>(page)` (from `org.springframework.data.web`) outputs `content` and `page` with number, size and total.
+
+- id: rest-json-names
+  title: Movies – JSON names with a hyphen
+  prompt: |
+    According to the task the fields in the JSON are called `release-year` and `running-time`, in Java `releaseYear` and `runningTime`.
+  explanation: |
+    Java names must not contain a hyphen. `@JsonProperty("release-year")` sets the name in the JSON – when writing and when reading. `@Column` applies to the database, not to JSON. Write the names exactly as in the task, otherwise the grading tests fail.

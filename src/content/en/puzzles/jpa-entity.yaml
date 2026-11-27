@@ -1,0 +1,85 @@
+# English text for src/content/puzzles/jpa-entity.yaml (same ids).
+
+- id: entity-room-fields
+  title: Room – head and fields
+  prompt: |
+    Write the entity `Room` for the table `rooms`: annotations as on every entity and the fields in the order of the diagram. The id comes from `AbstractPersistable`.
+  explanation: |
+    The four Lombok annotations are on every entity, their order does not matter. `{nn}` becomes `@NotNull`. `seats` has **no** `{nn}`, so it may be missing – that would not work with `int`, hence `Integer`. The id is in `AbstractPersistable<Long>`; a field `id` of your own would be duplicated. `@Data` would replace the `equals` of `AbstractPersistable`.
+
+- id: entity-book-columns
+  title: Book – columns from the text
+  prompt: |
+    Add the annotations of `Book`. From the task: the ISBN has at most 13 characters and is unique, the title at most 120 characters. The price has 6 digits, 2 of them after the decimal point.
+  explanation: |
+    `length` limits strings, `unique = true` makes the column unique. Numbers with decimal places: `precision` = all digits, `scale` = those after the decimal point. `publishedOn` has no `{nn}`, so no annotation. `Date` in the diagram becomes `LocalDate` in Java.
+
+- id: entity-guest-constructor-call
+  title: Guest – the generated constructor
+  prompt: |
+    `Guest` is finished. Create a guest: Anna Berger, born on 3 May 2001. Which arguments does the constructor from `@AllArgsConstructor` expect, in which order?
+  explanation: |
+    `@AllArgsConstructor` takes the fields in the order in the code: `Guest(String firstName, String lastName, LocalDate birthDate)`. The id is not part of it, it is a field of `AbstractPersistable`. Your code cannot call the constructor without parameters – it is `protected` and only for JPA.
+
+- id: entity-bike-accessors
+  title: Bike – getters and setters from Lombok
+  prompt: |
+    `Bike` has getters and setters from Lombok. If the bike is an e-bike, the purchase date is set to today. Then the frame number is read.
+  explanation: |
+    `@Getter` generates `getFrameNumber()`, but for a `boolean` `isElectric()`. `@Setter` generates `setPurchasedOn(LocalDate)`. The fields themselves are `private` – from outside you only reach them via getters and setters.
+
+- id: entity-car-enum
+  title: Car – enum as text
+  prompt: |
+    Map `fuel` so that the table holds the **name** of the enum value (`PETROL`, …), not its number. The licence plate has at most 10 characters.
+  explanation: |
+    Without an annotation JPA stores the ordinal (0, 1, 2). If someone later inserts a value in the middle, all stored data shifts. `@Enumerated(EnumType.STRING)` stores the name. `<<Enumeration>>` is only the notation in the diagram. According to the cheat sheet `@Enumerated(EnumType.STRING)` costs points in the exam – for full points you use a converter with codes (unit 6).
+
+- id: entity-booking-column-names
+  title: Booking – reserved names
+  prompt: |
+    `from` and `to` are reserved words in SQL and must not be column names. The columns are therefore called `date_from` and `date_to`; the fields in Java stay `from` and `to`.
+  explanation: |
+    `@Column(name = "…")` sets the column name, the field name in Java stays. In H2 this also applies, for example, to `year`, `month`, `order`, `user`, `value` and `key`. A date without a time is a `LocalDate`.
+
+- id: entity-member-address
+  title: Member – embedding a value object
+  prompt: |
+    `Address` is a value object: no table of its own, the columns end up in `members`. The address is mandatory, and the `@NotNull`s in `Address` should be checked too.
+  explanation: |
+    `@Embeddable` on the class of the value object, `@Embedded` on the field in the entity. Without `@Valid` Bean Validation does not check the annotations **inside** `Address`. `@NotNull` on the field makes the whole address mandatory. A record fits value objects well, because they are immutable.
+
+- id: entity-author-lombok
+  title: Author – the four Lombok annotations
+  prompt: |
+    Add the Lombok annotations that are on every entity: getters, setters, the constructor for JPA and the business constructor.
+  explanation: |
+    `@Getter` and `@Setter` generate getters and setters for every field, `@AllArgsConstructor` the business constructor `Author(String name, LocalDate bornOn)`. `@NoArgsConstructor(access = AccessLevel.PROTECTED)` is the constructor for JPA – `private` does not work, Hibernate needs at least `protected`. `@Data` would replace the `equals` of `AbstractPersistable`.
+
+- id: entity-tag-complete
+  title: Tag – complete
+  prompt: |
+    Write the whole entity `Tag` for the table `tags`. The label has at most 30 characters and is unique.
+  explanation: |
+    Stored fields must not be `final`: Hibernate sets them when reading. The constructor without parameters is `protected`, not `public`. "At most 30 characters" is `length = 30` (or `@Size(max = 30)`), `min = 30` would mean "at least". A record cannot be an entity.
+
+- id: entity-publisher-own-id
+  title: Publisher – writing the id yourself
+  prompt: |
+    This time without `AbstractPersistable`: write the id of `Publisher` yourself. The database should assign it.
+  explanation: |
+    `@Id` marks the primary key, `@GeneratedValue` lets the database assign the id. `Long` instead of `long`: a new object has no id yet, and `null` shows that. There is no `@PrimaryKey` in JPA. Without `AbstractPersistable` you have to write `equals` and `hashCode` yourself – and `@AllArgsConstructor` would take the id as its first parameter. That is why we otherwise always use `AbstractPersistable<Long>`.
+
+- id: entity-course-fields
+  title: Course – fields with rules
+  prompt: |
+    Write the entity `Course` for the table `courses`, with the fields in the order of the diagram. The title has at most 80 characters, the fee 7 digits, 2 of them after the decimal point.
+  explanation: |
+    The order of the fields is the order of the parameters of `@AllArgsConstructor`: `Course(title, fee, online, startsOn)`. Amounts of money are `BigDecimal`, never `double` (rounding errors). `length` only applies to strings; for numbers it is `precision`. A `boolean` can never be `null`, `{nn}` needs no annotation here.
+
+- id: entity-employee-all
+  title: Employee – everything together
+  prompt: |
+    Complete `Employee`. The email address has at most 100 characters and is unique. The role is stored as its name in the table.
+  explanation: |
+    Everything from this topic at once: `@Entity`, the four Lombok annotations with a `protected` constructor for JPA, length and uniqueness via `@Column`, enum as a name and `LocalDate` for `Date`. The business constructor is `Employee(name, email, role, hiredOn)` – hence the fields in the order of the diagram. (For full points you map enums with a converter in the exam, unit 6.)

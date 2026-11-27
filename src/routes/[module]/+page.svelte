@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Bi from '#lib/components/Bi.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import MindestBadge from '#lib/components/MindestBadge.svelte';
@@ -56,7 +57,7 @@
 		{#each units as u (u.id)}
 			<li class:read={progress.isRead(u.id)}>
 				<span class="check" aria-label={progress.isRead(u.id) ? 'gelesen' : 'noch nicht gelesen'}></span>
-				<a href={resolve('/[module]/[unit]', { module: data.module.slug, unit: u.slug })}>{u.title}</a>
+				<a href={resolve('/[module]/[unit]', { module: data.module.slug, unit: u.slug })}><Bi de={u.title} en={u.titleEn} /></a>
 				<span class="meta">
 					{#if u.mindest}<MindestBadge />{/if}
 					{u.minutes} min
@@ -143,6 +144,10 @@
 	.summary {
 		margin: -16px 0 0;
 		color: var(--text-muted);
+	}
+	/* The negative margin tucks the line under the heading; below the legend it would overlap the box. */
+	.legend + .summary {
+		margin-top: 12px;
 	}
 	.hint,
 	.empty {

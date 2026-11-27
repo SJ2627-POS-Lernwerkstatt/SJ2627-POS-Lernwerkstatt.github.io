@@ -10,7 +10,10 @@ Was soll der Service tun, wenn die Eingabe keinen Sinn ergibt? Die Angabe sagt e
 
 ```java
 public LateFeeService(List<Loan> loans) {
-    this.loans = List.copyOf(Objects.requireNonNull(loans, "loans"));
+    if (loans == null) {
+        throw new IllegalArgumentException("loans must not be null");
+    }
+    this.loans = List.copyOf(loans);
 }
 ```
 
@@ -18,8 +21,12 @@ public LateFeeService(List<Loan> loans) {
 public record Loan(Member member, Book book, LocalDate borrowedOn, LocalDate returnedOn) {
 
     public Loan {
-        Objects.requireNonNull(member, "member");
-        Objects.requireNonNull(borrowedOn, "borrowedOn");
+        if (member == null) {
+            throw new IllegalArgumentException("member must not be null");
+        }
+        if (borrowedOn == null) {
+            throw new IllegalArgumentException("borrowedOn must not be null");
+        }
         if (returnedOn != null && returnedOn.isBefore(borrowedOn)) {
             throw new IllegalArgumentException("returnedOn before borrowedOn");
         }
@@ -29,11 +36,15 @@ public record Loan(Member member, Book book, LocalDate borrowedOn, LocalDate ret
 
 | Situation | Exception |
 |---|---|
-| Ein Pflichtwert ist `null` | `NullPointerException` über `Objects.requireNonNull` |
+| Ein Pflichtwert ist `null` | `IllegalArgumentException` |
 | Ein Wert ist unsinnig (negativ, Ende vor Anfang) | `IllegalArgumentException` |
 | Etwas Gesuchtes gibt es nicht | eigene Exception, z. B. `MemberNotFoundException` |
 
 Prüfst du im kompakten Konstruktor des Records, kann es ein ungültiges Objekt gar nicht geben – der Service muss sich dann nicht mehr darum kümmern.
+
+:::info Kürzer mit `Objects.requireNonNull`
+Java hat für die `null`-Prüfung eine fertige Methode: `Objects.requireNonNull(member, "member");` macht in einer Zeile dasselbe wie das `if`, wirft aber eine `NullPointerException` mit der Nachricht `"member"`. Beides ist richtig – wichtig ist nur, dass du prüfst.
+:::
 
 ## Eine eigene Exception
 
@@ -74,7 +85,7 @@ Eine leere Liste von Ausleihen ist erlaubt: Die Summe ist 0, die Auswertung hat 
 :::
 
 :::merke
-- `Objects.requireNonNull` für Pflichtwerte, `IllegalArgumentException` für unsinnige Werte.
+- Fehlende Pflichtwerte und unsinnige Werte mit `if` prüfen und eine `IllegalArgumentException` werfen.
 - Prüfungen in den kompakten Konstruktor der Records.
 - Eigene Exceptions `extends RuntimeException` mit sprechendem Namen.
 - Testen mit `assertThatThrownBy`: Typ und Nachricht.

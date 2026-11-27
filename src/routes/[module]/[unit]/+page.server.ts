@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const i = units.findIndex((u) => u.slug === params.unit);
 	if (i < 0) error(404, 'Diese Einheit gibt es nicht.');
 
-	const link = (u: (typeof units)[number] | undefined) => (u ? { slug: u.slug, title: u.title } : null);
+	const link = (u: (typeof units)[number] | undefined) => (u ? { slug: u.slug, title: u.title, titleEn: u.en?.title } : null);
 	const unit = units[i];
 	const checks = await Promise.all(groupsForUnit(unit.id).map(groupView));
 	return { module, unit, checks, prev: link(units[i - 1]), next: link(units[i + 1]) };

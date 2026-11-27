@@ -46,7 +46,9 @@ Ein Record ist nur so unveränderlich wie seine Felder. Eine übergebene `ArrayL
 ```java
 public record Student(String name, String schoolClass, int age, List<Grade> grades) {
     public Student {
-        Objects.requireNonNull(name, "name");
+        if (name == null) {
+            throw new IllegalArgumentException("name must not be null");
+        }
         grades = List.copyOf(grades);   // unveränderliche Kopie
     }
 }

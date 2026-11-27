@@ -2,12 +2,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { ModuleSlug } from '#lib/content/modules.js';
+	import Bi from '#lib/components/Bi.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
 
 	type NavModule = {
 		slug: ModuleSlug;
 		title: string;
-		units: { id: string; slug: string; title: string; core: boolean }[];
+		titleEn: string;
+		units: { id: string; slug: string; title: string; titleEn?: string; core: boolean }[];
 		exercises: { slug: string; title: string }[];
 	};
 
@@ -23,7 +25,7 @@
 		<!-- Inside a module only that module is open; elsewhere all modules with content are. -->
 		<details open={currentModule ? currentModule === m.slug : m.units.length > 0}>
 			<summary>
-				<a href={moduleHref} aria-current={path === moduleHref ? 'page' : undefined}>{m.title}</a>
+				<a href={moduleHref} aria-current={path === moduleHref ? 'page' : undefined}><Bi de={m.title} en={m.titleEn} /></a>
 			</summary>
 			{#if m.units.length || m.exercises.length}
 				<ol>
@@ -31,7 +33,7 @@
 						{@const href = resolve('/[module]/[unit]', { module: m.slug, unit: u.slug })}
 						<li>
 							<a {href} aria-current={path === href ? 'page' : undefined}>
-								<span class="title">{u.title}</span>
+								<span class="title"><Bi de={u.title} en={u.titleEn} /></span>
 								{#if !u.core}<span class="tag" title="Vertiefung">V</span>{/if}
 								{#if progress.isRead(u.id)}<span class="read" title="gelesen">✓</span>{/if}
 							</a>

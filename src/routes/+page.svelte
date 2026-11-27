@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Bi from '#lib/components/Bi.svelte';
 	import Button from '#lib/components/Button.svelte';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import { session } from '#lib/sync/session.svelte.ts';
@@ -10,6 +11,9 @@
 	const next = $derived(nextUnit(data.modules, progress.data));
 	const mindestCount = (units: { mindest: boolean }[]) => units.filter((u) => u.mindest).length;
 	const started = $derived(Object.keys(progress.data.units).length > 0);
+	// Parts that only exist once the progress is loaded can follow the language directly.
+	const en = $derived(progress.data.settings.lang === 'en');
+	const nextTitleEn = $derived(next?.module.units.find((u) => u.id === next.unit.id)?.titleEn);
 </script>
 
 <svelte:head>
@@ -18,36 +22,39 @@
 
 <h1>POS Lernwerkstatt</h1>
 <p class="lead">
-	Kleine Lerneinheiten, Übungsfragen und Programmieraufgaben zur Vorbereitung auf die
-	Reife- und Diplomprüfung in POS. <a href={resolve('/so-funktionierts')}>So funktioniert die Lernwerkstatt</a>
+	<Bi
+		de="Kleine Lerneinheiten, Übungsfragen und Programmieraufgaben zur Vorbereitung auf die Reife- und Diplomprüfung in POS."
+		en="Short learning units, practice questions and programming exercises to prepare for the Reife- und Diplomprüfung in POS."
+	/>
+	<a href={resolve('/so-funktionierts')}><Bi de="So funktioniert die Lernwerkstatt" en="How the Lernwerkstatt works" /></a>
 </p>
 
 <!-- Progress is only known in the browser; until then the entry points stay neutral. -->
 <div class="start">
 	{#if progress.loaded && next}
 		<div class="next">
-			<span class="label">{started ? 'Weiter lernen' : 'Hier beginnen'}</span>
+			<span class="label">{started ? (en ? 'Continue learning' : 'Weiter lernen') : en ? 'Start here' : 'Hier beginnen'}</span>
 			<a href={resolve('/[module]/[unit]', { module: next.module.slug, unit: next.unit.slug })}>
-				{next.unit.title}
+				{(en && nextTitleEn) || next.unit.title}
 			</a>
-			<span class="meta">{next.module.title}</span>
+			<span class="meta">{en ? next.module.titleEn : next.module.title}</span>
 		</div>
 	{:else if progress.loaded && started}
 		<div class="next">
-			<span class="label">Alles gelesen</span>
-			<span>Du hast alle Einheiten gelesen. Wiederhole mit dem Üben-Modus.</span>
+			<span class="label">{en ? 'All read' : 'Alles gelesen'}</span>
+			<span>{en ? 'You have read all units. Revise with the practice mode.' : 'Du hast alle Einheiten gelesen. Wiederhole mit dem Üben-Modus.'}</span>
 		</div>
 	{/if}
-	<Button variant={progress.loaded && next ? 'secondary' : 'primary'} href={resolve('/ueben')}>Üben</Button>
+	<Button variant={progress.loaded && next ? 'secondary' : 'primary'} href={resolve('/ueben')}><Bi de="Üben" en="Practise" /></Button>
 </div>
 
 {#if session.enabled && session.loaded}
 	{#if session.loggedIn}
 		<section class="week" aria-label="Wochenaufgaben">
-			<span class="label">Diese Woche</span>
+			<span class="label">{en ? 'This week' : 'Diese Woche'}</span>
 			<div class="links">
-				<a href={resolve('/woche')}>Wochenaufgaben</a>
-				<a href={resolve('/heute')}>Was mache ich heute?</a>
+				<a href={resolve('/woche')}>{en ? 'Weekly tasks' : 'Wochenaufgaben'}</a>
+				<a href={resolve('/heute')}>{en ? 'What do I do today?' : 'Was mache ich heute?'}</a>
 			</div>
 		</section>
 	{:else}
@@ -55,17 +62,17 @@
 	{/if}
 {/if}
 
-<h2>Module</h2>
+<h2><Bi de="Module" en="Modules" /></h2>
 <ol class="modules">
 	{#each data.modules as m (m.slug)}
 		{@const s = moduleSummary(m.units, m.groupIds, progress.data)}
 		<li>
 			<div class="head">
-				<a href={resolve('/[module]', { module: m.slug })}>{m.title}</a>
-				<span class="note">{m.note}</span>
+				<a href={resolve('/[module]', { module: m.slug })}><Bi de={m.title} en={m.titleEn} /></a>
+				<span class="note"><Bi de={m.note} en={m.noteEn} /></span>
 			</div>
 			{#if s.units === 0}
-				<p class="meta">Die Einheiten erscheinen bald.</p>
+				<p class="meta"><Bi de="Die Einheiten erscheinen bald." en="The units are coming soon." /></p>
 			{:else}
 				<div
 					class="bar"
@@ -78,10 +85,18 @@
 					<span style:width="{(100 * s.unitsRead) / s.units}%"></span>
 				</div>
 				{#if mindestCount(m.units) > 0}
-					<p class="meta">{mindestCount(m.units)} von {s.units} Einheiten sind Mindestanforderung</p>
+					<p class="meta">
+						<Bi
+							de="{mindestCount(m.units)} von {s.units} Einheiten sind Mindestanforderung"
+							en="{mindestCount(m.units)} of {s.units} units are Mindestanforderung (needed for a pass)"
+						/>
+					</p>
 				{/if}
 				<p class="meta">
-					{s.unitsRead} / {s.units} Einheiten gelesen{s.groups ? ` · ${s.groupsKnown} / ${s.groups} Fragengruppen gekonnt` : ''}
+					<Bi
+						de="{s.unitsRead} / {s.units} Einheiten gelesen{s.groups ? ` · ${s.groupsKnown} / ${s.groups} Fragengruppen gekonnt` : ''}"
+						en="{s.unitsRead} / {s.units} units read{s.groups ? ` · ${s.groupsKnown} / ${s.groups} question groups mastered` : ''}"
+					/>
 				</p>
 			{/if}
 		</li>

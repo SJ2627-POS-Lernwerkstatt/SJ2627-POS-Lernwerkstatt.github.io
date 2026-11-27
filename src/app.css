@@ -128,3 +128,12 @@ select {
 	outline: 2px solid var(--primary);
 	outline-offset: 2px;
 }
+
+/*
+ * Content in two languages (Bi.svelte, unit pages): both are in the HTML, the chosen one is shown.
+ * data-lang is set before first paint (app.html), so nothing jumps.
+ */
+:root:not([data-lang='en']) .bi-en,
+:root[data-lang='en'] .bi-de {
+	display: none !important;
+}

@@ -1,0 +1,316 @@
+# English text for src/content/questions/service.yaml (same ids, same number of options and follow-ups).
+
+- id: service-aufgabe-scope
+  main:
+    prompt: What belongs to a solution of Task 2?
+    options:
+      - Data classes from the diagram
+      - A service with the business rules
+      - Tests that create their data themselves
+      - "Entities with `@Entity` and repositories"
+      - A REST controller
+    explanation: |
+      Task 2 is pure business logic: data classes, service and tests – without a database and without REST.
+  followUps:
+    - prompt: Data classes and service are complete and correct, but there are no tests. Which grade is possible at most according to the grading?
+      options: ["Genügend", "Befriedigend", "Gut", "Sehr gut"]
+      explanation: |
+        "The data classes and the business logic service exist but are not tested" is the description for Genügend. From Befriedigend on, the tested business cases count.
+
+- id: service-aufgabe-variants
+  main:
+    prompt: "\"A data access interface is to be assumed … the data access classes are to be mocked or replaced by stubs in the tests.\" What do you have to program?"
+    options:
+      - An interface for the data access, without an implementation; in the test you replace it with a stub or mock
+      - An implementation with Spring Data JPA and an H2 database
+      - Nothing, the interface is supplied with the exam
+    explanation: |
+      The service gets an interface in its constructor. Where the data really comes from is not part of the task – in the test a stub or mock provides the data.
+  followUps:
+    - prompt: For which grade does the grading additionally demand that the code is split into several classes?
+      options: ["Gut", "Sehr gut", "Befriedigend"]
+      explanation: |
+        "Gut": all business cases tested. "Sehr gut": additionally split into several classes and thus more maintainable.
+
+- id: service-code-types
+  main:
+    prompt: "The diagram says `borrowedOn : Date`. Which Java type fits?"
+    options: ["`LocalDate`", "`LocalDateTime`", "`java.util.Date`", "`String`"]
+    explanation: |
+      `Date` is a date without a time: `LocalDate`. `DateTime` would be `LocalDateTime`, `Time` would be `LocalTime`.
+  followUps:
+    - prompt: Why does the constructor store `this.loans = List.copyOf(loans);` instead of `this.loans = loans;`?
+      options:
+        - So that later changes to the list passed in do not change the service
+        - "Because otherwise `List` does not compile"
+        - So that the list gets sorted
+      explanation: |
+        `List.copyOf` makes an unmodifiable copy. Whoever changes the original list later no longer changes the data in the service. In addition, `List.copyOf` rejects `null` elements.
+
+- id: service-code-records
+  main:
+    prompt: "What is the best way to implement `class Book { isbn : String; title : String }` from Task 2?"
+    options:
+      - "`public record Book(String isbn, String title) { }`"
+      - "`@Entity public class Book extends AbstractPersistable<Long>`"
+      - "`public enum Book`"
+    explanation: |
+      There is no database in Task 2. Data classes without behaviour are records: constructor, getters, `equals` and `toString` come for free.
+  followUps:
+    - prompt: The pseudocode demands `Long streamingSecondsForArtist(Liste<StreamingLogEntry> entries, Artist artist)`. What is allowed?
+      options:
+        - "`long streamingSecondsForArtist(List<StreamingLogEntry> entries, Artist artist)`"
+        - "`long secondsFor(List<StreamingLogEntry> e, Artist a)`"
+        - Both
+      explanation: |
+        You adapt types to Java (`Liste` → `List`, `Long` → `long`). You keep the method name so that the grader finds your solution again.
+
+- id: service-rules-boundary
+  main:
+    prompt: "Rule: \"Delays up to and including 2 days are free, after that 20 cents per day of delay.\" A book comes back 3 days late. What does it cost?"
+    options: ["20 cents", "60 cents", "0 cents"]
+    explanation: |
+      From 3 days on the delay is no longer free, and then all days count: 3 × 20 = 60 cents. Boundaries like these belong in the tests.
+  followUps:
+    - prompt: "\"Streams **under** 5 seconds are to be discarded.\" Which condition discards correctly?"
+      options: ["`seconds < 5`", "`seconds <= 5`", "`seconds > 5`"]
+      explanation: |
+        Under 5 means less than 5. A stream of exactly 5 seconds counts.
+    - prompt: Which expression checks "at least 85 % of the song length" without rounding errors?
+      options:
+        - "`streamed * 100 >= songLength * 85`"
+        - "`streamed / songLength >= 0.85`"
+        - "`streamed / songLength * 100 >= 85`"
+      explanation: |
+        With `int` values, `streamed / songLength` is an integer division and almost always 0. Multiplying instead of dividing stays with whole numbers and is exact.
+
+- id: service-rules-structure
+  main:
+    prompt: Why does every rule of the task get a method of its own?
+    options:
+      - Every rule can be tested separately, and the main method reads like the task
+      - Because Java does not allow long methods
+      - So that the service runs faster
+    explanation: |
+      Small methods like `fee`, `daysLate` or `ofMember` can be checked separately with boundary values. The main method puts them together.
+  followUps:
+    - prompt: How do you calculate amounts of money?
+      options: ["In cents as `int`/`long` or with `BigDecimal`", "With `double`, that is precise enough", "With `float`"]
+      explanation: |
+        `0.1 + 0.2` gives `0.30000000000000004` in `double`. Whole cents or `BigDecimal` are exact.
+
+- id: service-aggregate-map
+  main:
+    prompt: The task demands a map "passed / repetition possible / failed → list of results". Which type fits best?
+    options:
+      - "`Map<Grade, List<ExamResult>>` with an enum `Grade` and a record `ExamResult`"
+      - "`Map<String, List<Object>>`"
+      - "`List<List<String>>`"
+    explanation: |
+      An enum as the key prevents typos, a record per result contains exactly the required values (name, points).
+  followUps:
+    - prompt: Nobody has "failed". What does `groupingBy(r -> grade(r))` return for this key?
+      options: ["An empty list", "The key does not exist in the map – `get` returns `null`", "An exception"]
+      explanation: |
+        `groupingBy` only creates keys that occur. If you want all keys, fill an `EnumMap` with empty lists beforehand.
+
+- id: service-aggregate-sort
+  main:
+    prompt: The lists in the map should be sorted by points in descending order. Where is it easiest to sort?
+    options:
+      - "In the stream before `groupingBy` – every group keeps the order"
+      - "After `groupingBy` you can no longer sort"
+      - Not at all, a map is always sorted
+    explanation: |
+      `groupingBy` appends the elements in the order of the stream. Sorting once beforehand is enough for all lists.
+  followUps:
+    - prompt: Why does `Comparator.comparingInt(f -> f.cents()).reversed()` not compile?
+      options:
+        - "Before `reversed()` Java does not know the type of `f` and assumes `Object`"
+        - "Because `reversed()` only works for strings"
+        - "Because `comparingInt` does not accept lambdas"
+      explanation: |
+        With `MemberFee::cents` or `(MemberFee f) -> f.cents()` Java knows the type, and `reversed()` works.
+    - prompt: How should the test data for a sorting test be passed in?
+      options: ["Deliberately unsorted", "Already sorted, so that the test is clear", "Doesn't matter"]
+      explanation: |
+        If the data is already sorted, a service without sorting passes the test too.
+
+- id: service-testdata-cases
+  main:
+    prompt: "Rule: \"at most €10 per loan\" at 20 cents per day. Which test cases check the boundary?"
+    options:
+      - A delay that gives exactly €10, and one above it
+      - Only a very long delay
+      - Only a loan without a delay
+    explanation: |
+      Boundary values: exactly on the boundary (50 days late = €10) and above it (capped). Best in a `@ParameterizedTest`.
+  followUps:
+    - prompt: Why do the tests use a fixed date instead of `LocalDate.now()`?
+      options:
+        - Otherwise the expected result changes every day
+        - "Because `now()` is forbidden in tests"
+        - "Because `now()` is slower"
+      explanation: |
+        An open loan costs something different today than tomorrow. With a fixed date the test is repeatable.
+
+- id: service-testdata-filter
+  main:
+    prompt: A test checks `feeFor(ANNA, today)` and only passes in loans of Anna. What does it miss?
+    options: ["Whether the service really only counts Anna's loans", "Nothing", "Whether Anna exists"]
+    explanation: |
+      Without a loan of another member, a service without a filter passes too. Test data must make wrong solutions fail.
+  followUps:
+    - prompt: What does `name = "{0} Tage → {1} Cent"` do in `@ParameterizedTest`?
+      options:
+        - "It names every run with its values, e.g. \"31 Tage → 60 Cent\""
+        - It sets the test data
+        - It prints a message on an error
+      explanation: |
+        `{0}`, `{1}` are the arguments of the run. That way the test output shows right away which case fails.
+
+- id: service-errors-types
+  main:
+    prompt: A loan has `returnedOn` before `borrowedOn`. Which exception fits?
+    options: ["`IllegalArgumentException`", "`NullPointerException`", "`Exception` (checked)"]
+    explanation: |
+      A meaningless value is an invalid argument. It is best checked in the compact constructor of the record.
+  followUps:
+    - prompt: Why does an exception of your own like `MemberNotFoundException` extend `RuntimeException`?
+      options:
+        - "Then it does not have to be declared with `throws` or caught"
+        - "Because only `RuntimeException`s have a message"
+        - So that it can never be thrown
+      explanation: |
+        Unchecked exceptions pass through service and controller without `throws`. In Task 3 they become a status code.
+
+- id: service-errors-tests
+  main:
+    prompt: Which test checks error handling most precisely?
+    options:
+      - "`assertThatThrownBy(…).isInstanceOf(MemberNotFoundException.class).hasMessage(\"no loans for member Zoe\")`"
+      - "`assertThatThrownBy(…).isInstanceOf(RuntimeException.class)`"
+      - "`assertThatThrownBy(…)` without any further check"
+    explanation: |
+      Type and message together rule out that some other error was thrown by chance.
+  followUps:
+    - prompt: The service gets an empty list of loans. What makes sense?
+      options: ["Sum 0 or an evaluation with empty lists", "An `IllegalArgumentException`", "Return `null`"]
+      explanation: |
+        Empty data is a valid case with a clear result. Exceptions only when the result would otherwise be wrong.
+
+- id: service-access-interface
+  main:
+    prompt: How does the service get the data access interface?
+    options: ["Via its constructor", "It creates an implementation itself with `new`", "Via a static variable"]
+    explanation: |
+      If the service gets the interface in its constructor, the test can pass in a stub or mock.
+  followUps:
+    - prompt: What is a stub?
+      options:
+        - A simple implementation of the interface that returns fixed test data
+        - "A mock that checks calls with `verify`"
+        - An in-memory database
+      explanation: |
+        A stub is an (anonymous) class or a lambda with fixed data. It checks no calls – that is what mocks are for.
+
+- id: service-access-mockito
+  main:
+    prompt: A test sets `when(repo.findAll()).thenReturn(…)`, but the service only calls `findByMemberName`. What does `MockitoExtension` report?
+    options: ["`UnnecessaryStubbingException`", "Nothing", "`NullPointerException`"]
+    explanation: |
+      Mockito is strict by default: a behaviour that was set but is never used makes the test fail.
+  followUps:
+    - prompt: What does a `@Mock LoanRepository` return for `findByMemberName("Anna")` if nothing was set?
+      options: ["An empty list", "`null`", "An exception"]
+      explanation: |
+        Mocks return an empty list for lists, `null` for objects, 0 for numbers and `false` for `boolean`.
+
+- id: service-split-why
+  main:
+    prompt: By which criterion do you split the service?
+    options: ["By tasks, e.g. rules, evaluation, flow", "One class per method", "By number of lines"]
+    explanation: |
+      Every class has one reason to change: if a fee rule changes, only `FeeRules` changes.
+  followUps:
+    - prompt: "`FeeReportService` needs `FeeRules`. How does it get the rules?"
+      options: ["Via the constructor, like the repository", "It calls `new FeeRules()` in every method", "Via a public static variable"]
+      explanation: |
+        Dependencies via the constructor make the service testable and fit Spring (unit 9).
+
+- id: service-split-tests
+  main:
+    prompt: Where do you test the boundary values of the fee rules after splitting?
+    options: ["In `FeeRulesTest`, without a repository and without a mock", "Only in the service test, with a mock", "No longer at all"]
+    explanation: |
+      The rules need no data from outside. A test of its own for the rules class is shorter and shows errors more precisely.
+
+- id: service-spring-injection
+  main:
+    prompt: "`@Service public class FeeReportService` has exactly one constructor `FeeReportService(LoanRepository repo, FeeRules rules)`. What else does it need for Spring to use it?"
+    options:
+      - Nothing, with exactly one constructor Spring passes the beans automatically – provided they exist
+      - "`@Autowired` on the constructor"
+      - Setters for both fields
+    explanation: |
+      Constructor injection with a single constructor needs no `@Autowired`. But every dependency has to be a bean.
+  followUps:
+    - prompt: "In the seed project `contextLoads` suddenly fails with \"required a bean of type 'LoanRepository' that could not be found\". Why?"
+      options:
+        - "The service has `@Service`, but there is no implementation as a bean for the interface `LoanRepository`"
+        - The interface has too many methods
+        - "`contextLoads` always tests the database"
+      explanation: |
+        Spring cannot create the service. So in Task 2 either no `@Service` or a simple implementation with `@Repository`.
+
+- id: service-spring-dto
+  main:
+    prompt: What is it good for that the service returns a DTO like `record FeeDto(String member, double euros, int openLoans)`?
+    options:
+      - It contains exactly what the caller needs; internal data does not leave the service
+      - Because records are faster than classes
+      - Because Spring can only return records
+    explanation: |
+      The DTO is the interface towards the outside, for example the JSON in Task 3. The mapping is in one place in the service.
+  followUps:
+    - prompt: Where is `@Transactional(readOnly = true)` typically put?
+      options:
+        - "On the service class, writing methods get `@Transactional`"
+        - On every record
+        - On the repository interface
+      explanation: |
+        Reading methods then run without write access, writing ones in a normal transaction. This only exists in projects with Spring Data JPA.
+
+- id: service-spring-test-setup
+  main:
+    prompt: What does a test for a Spring service with a repository need?
+    options:
+      - "`@ExtendWith(MockitoExtension.class)`, `@Mock` for the repository, `@InjectMocks` for the service"
+      - "`@SpringBootTest` and an H2 database"
+      - "`@DataJpaTest`"
+    explanation: |
+      The service is a normal class. Mockito replaces the repository – without a Spring context and without a database.
+  followUps:
+    - prompt: "`FeeRules` should really calculate in the test, but still get into the service via `@InjectMocks`. How?"
+      options: ["`@Spy private FeeRules rules = new FeeRules();`", "`@Mock private FeeRules rules;`", "Not at all"]
+      explanation: |
+        A `@Mock` would always return 0. A `@Spy` is a real object that Mockito still puts into the service.
+
+- id: service-spring-test-cases
+  main:
+    prompt: Which cases should the test of a service cover?
+    options:
+      - Good cases
+      - Edge cases (e.g. no fees, an open loan)
+      - Error cases (e.g. an unknown member)
+      - The Spring context
+    explanation: |
+      Good, edge and error cases – the grading of Task 3 demands the same three kinds. The Spring context is not part of the service test.
+  followUps:
+    - prompt: What does `verify(loanRepository).findByMemberName("Anna")` check?
+      options:
+        - "That the service called the repository exactly once with \"Anna\""
+        - That the repository has data for Anna
+        - That Anna has fees
+      explanation: |
+        `verify` checks calls on the mock, without `times(...)` exactly once.

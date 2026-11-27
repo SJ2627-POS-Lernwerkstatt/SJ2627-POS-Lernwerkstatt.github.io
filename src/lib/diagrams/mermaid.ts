@@ -1,6 +1,9 @@
-/** Renders <pre class="mermaid"> blocks inside `root`. Mermaid is only downloaded when a page has a diagram. */
+/** Renders visible <pre class="mermaid"> blocks inside `root`. Mermaid is only downloaded when a page has a diagram. */
 export async function renderMermaid(root: HTMLElement): Promise<void> {
-	const nodes = [...root.querySelectorAll<HTMLElement>('pre.mermaid:not([data-processed])')];
+	// Hidden diagrams (the other language of a translated unit) would be laid out at size 0; they are drawn once shown.
+	const nodes = [...root.querySelectorAll<HTMLElement>('pre.mermaid:not([data-processed])')].filter(
+		(n) => n.checkVisibility?.() ?? true
+	);
 	if (nodes.length === 0) return;
 
 	const { default: mermaid } = await import('mermaid');

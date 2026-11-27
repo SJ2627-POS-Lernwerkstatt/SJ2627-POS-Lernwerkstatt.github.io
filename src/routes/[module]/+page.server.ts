@@ -8,10 +8,11 @@ export const entries: EntryGenerator = () => MODULES.map((m) => ({ module: m.slu
 export const load: PageServerLoad = ({ params }) => {
 	const module = MODULES.find((m) => m.slug === params.module);
 	if (!module) error(404, 'Dieses Modul gibt es nicht.');
-	const units = unitsOf(module.slug).map(({ id, slug, title, minutes, core, mindest }) => ({
+	const units = unitsOf(module.slug).map(({ id, slug, title, en, minutes, core, mindest }) => ({
 		id,
 		slug,
 		title,
+		titleEn: en?.title,
 		minutes,
 		core,
 		mindest

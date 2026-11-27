@@ -1,0 +1,335 @@
+# English text for src/content/questions/fundament.yaml (same ids, same number of options and follow-ups).
+
+- id: fundament-objekte-new
+  main:
+    prompt: How many `Book` objects are there after this code?
+    options: ["2", "3", "4", "1"]
+    explanation: |
+      Only `new` builds an object – `new` twice, so two books. `c = a` copies the **pointer**: `c` and `a` point
+      to the same book. `d` points to nothing at all (`null`).
+  followUps:
+    - prompt: What does the last line print?
+      options: ["200", "100", "0", "Compile error"]
+      explanation: |
+        `a` and `c` point to **the same** object. A change via `c` is also visible via `a`.
+
+- id: fundament-objekte-static
+  main:
+    prompt: Which call compiles?
+    options:
+      - "`Book.isValidIsbn(\"9783608938289\")`"
+      - "`Book.titleLength()`"
+      - "`Book.title`"
+      - "`new Book().isValidIsbn` without parentheses"
+    explanation: |
+      `static` methods belong to the class and are called via the class name. `titleLength()` and `title`
+      belong to a **particular** book – for that you need an object, e.g. `new Book().titleLength()`.
+  followUps:
+    - prompt: Why does the compiler report *non-static variable title cannot be referenced from a static context* here?
+      options:
+        - A `static` method has no "current book", so it is unclear whose `title` is meant.
+        - "`toUpperCase` must not be used in `static` methods."
+        - "`title` would have to be `private`."
+        - "`static` methods must not return anything."
+      explanation: |
+        Fields without `static` exist once **per object**. A `static` method runs without an object, so there is
+        no `title` it could read.
+
+- id: fundament-objekte-npe
+  main:
+    prompt: What happens when this runs?
+    options:
+      - "`NullPointerException` at runtime"
+      - Compile error
+      - "Prints `false`"
+      - "Prints `null`"
+    explanation: |
+      The code compiles (`b` has the type `Book`, and `Book` has `isThick()`). At runtime, however, `b` points to
+      nothing – a method call on `null` throws a `NullPointerException`.
+
+- id: fundament-konstruktor-erkennen
+  main:
+    prompt: Which line is a constructor of the class `Book`?
+    options:
+      - "`public Book(String title) { … }`"
+      - "`public void Book(String title) { … }`"
+      - "`public Book create(String title) { … }`"
+      - "`public static Book(String title) { … }`"
+    explanation: |
+      A constructor is named exactly like the class and has **no** return type – not even `void`.
+      `public void Book(…)` is a (confusingly named) normal method.
+
+- id: fundament-konstruktor-this
+  main:
+    prompt: What does `new Book("Der Hobbit").getTitle()` return?
+    options: ["`null`", "`\"Der Hobbit\"`", "Compile error", "An empty string"]
+    explanation: |
+      In the constructor `title` means the **parameter**. `title = title` assigns the parameter to itself, the field
+      stays `null`. Correct: `this.title = title;`.
+  followUps:
+    - prompt: Complete the constructor so that a book is always valid.
+      explanation: |
+        Fields `private`, constructor without a return type, check first, then assign with `this.`.
+
+- id: fundament-konstruktor-default
+  main:
+    prompt: Why does `new Book()` no longer compile?
+    options:
+      - As soon as there is a constructor of your own, Java no longer creates an empty `Book()`.
+      - "Because `title` is `private`."
+      - Because constructors always need parameters.
+      - "Because `Book` has no getter."
+    explanation: |
+      The empty default constructor only exists as long as you write **none** of your own. JPA needs it, though –
+      that is why every entity has `@NoArgsConstructor(access = AccessLevel.PROTECTED)`.
+
+- id: fundament-interface-implements
+  main:
+    prompt: Why does `CheapPolicy` not compile?
+    options:
+      - "`name()` is missing – whoever implements an interface has to program all of its methods."
+      - An interface may only have one method.
+      - "It would have to say `extends LateFeePolicy`."
+      - "`@Override` is forbidden with interfaces."
+    explanation: |
+      `implements` means: I keep the whole contract. If a method is missing, the compiler reports
+      *CheapPolicy is not abstract and does not override abstract method name()*.
+
+- id: fundament-interface-new
+  main:
+    prompt: Which lines compile? (`LateFeePolicy` is an interface, `StandardPolicy implements LateFeePolicy`.)
+    options:
+      - "`LateFeePolicy p = new StandardPolicy();`"
+      - "`LateFeePolicy p = new LateFeePolicy();`"
+      - "`List<String> names = new ArrayList<>();`"
+      - "`StandardPolicy s = new LateFeePolicy();`"
+    explanation: |
+      The interface may be on the left, on the right a **concrete** class has to be built with `new`.
+      An interface alone has no code and cannot be created.
+
+- id: fundament-interface-repository
+  main:
+    prompt: Who writes the code for the methods of `BookRepository`?
+    options:
+      - Spring Data – at startup it automatically generates a class that implements the interface.
+      - "You have to write a class `BookRepositoryImpl`."
+      - Nobody – the call always throws an exception.
+      - Hibernate reads an XML file for it.
+    explanation: |
+      That is the trick of Spring Data: you only write the contract (the interface), Spring builds the implementation
+      itself – even for `findBy…` methods, from their names.
+
+- id: fundament-override-tippfehler
+  main:
+    prompt: What happens if you write `@Override` above it here?
+    options:
+      - "Compile error: the method overrides nothing – so the typo shows up right away."
+      - "Nothing, `@Override` is only a comment."
+      - "Java corrects the name to `toString` automatically."
+      - Runtime error on the call.
+    explanation: |
+      `@Override` makes the compiler check that the method exists in a supertype. `toSting` does not exist –
+      without `@Override` it would be a new method, and `System.out.println(book)` would still print
+      `Book@1b6d3586`.
+
+- id: fundament-override-equals
+  main:
+    prompt: Which signature really overrides `equals` from `Object`?
+    options:
+      - "`public boolean equals(Object o)`"
+      - "`public boolean equals(Book other)`"
+      - "`public boolean equals(Book a, Book b)`"
+      - "`public static boolean equals(Object o)`"
+    explanation: |
+      Overriding demands **the same signature**: name, parameter types, return type. `equals(Book other)` is an
+      additional method (overloaded) – collections and JPA never call it. `@Override` uncovers such things.
+
+- id: fundament-override-polymorphie
+  main:
+    prompt: What does the code print?
+    options: ["20", "200", "80", "Compile error, because `policy` has the type `LateFeePolicy`"]
+    explanation: |
+      The method of the **actual object** (`StudentPolicy`) runs: `max(0, 4 - 3) * 20 = 20`.
+      The type of the variable only decides which methods you may call.
+
+- id: fundament-vererbung-super
+  main:
+    prompt: Why does the constructor of `Ebook` not compile?
+    options:
+      - "`super(title);` is missing – `Medium` has no empty constructor, so `Ebook` has to call the existing one."
+      - "`sizeMb` must not be `final`."
+      - Subclasses must not have fields of their own.
+      - "`Ebook` would have to say `implements Medium`."
+    explanation: |
+      Every constructor first calls a constructor of the superclass. If you write nothing, Java tries `super()` –
+      but that does not exist in `Medium`. So: `super(title);` as the **first** line.
+  followUps:
+    - prompt: "`Ebook extends Medium`, `Medium` has a `private String title`. What works in a method of `Ebook`?"
+      options:
+        - "calling `getTitle()`"
+        - "reading `title` directly"
+        - "setting `this.title = \"x\"`"
+        - "reading `super.title`"
+      explanation: |
+        `private` means: only visible in **this** class – subclasses do not see the field either. The public getter
+        is inherited, though.
+
+- id: fundament-vererbung-abstract
+  main:
+    prompt: What is true for `public abstract class Medium` with the method `public abstract int loanDays();`?
+    options:
+      - "`new Medium(\"x\")` does not compile."
+      - "Every non-abstract subclass has to program `loanDays()`."
+      - "`Medium` may still have fields and finished methods."
+      - "`Medium` must not have a constructor."
+    explanation: |
+      An abstract class is half finished: it cannot be created directly, but may have fields, constructors (for `super(…)`) and
+      finished code. Every concrete subclass has to provide the abstract methods.
+
+- id: fundament-equals-string
+  main:
+    prompt: How do you check correctly whether the title is "Momo"?
+    options:
+      - "`\"Momo\".equals(book.getTitle())`"
+      - "`book.getTitle() == \"Momo\"`"
+      - "`book.getTitle() = \"Momo\"`"
+      - "`book.getTitle().hashCode() == 0`"
+    explanation: |
+      Strings are objects: `==` compares whether it is **the same** object, and often it is not, even though the
+      text is the same. `equals` compares the content. `"Momo".equals(…)` has the bonus that it simply returns
+      `false` for `null` instead of a `NullPointerException`.
+
+- id: fundament-equals-hashset
+  main:
+    prompt: "`Isbn` only overrides `equals`, not `hashCode`. What does the code most likely print?"
+    options:
+      - "`false` – the HashSet searches via `hashCode` in the wrong drawer."
+      - "`true` – `equals` is enough."
+      - Compile error
+      - "`NullPointerException`"
+    explanation: |
+      Equal objects must have the same `hashCode`. Without your own `hashCode` the two ISBNs almost certainly get
+      different values, and `contains` does not even compare with `equals`. Hence: always override **both** –
+      or simply use a `record`.
+
+- id: fundament-list-map-basics
+  main:
+    prompt: What does the code print?
+    code: |
+      Map<String, Integer> loans = new HashMap<>();
+      loans.put("Central", 12);
+      loans.put("North", 5);
+      loans.put("Central", 13);
+      System.out.println(loans.size() + " " + loans.get("Central") + " " + loans.get("South"));
+    options: ["`2 13 null`", "`3 12 null`", "`3 13 0`", "`2 25 0`"]
+    explanation: |
+      A key occurs only **once** in a map: the second `put("Central", …)` overwrites the value.
+      For a missing key `get` returns `null` – with `getOrDefault("South", 0)` you would get `0`.
+  followUps:
+    - prompt: What happens in the second line?
+      options:
+        - "`UnsupportedOperationException` – `List.of` is unmodifiable."
+        - The list then has three entries.
+        - Compile error
+        - "Nothing, `add` is ignored."
+      explanation: |
+        `List.of(…)` returns an unmodifiable list. For filling, use `new ArrayList<>()`, or copy:
+        `new ArrayList<>(List.of(…))`.
+
+- id: fundament-list-map-index
+  main:
+    prompt: "`titles` contains `[\"Momo\", \"The Hobbit\", \"Krabat\"]`. What does `titles.get(1)` return?"
+    options: ["`\"The Hobbit\"`", "`\"Momo\"`", "`\"Krabat\"`", "`IndexOutOfBoundsException`"]
+    explanation: |
+      The index starts at **0**: `get(0)` is "Momo", `get(1)` "The Hobbit", `get(2)` "Krabat". `get(3)` would throw an
+      `IndexOutOfBoundsException`.
+
+- id: fundament-generics-repository
+  main:
+    prompt: The entity `Book` extends `AbstractPersistable<Long>`. Which line is right?
+    options:
+      - "`interface BookRepository extends JpaRepository<Book, Long>`"
+      - "`interface BookRepository extends JpaRepository<Long, Book>`"
+      - "`interface BookRepository extends JpaRepository<Book, long>`"
+      - "`class BookRepository implements JpaRepository<Book>`"
+    explanation: |
+      First the entity, then the type of the id. Primitive types must not go in angle brackets, so `Long` instead of
+      `long`. And the repository is an **interface** that Spring Data implements.
+  followUps:
+    - prompt: Fill in the types.
+      explanation: |
+        `AttributeConverter<JavaType, DbType>`, `findById` returns `Optional<Entity>`, lists need the wrapper
+        `Integer`, on the right the diamond `<>` is enough, and a response without a body is `ResponseEntity<Void>` with a capital V.
+
+- id: fundament-exceptions-flow
+  main:
+    prompt: What does the code print if the book is already borrowed and `borrow` therefore throws an `IllegalStateException`?
+    options: ["`B` and `C`", "`A`, `B` and `C`", "only `B`", "`A` and `C`"]
+    explanation: |
+      The exception ends the `try` block right away – `A` is no longer printed. The matching `catch` block runs,
+      then it continues normally with `C`.
+
+- id: fundament-exceptions-own
+  main:
+    prompt: Build your own unchecked exception for a missing book.
+    explanation: |
+      Unchecked means `extends RuntimeException` – then the compiler demands no `throws`. You pass the message on to
+      the superclass with `super(…)`; `getMessage()` returns it later.
+  followUps:
+    - prompt: Which built-in exception fits if `pages` is negative when a book is created?
+      options: ["`IllegalArgumentException`", "`IllegalStateException`", "`NullPointerException`", "`IOException`"]
+      explanation: |
+        A **parameter** is invalid → `IllegalArgumentException`. `IllegalStateException` is for a wrong
+        **state** (e.g. the book is already borrowed).
+
+- id: fundament-annotationen-wer
+  main:
+    prompt: You forgot `@Entity` on `Book`. What happens?
+    options:
+      - The code compiles, but Hibernate creates no table – the error only shows at startup or in the test.
+      - The compiler reports an error right away.
+      - "Nothing, `@Entity` is optional."
+      - IntelliJ adds the annotation automatically when compiling.
+    explanation: |
+      Annotations are notes that a tool reads. Hibernate reads `@Entity` – the compiler does not care about it.
+      That is why the code compiles, and e.g. the repository only fails at startup with *Not a managed type: class Book*.
+  followUps:
+    - prompt: Which import belongs to `@Test` in the Matura?
+      options: ["`org.junit.jupiter.api.Test`", "`org.junit.Test`", "`org.springframework.boot.test.Test`", "`jakarta.persistence.Test`"]
+      explanation: |
+        JUnit 5 (Jupiter) lives in `org.junit.jupiter.api`. `org.junit.Test` is JUnit 4 – with it your tests are not
+        found in the seed project.
+
+- id: fundament-spring-di-constructor
+  main:
+    prompt: How does `BookController` get its `BookService`?
+    options:
+      - Spring builds a `BookService` (a bean) at startup and passes it to the constructor that Lombok generates.
+      - "Not at all – `service` stays `null`, you have to write `new BookService()`."
+      - "Via a static method `BookService.getInstance()`."
+      - Hibernate loads it from the database.
+    explanation: |
+      That is dependency injection: `@RequiredArgsConstructor` generates a constructor for all `final` fields, and
+      Spring calls it with the matching bean. Writing `new` yourself would destroy the replaceability in the test.
+  followUps:
+    - prompt: "At startup: *required a bean of type 'BookService' that could not be found*. What is the most likely cause?"
+      options:
+        - "`@Service` is missing on the class `BookService`."
+        - "`BookController` has no `@GetMapping`."
+        - The database is empty.
+        - "`service` is `final`."
+      explanation: |
+        Spring only builds beans from classes with `@Service`, `@Repository`, `@Component`, `@RestController` … If the
+        annotation is missing, there is nothing to pass in.
+
+- id: fundament-spring-di-why
+  main:
+    prompt: Which statements about dependency injection are true?
+    options:
+      - A class does not build its dependencies itself, it gets them from outside.
+      - In the test a mock can be passed instead of the real dependency.
+      - DI only works with databases.
+      - In Spring the constructor is the usual way to get dependencies.
+    explanation: |
+      These are exactly the points for the theory question: the dependency comes from outside (container = Spring), constructor
+      injection, replaceability (mock in the test, another implementation in production). DI has nothing to do with databases.

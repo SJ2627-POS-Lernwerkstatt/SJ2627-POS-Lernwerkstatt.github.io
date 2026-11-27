@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const puzzles = puzzlesOf(topic.slug);
 	const i = puzzles.findIndex((p) => p.id === params.id);
 	if (i < 0) error(404, 'Dieses Puzzle gibt es nicht.');
-	const link = (p: (typeof puzzles)[number] | undefined) => (p ? { id: p.id, title: p.title } : null);
+	const link = (p: (typeof puzzles)[number] | undefined) => (p ? { id: p.id, title: p.title, titleEn: p.en?.title } : null);
 	const puzzle = await puzzleView(puzzles[i]!);
 	return {
 		/** Read by the root layout: wider main column, course panel hidden by default. */

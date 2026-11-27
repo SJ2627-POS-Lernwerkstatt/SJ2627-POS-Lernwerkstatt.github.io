@@ -1,0 +1,318 @@
+# English text for src/content/questions/streams.yaml (same ids, same number of options and follow-ups).
+
+- id: streams-lambdas-types
+  main:
+    prompt: Which function type fits `s -> s.age() >= 18`?
+    options: ["`Function<Student, Integer>`", "`Predicate<Student>`", "`Consumer<Student>`", "`Supplier<Boolean>`"]
+    explanation: |
+      The lambda gets a `Student` and returns a `boolean` – that is a `Predicate<Student>`. Exactly what `filter` expects.
+  followUps:
+    - prompt: Which pairs of lambda and method reference are equivalent?
+      options:
+        - "`s -> s.name()` and `Student::name`"
+        - "`text -> System.out.println(text)` and `System.out::println`"
+        - "`() -> new ArrayList<>()` and `ArrayList::new`"
+        - "`s -> s.name()` and `Student::getName`"
+      explanation: |
+        In a record the accessor method is called `name()`, hence `Student::name`. `Student::getName` would only exist in a normal class with a getter.
+
+- id: streams-lambdas-supplier
+  main:
+    prompt: What is a `Supplier<T>`?
+    options:
+      - A function that gets nothing and returns a value
+      - A function that gets a value and returns nothing
+      - A function that combines two values into one
+    explanation: |
+      `Supplier<T>.get()` returns a value without input, e.g. `() -> new ArrayList<>()`. Taking a value and returning nothing is a `Consumer`, combining two values a `BinaryOperator`.
+  followUps:
+    - prompt: Combine the two conditions into "adult **and** in 5AHIF".
+      explanation: |
+        A lambda needs parameters and an arrow: `s -> ...`. `and` connects two predicates, `or` would be the logical or, `negate` the negation.
+
+- id: streams-lambdas-methodref
+  main:
+    prompt: Which method reference replaces `text -> Integer.parseInt(text)`?
+    options: ["`Integer::parseInt`", "`Integer.parseInt()`", "`text::parseInt`"]
+    explanation: |
+      A method reference is written `Class::method` – without parentheses and without arguments. `Integer.parseInt()` would be a call, not a reference.
+
+- id: streams-basics-pipeline
+  main:
+    prompt: Return the names of all students of 5AHIF as a list.
+    explanation: |
+      Source `stream()`, then `filter` (keeps elements) and `map` (transforms), at the end the terminal operation `toList()`. Filter first, then transform – after `map` there is no class left to filter by.
+  followUps:
+    - prompt: What does this code print?
+      options: ["`5` twice", "`5` and then `0`", "`5`, then an `IllegalStateException`"]
+      explanation: |
+        A stream can only be used once. The second `toList()` call throws `IllegalStateException: stream has already been operated upon or closed`.
+
+- id: streams-basics-tolist
+  main:
+    prompt: What happens with `names.add("Fritz")`?
+    options: ["\"Fritz\" is appended.", "An `UnsupportedOperationException` is thrown.", "The code does not compile."]
+    explanation: |
+      `toList()` returns an **unmodifiable** list. If you need a modifiable one, use `collect(Collectors.toCollection(ArrayList::new))`.
+  followUps:
+    - prompt: What does this code do?
+      options:
+        - "It removes all students up to 18 from `students`."
+        - "Nothing – a terminal operation is missing, and `students` is never changed anyway."
+        - It prints the filtered students.
+      explanation: |
+        Intermediate steps are lazy and only run with a terminal operation. And a stream never changes its source – it returns a new result.
+
+- id: streams-basics-range
+  main:
+    prompt: Which numbers does `IntStream.range(1, 5)` return?
+    options: ["1, 2, 3, 4, 5", "1, 2, 3, 4", "0, 1, 2, 3, 4"]
+    explanation: |
+      `range` excludes the end, `rangeClosed(1, 5)` includes it.
+
+- id: streams-sort-thencomparing
+  main:
+    prompt: Sort by age and, with equal age, by name.
+    explanation: |
+      `sorted` with `Comparator.comparing(...)` for the first criterion and `thenComparing(...)` for the second. In records the accessor is called `age`, not `getAge`.
+  followUps:
+    - prompt: The oldest should come first, with equal age the name in **ascending** order. Which comparator is right?
+      options:
+        - "`Comparator.comparing(Student::age).thenComparing(Student::name).reversed()`"
+        - "`Comparator.comparing(Student::age).reversed().thenComparing(Student::name)`"
+        - "`Comparator.comparing(Student::age).thenComparing(Student::name, Comparator.reverseOrder())`"
+      explanation: |
+        `reversed()` reverses everything before it. At the end of the chain it would reverse the name too. Right after the age it only reverses the age.
+
+- id: streams-sort-natural
+  main:
+    prompt: How do you sort a `List<String>` in **descending** order?
+    options:
+      - "`names.stream().sorted().reversed().toList()`"
+      - "`names.stream().sorted(Comparator.reverseOrder()).toList()`"
+      - "`names.stream().sorted(String::reversed).toList()`"
+    explanation: |
+      `Comparator.reverseOrder()` reverses the natural order. A `Stream` has no method `reversed()`.
+  followUps:
+    - prompt: How does `Comparator.comparing(Student::schoolClass, Comparator.reverseOrder()).thenComparing(Student::name)` sort?
+      options:
+        - Class descending, within the class name ascending
+        - Class and name descending
+        - Class ascending, name descending
+      explanation: |
+        The second argument of `comparing` only sets the direction of this one criterion.
+
+- id: streams-sort-stable
+  main:
+    prompt: Anna and Cem are both 18 and are in the list in this order. In which order are they after `sorted(Comparator.comparing(Student::age))`?
+    options: ["Anna before Cem – with equal values the original order is kept", "Cem before Anna", "Random"]
+    explanation: |
+      Sorting is *stable*. But if you do not want to rely on the order of the source, give a second criterion with `thenComparing`.
+
+- id: streams-limit-order
+  main:
+    prompt: Which code returns the **two oldest** students?
+    options:
+      - "`students.stream().limit(2).sorted(Comparator.comparing(Student::age).reversed()).toList()`"
+      - "`students.stream().sorted(Comparator.comparing(Student::age).reversed()).limit(2).toList()`"
+      - "`students.stream().sorted(Comparator.comparing(Student::age)).skip(2).toList()`"
+    explanation: |
+      Sort first, then `limit`. The other way round you take two arbitrary students and only sort those two.
+  followUps:
+    - prompt: The sorted names are `[Anna, Ben, Cem, Dora, Emil]`. What does `.skip(2).limit(2)` return?
+      options: ["`[Anna, Ben]`", "`[Cem, Dora]`", "`[Dora, Emil]`"]
+      explanation: |
+        `skip(2)` skips Anna and Ben, `limit(2)` takes the next two.
+
+- id: streams-distinct-equals
+  main:
+    prompt: What does `distinct()` use to decide whether two elements are equal?
+    options: ["`==`, i.e. whether it is the same object", "`equals` (and `hashCode`)", "`toString()`"]
+    explanation: |
+      Records and strings come with a matching `equals`. A class of your own without `equals` is only recognised as equal if it is the same object.
+
+- id: streams-peek
+  main:
+    prompt: What does this code print?
+    options: ["a, b, c", "Nothing", "Only a"]
+    explanation: |
+      `count()` already knows the number from the source and skips the pipeline – `peek` does not run at all. Hence: `peek` only for debugging, never for real work.
+
+- id: streams-find-optional
+  main:
+    prompt: Look for the student with the name `name`. If there is none, throw an `IllegalArgumentException`.
+    explanation: |
+      `findFirst()` returns an `Optional<Student>`, `orElseThrow(supplier)` takes the value out or throws your exception. `get()` would throw a meaningless `NoSuchElementException` on an empty `Optional`.
+  followUps:
+    - prompt: What does `students.stream().filter(s -> s.age() > 30).findFirst().map(Student::name).orElse("nobody")` return if nobody is over 30?
+      options: ["`null`", "`\"nobody\"`", "A `NoSuchElementException`"]
+      explanation: |
+        `map` on an empty `Optional` stays empty, `orElse` then returns the fallback value.
+
+- id: streams-find-match
+  main:
+    prompt: "`List<Student> empty = List.of();` – what does `empty.stream().allMatch(s -> s.age() > 100)` return?"
+    options: ["`true`", "`false`", "An exception"]
+    explanation: |
+      For an empty list `allMatch` is always `true` (there is no counterexample), `anyMatch` always `false`.
+  followUps:
+    - prompt: Which expressions return an `Optional`?
+      options:
+        - "`students.stream().findFirst()`"
+        - "`students.stream().max(Comparator.comparing(Student::age))`"
+        - "`students.stream().anyMatch(s -> s.age() > 18)`"
+        - "`students.stream().count()`"
+      explanation: |
+        `findFirst`, `min` and `max` may find nothing – hence `Optional`. `anyMatch` returns `boolean`, `count` a `long`.
+
+- id: streams-find-orelseget
+  main:
+    prompt: "`Optional.of(\"x\").orElse(loadDefault())` – is `loadDefault()` called?"
+    options: ["No, because a value is present", "Yes, the argument of `orElse` is always evaluated", "Only if `loadDefault()` is static"]
+    explanation: |
+      Java evaluates arguments before the call. With `orElseGet(() -> loadDefault())`, `loadDefault()` only runs if the `Optional` is empty.
+
+- id: streams-numbers-average
+  main:
+    prompt: Calculate the average grade in POS; without grades the result should be 0.0.
+    explanation: |
+      `mapToInt` makes an `IntStream` that can calculate. `average()` returns an `OptionalDouble`, because an empty stream has no average – `orElse(0.0)` sets the value for that case.
+  followUps:
+    - prompt: "`int sum = 5; int count = 2;` – what is `sum / count`?"
+      options: ["`2.5`", "`2`", "`3`"]
+      explanation: |
+        Integer division cuts off. Only `(double) sum / count` gives `2.5`.
+
+- id: streams-numbers-reduce
+  main:
+    prompt: What does `Stream.of(1, 2, 3, 4).reduce(1, (a, b) -> a * b)` give?
+    options: ["`10`", "`24`", "`25`"]
+    explanation: |
+      Start value 1, then 1·1·2·3·4 = 24. For a product the start value is 1, for a sum 0.
+  followUps:
+    - prompt: How do you add up the `BigDecimal` amounts of all invoices?
+      options:
+        - "`invoices.stream().map(Invoice::amount).sum()`"
+        - "`invoices.stream().map(Invoice::amount).reduce(BigDecimal.ZERO, BigDecimal::add)`"
+        - "`invoices.stream().mapToInt(Invoice::amount).sum()`"
+      explanation: |
+        `BigDecimal` is not a primitive type, there is no `mapToBigDecimal`. `reduce` with `BigDecimal.ZERO` as the start value and `BigDecimal::add` adds exactly.
+
+- id: streams-numbers-empty
+  main:
+    prompt: What do these operations return for an **empty** `IntStream`?
+    options:
+      - "`sum()` returns `0`."
+      - "`average()` returns an empty `OptionalDouble`."
+      - "`max()` returns `0`."
+      - "`count()` returns `0`."
+    explanation: |
+      A sum of nothing is 0, and so is a count. Average and maximum do not exist – that is why `average()` and `max()` return an empty optional.
+
+- id: streams-flatmap-basics
+  main:
+    prompt: What is the type of `students.stream().map(Student::grades).toList()`?
+    options: ["`List<Grade>`", "`List<List<Grade>>`", "`Stream<Grade>`"]
+    explanation: |
+      `map` makes exactly one element out of every student – here their list of grades. For a flat `List<Grade>` you need `flatMap(s -> s.grades().stream())`.
+  followUps:
+    - prompt: Return all subjects in which there are grades, without duplicates.
+      explanation: |
+        The lambda of `flatMap` has to return a **stream** – hence `s.grades().stream()`, not the list itself.
+
+- id: streams-flatmap-keep-outer
+  main:
+    prompt: |
+      How do you get `["Anna: POS 1", "Anna: DBI 2", "Ben: POS 3", ...]`?
+    options:
+      - "`students.stream().flatMap(s -> s.grades().stream()).map(g -> s.name() + \": \" + g.subject() + \" \" + g.value())`"
+      - "`students.stream().flatMap(s -> s.grades().stream().map(g -> s.name() + \": \" + g.subject() + \" \" + g.value()))`"
+      - "`students.stream().map(s -> s.name() + \": \" + s.grades())`"
+    explanation: |
+      After the `flatMap` the student is no longer known – in variant 1, `s` does not even exist in the second lambda. That is why you combine student and grade **inside** the `flatMap` lambda.
+
+- id: streams-flatmap-count
+  main:
+    prompt: The students have 2, 2, 2, 1 and 0 grades. How many elements does `flatMap(s -> s.grades().stream())` return?
+    options: ["5", "7", "4"]
+    explanation: |
+      `flatMap` appends all grades: 2 + 2 + 2 + 1 + 0 = 7. A student without grades contributes nothing.
+
+- id: streams-collectors-grouping
+  main:
+    prompt: Count the students per class.
+    explanation: |
+      `groupingBy(key, counting())` returns the count per key – as a `Long`. `count()` is the terminal operation of a stream, not a collector.
+  followUps:
+    - prompt: In which order are the keys in the map from `groupingBy(Student::schoolClass)`?
+      options: ["Alphabetical", "In the order in which they first occur", "In no fixed order – it is a `HashMap`"]
+      explanation: |
+        For sorted keys: `groupingBy(Student::schoolClass, TreeMap::new, counting())`.
+
+- id: streams-collectors-tomap
+  main:
+    prompt: What happens here if two students are in 5AHIF?
+    options:
+      - The second name overwrites the first.
+      - "An `IllegalStateException` is thrown (Duplicate key 5AHIF)."
+      - Both names end up in a list.
+    explanation: |
+      `toMap` demands unique keys. If several values per key are to be collected, `groupingBy` is what you mean – or you give a merge function as the third argument.
+  followUps:
+    - prompt: What does `partitioningBy(s -> s.age() > 100)` return if nobody is over 100?
+      options:
+        - "A map with only the key `false`"
+        - "A map with `true` → empty list and `false` → all students"
+        - An empty map
+      explanation: |
+        `partitioningBy` always returns both keys, `true` and `false`, even if one group is empty.
+
+- id: streams-collectors-mapping
+  main:
+    prompt: You want the **names** of the students per class, not the student objects. Which collector?
+    options:
+      - "`groupingBy(Student::schoolClass)`"
+      - "`groupingBy(Student::schoolClass, mapping(Student::name, toList()))`"
+      - "`toMap(Student::schoolClass, Student::name)`"
+    explanation: |
+      `mapping(f, toList())` transforms the elements of every group before they are collected. `toMap` would fail with several students per class.
+
+- id: streams-records-basics
+  main:
+    prompt: What does Java generate automatically for `record Grade(String subject, int value)`?
+    options:
+      - "Accessor methods `subject()` and `value()`"
+      - "`equals` and `hashCode` over all fields"
+      - "A setter `setValue(int)`"
+      - A constructor without parameters
+    explanation: |
+      Records are immutable: no setters. The automatic constructor has all fields as parameters.
+  followUps:
+    - prompt: Only allow grades from 1 to 5.
+      explanation: |
+        The compact constructor has no parameter list and no assignments – Java does those itself. A grade is invalid if it is less than 1 **or** greater than 5.
+
+- id: streams-records-copy
+  main:
+    prompt: Why does the compact constructor of `Student` contain the line `grades = List.copyOf(grades);`?
+    options:
+      - "So that later changes to the list passed in do not change the student, and `grades()` is unmodifiable"
+      - Because records must not have lists as fields
+      - "So that `equals` works"
+    explanation: |
+      A record is only as immutable as its fields. `List.copyOf` makes an unmodifiable copy.
+  followUps:
+    - prompt: How do you get a student whose age is one higher?
+      options:
+        - "`s.setAge(s.age() + 1);`"
+        - "`new Student(s.name(), s.schoolClass(), s.age() + 1, s.grades())`"
+        - "`s.age()++;`"
+      explanation: |
+        You cannot change records – you create a new object with the changed values.
+
+- id: streams-records-class
+  main:
+    prompt: An entity class has a field `private final List<String> students = new ArrayList<>();`. What should `getStudents()` look like?
+    options: ["`return students;`", "`return List.copyOf(students);`", "`return new ArrayList<>();`"]
+    explanation: |
+      With `return students;` anyone can add elements from outside and get around the rules of the class. An unmodifiable copy (or `Collections.unmodifiableList`) prevents that; changes go through methods of its own like `enroll`.

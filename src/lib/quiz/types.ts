@@ -7,11 +7,23 @@ export type QuestionView = {
 	promptHtml: string;
 	codeHtml?: string;
 	explanationHtml: string;
+	/** English text, if translated. Answers, templates and pieces are the same in both languages. */
+	en?: QuestionTextView;
 } & (
 	| { kind: 'single'; optionsHtml: string[]; answer: number }
 	| { kind: 'multi'; optionsHtml: string[]; answer: number[] }
 	| { kind: 'template'; lines: Segment[][]; gaps: TemplateGap[]; tiles: PoolTile[] }
 );
+
+export type QuestionTextView = {
+	promptHtml: string;
+	codeHtml?: string;
+	explanationHtml: string;
+	/** single/multi only. */
+	optionsHtml?: string[];
+	/** template only, if its pieces are translated: same gaps and pieces in the same order as the German one. */
+	template?: { lines: Segment[][]; gaps: TemplateGap[]; tiles: PoolTile[] };
+};
 
 export type GroupView = {
 	id: string;

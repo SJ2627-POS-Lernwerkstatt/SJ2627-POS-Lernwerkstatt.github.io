@@ -80,7 +80,7 @@ status: draft            # draft | reviewed
 
 Body: Markdown with
 - fenced ` ```java `, ` ```plantuml `, ` ```mermaid ` blocks,
-- callouts `:::merke`, `:::achtung` (typical mistake), `:::pruefung` (what the grading guideline expects for full points),
+- callouts `:::merke`, `:::achtung` (typical mistake), `:::pruefung` (what the grading guideline expects for full points), `:::info` („Gut zu wissen“: a shortcut such as `Objects.requireNonNull` or a regex, shown after the plain `if` version that the units teach),
 - a **Wissenscheck** at the end: all question groups tagged with this unit, shown in study mode.
 
 A unit is one concept, 5–10 minutes, one or two code examples. Units are marked as read by the student (button at the end).
@@ -88,6 +88,18 @@ A unit is one concept, 5–10 minutes, one or two code examples. Units are marke
 ### Mindestanforderung
 
 Optional `mindest: true` (default `false`) in the frontmatter of a unit or exercise and on a puzzle marks what a student needs for a Genügend; everything else brings better grades. The site shows a "Mindestanforderung" badge (unit page, module lists, puzzle lists and pages, `/woche`, `/heute`), a legend and the toggle "Nur Mindestanforderung zeigen" (remembered in localStorage) on module pages, and per module "x von y Einheiten sind Mindestanforderung" on the start page. `ContentEntry.mindest` and `QuestItem.mindest` (only set when true; a quest item takes it from its unit, theory unit, puzzle or exercise, never for `review` and `group`) are in `/data/content-index.json` and `/data/quests.json`. The `status` field (draft/reviewed) is no longer shown to students, only on the hidden `/review` page. Tagged items are listed with "(M)" in `CURRICULUM.md`.
+
+### English translation
+
+Units, question groups and puzzles can be read in English; the site itself (navigation, buttons, exercises, mock exams) stays German. A DE/EN switch in the header stores `settings.lang` in the progress and is applied before first paint (`data-lang` on `<html>`, see `app.html`); both languages are in the prerendered HTML and CSS shows one (`.bi-de`/`.bi-en`, `Bi.svelte`), so nothing jumps.
+
+Translations live in `src/content/en/` and mirror the German files. They carry only text; answers, templates, solutions and flags come from the German original:
+
+- `en/<module>/<nn>-<slug>.md`: same file name as the German unit, frontmatter only `title`. Callouts default to English titles (Remember, Watch out, Exam, Good to know).
+- `en/questions/<module>.yaml`: per group `id`, `main` and `followUps` (same count) with `prompt`, `explanation`, `options` (same number), optional `code`, and for template questions with German pieces an optional `template` with the same gaps and pieces in the same order (answers are stored by piece position).
+- `en/puzzles/<topic>.yaml`: per puzzle `id`, `title`, `prompt`, `explanation`, optional `given`, and `replace` (find → replace) for German comments in `given` or in a template's fixed text; the build rejects a replacement that would change a piece.
+
+A missing translation is not an error: the unit shows a short English note and the German text. Any mismatch (unknown id or file, other number of options or follow-ups, other template shape) fails `npm test` and the build. All 90 units, 182 question groups and 99 puzzles are translated (2026-11-27).
 
 ### Question pool
 

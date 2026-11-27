@@ -1,0 +1,738 @@
+# English text for src/content/questions/jpa.yaml (same ids, same number of options and follow-ups).
+
+- id: jpa-uml-stereotypes
+  main:
+    prompt: The diagram says `class Address <<(V) ValueObject>>`. How is `Address` implemented?
+    options:
+      - "As an `@Entity` with a table of its own and a repository"
+      - "As an `@Embeddable` without an id, the columns end up in the owner's table"
+      - "As an `enum` with a converter"
+      - Not at all, value objects are only in the diagram for information
+    explanation: |
+      A value object has no identity and no table of its own. It is implemented with `@Embeddable` and embedded into the entity with `@Embedded` (unit 7).
+  followUps:
+    - prompt: Which classes from a Matura diagram get a repository of their own?
+      options: ["`«Entity»`", "`«ValueObject»`", "`«RichType»`", "`«Enumeration»`"]
+      explanation: |
+        Only entities have a table of their own and an id, and so a repository. Value objects, rich types and enums are saved with their entity.
+    - prompt: A `«RichType»` `Isbn` with one attribute `value`. How many columns does the field `isbn` get in the entity `Book`?
+      options: ["One", "One per attribute of the rich type", "None, it gets a table of its own"]
+      explanation: |
+        A rich type is mapped to **one** column via an `AttributeConverter` (unit 8).
+
+- id: jpa-uml-attributes
+  main:
+    prompt: "What does `- logTimestamp : DateTime {nn}` mean?"
+    options:
+      - "A field `logTimestamp` of type `LocalDateTime` that must never be `null`"
+      - "A field `logTimestamp` of type `LocalDate` that has to be unique"
+      - "A field `logTimestamp` that is not saved"
+    explanation: |
+      `DateTime` becomes `LocalDateTime` in Java (date **and** time), `{nn}` means *not null*. Uniqueness, if required, is stated in the text of the task.
+  followUps:
+    - prompt: The attribute `id` is missing for every entity in the diagram. What do you do?
+      options:
+        - "Nothing, without `id` in the diagram the entity needs no primary key"
+        - "I add a primary key myself, e.g. with `AbstractPersistable<Long>`"
+        - I take the first attribute as the primary key
+      explanation: |
+        Technical attributes like the id are never in the diagram. Every entity still needs a primary key – the grading checks that it is "defined correctly".
+
+- id: jpa-uml-lines
+  main:
+    prompt: What does the line `Book "n" -- "1" Branch` mean?
+    options:
+      - One book belongs to many branches, both sides know each other
+      - Many books belong to one branch, both sides know each other
+      - "Many books belong to one branch, only `Book` knows `Branch`"
+    explanation: |
+      The multiplicity is on the side that is counted: `"n"` at `Book`, `"1"` at `Branch`. Without an arrowhead the relation is bidirectional – `Book` has a field `branch`, `Branch` a list `books`.
+  followUps:
+    - prompt: What changes with `DividerBoxAtStorage "n" --> "0,1" StorageRoom`?
+      options:
+        - "Only `DividerBoxAtStorage` knows the room, and the room may be missing"
+        - Both know each other, and the room is mandatory
+        - "`StorageRoom` has a list of `DividerBoxAtStorage`"
+      explanation: |
+        The arrow shows who knows whom: only `DividerBoxAtStorage` has a field `storageRoom`. `"0,1"` means: at most one room, but it may be `null`.
+
+- id: jpa-entity-minimum
+  main:
+    prompt: What does a class need **at least** for Hibernate to map it as an entity?
+    options:
+      - "`@Entity`"
+      - "`@Table`"
+      - "A field with `@Id` (or an inherited id)"
+      - "`@GeneratedValue`"
+      - A constructor with all attributes
+    explanation: |
+      Mandatory are `@Entity` and an id. `@Table` is recommended, `@GeneratedValue` lets the id be assigned automatically, and the business constructor is for you, not for JPA.
+  followUps:
+    - prompt: Make `Book` an entity in the table `books`, with an id from Spring Data.
+      explanation: |
+        `@Entity` plus `extends AbstractPersistable<Long>` – the type of the id has to be an object type, hence `Long`, not `long`. The table name comes from the task, here `books`.
+
+- id: jpa-entity-naming
+  main:
+    prompt: What is the column for this field called in the database?
+    options: ["`publishedOn`", "`published_on`", "`PUBLISHEDON`", "`book_published_on`"]
+    explanation: |
+      Spring Boot turns camelCase into names with underscores: `publishedOn` → `published_on`. Without `@Table` the table is accordingly called `book`.
+  followUps:
+    - prompt: "`Book` extends `AbstractPersistable<Long>`. What does `book.getId()` return for a new book that has not been saved yet?"
+      options: ["`0`", "`null`", "A random id", "An `IllegalStateException`"]
+      explanation: |
+        Hibernate only assigns the id when saving. Before that it is `null`, and `isNew()` returns `true`.
+
+- id: jpa-entity-equals
+  main:
+    prompt: "`Book` has an id of its own (`@Id @GeneratedValue private Long id;`) and **no** `equals`. What does `reread.equals(saved)` return?"
+    options:
+      - "`true`, the id is the same"
+      - "`false`, they are two different objects and `equals` only compares the reference"
+      - The code does not compile
+    explanation: |
+      Without your own `equals`, the `equals` of `Object` applies: equal only for the same reference. After `clear()` Hibernate reads a new object. With `AbstractPersistable` the result would be `true`, because there class and id are compared.
+  followUps:
+    - prompt: Two **new** books with the same title that have not been saved yet, both `extends AbstractPersistable<Long>`. Are they `equals`?
+      options:
+        - Yes, all attributes are the same
+        - No, without an id an entity is only equal to itself
+        - "Yes, both have the id `null`"
+      explanation: |
+        `AbstractPersistable.equals` compares the id. If it is `null`, the object is only equal to itself – otherwise all new books would be equal.
+
+- id: jpa-constructors-noargs
+  main:
+    prompt: Which annotation generates the constructor that JPA needs in every entity?
+    options:
+      - "`@NoArgsConstructor`, so that any code can create empty books"
+      - "`@NoArgsConstructor(access = AccessLevel.PROTECTED)`, for JPA, but not for your own code"
+      - "`@AllArgsConstructor`, because Hibernate passes all fields"
+      - None, Hibernate needs no constructor
+    explanation: |
+      When reading, Hibernate first creates an empty object and then fills the fields. For that it needs a constructor without parameters, `public` or `protected`. `protected` prevents your code from building half-finished objects.
+  followUps:
+    - prompt: The constructor without parameters is missing. When do you notice?
+      options:
+        - When compiling
+        - When the application starts
+        - "When saving with `save`"
+        - Only when the entity is read from the database
+      explanation: |
+        Hibernate starts and saves without problems. Only when reading does `InstantiationException: No default constructor for entity` appear. A test without `flush`/`clear` reads from memory and does not notice the mistake.
+
+- id: jpa-constructors-lists
+  main:
+    prompt: "`Branch` has a relation to `Book`. Add Lombok, the business constructor and the getter of the list."
+    explanation: |
+      With a relation there is no `@AllArgsConstructor`: the business constructor only takes the attributes, here `name`. The list is created at the field (never `null`) and handed out unmodifiable via a getter of its own – Lombok then no longer generates `getBooks()`. If the getter returns `books` directly, anyone can change the list past the branch.
+  followUps:
+    - prompt: Why does `Branch` get no `@AllArgsConstructor`?
+      options:
+        - Because Lombok does not know lists
+        - "It would generate `Branch(String name, List<Book> books)` – but the business constructor should only take the attributes, the way the tests call it"
+        - "Because `@AllArgsConstructor` and `@NoArgsConstructor` are not allowed together"
+      explanation: |
+        `@AllArgsConstructor` takes every field of its own class, including lists and relations. The grading tests only call the constructor with the attributes, e.g. `new Station("Westbahnhof", address, 24)`. Both Lombok constructors together are allowed – you do that for every entity without relations.
+    - prompt: Can an entity be a record, e.g. `@Entity public record Book(@Id @GeneratedValue Long id, String title) {}`?
+      options:
+        - Yes, records are the shortest way to write entities
+        - "No, Hibernate cannot set the fields of a record – `persist` fails on the `final` id"
+        - "Only with `AbstractPersistable`"
+      explanation: |
+        The fields of a record are `final`. When saving, Hibernate wants to set the generated id and fails with `Can not set final java.lang.Long field`. Records are suitable for value objects and rich types.
+
+- id: jpa-column-attributes
+  main:
+    prompt: "`title` has at most 120 characters and is mandatory, `price` has 6 digits, 2 of them after the decimal point."
+    explanation: |
+      `length` applies to strings, `nullable = false` makes the column `not null`. With `BigDecimal`, `precision` is the total number of digits and `scale` the number of decimal places: at most `9999.99`.
+  followUps:
+    - prompt: Which column does Hibernate create for this field?
+      options:
+        - "`nick_name varchar(255)`"
+        - "`nick_name varchar(30) not null`"
+        - "`nick_name varchar(30)`, `@NotNull` only works in Java"
+      explanation: |
+        Hibernate takes the Bean Validation annotations over into the table: `@NotNull` becomes `not null`, `@Size(max = 30)` becomes `varchar(30)`.
+
+- id: jpa-column-when
+  main:
+    prompt: "`isbn` is marked with `@Column(unique = true)`. What happens in a `@DataJpaTest`?"
+    options:
+      - "The second `save` throws a `DataIntegrityViolationException`"
+      - "Both `save`s go through, the error only comes at the flush"
+      - "Both books are saved, `unique` only works in Java"
+    explanation: |
+      With the default id assignment (sequence) Hibernate only inserts into the table at the flush. Only then does the database check `unique`. That is why you use `saveAndFlush` in the test.
+  followUps:
+    - prompt: "`title` is marked with `@NotNull`. Which exception does `bookRepository.saveAndFlush(book)` throw for a book without a title?"
+      options:
+        - "`jakarta.validation.ConstraintViolationException`"
+        - "`DataIntegrityViolationException`"
+        - "`NullPointerException`"
+        - "None, the book is saved with `null`"
+      explanation: |
+        Bean Validation checks the object in Java before Hibernate sends the `insert`. The database never sees the value. A `DataIntegrityViolationException` would come from the database, e.g. with `@Column(nullable = false)` without `@NotNull`.
+
+- id: jpa-column-reserved
+  main:
+    prompt: What happens with this field when the first test starts?
+    options:
+      - "Nothing, the column is called `year`"
+      - "Creating the table fails with a syntax error, because `year` is a reserved word"
+      - "Hibernate automatically calls the column `year_`"
+    explanation: |
+      `year` is a keyword in H2. Hibernate writes the name unprotected into the `create table`, and the tests already fail at startup. Remedy: `@Column(name = "build_year")`.
+  followUps:
+    - prompt: Which field names need a column name of their own in H2?
+      options: ["`from`", "`until`", "`order`", "`name`", "`value`"]
+      explanation: |
+        `from`, `order` and `value` are reserved. `until` and `name` are allowed in H2.
+
+- id: jpa-repo-interface
+  main:
+    prompt: Create the repository for `Book` (id of type `Long`).
+    explanation: |
+      A repository is an interface. The type arguments are the entity and the type of its id. Spring generates the implementation at startup.
+  followUps:
+    - prompt: What does `findAll()` return for a repository that only extends `CrudRepository<Book, Long>`?
+      options: ["`List<Book>`", "`Iterable<Book>`", "`Stream<Book>`", "`Optional<Book>`"]
+      explanation: |
+        `CrudRepository.findAll()` returns an `Iterable`. `ListCrudRepository` and `JpaRepository` return a `List`.
+
+- id: jpa-repo-lifecycle
+  main:
+    prompt: This test is green, even though `title` is marked with `@Transient` and is not saved at all. Why?
+    options:
+      - "`findById` returns the same object from the persistence context, the database is not asked"
+      - "`@DataJpaTest` rolls the test back before `findById` runs"
+      - "`save` never really saves in a `@DataJpaTest`"
+    explanation: |
+      Hibernate remembers saved objects. Without `entityManager.flush()` and `entityManager.clear()`, `findById` gets the object from memory – the test compares it with itself.
+  followUps:
+    - prompt: Fill in the lines so that `findById` really reads from the database.
+      explanation: |
+        `flush()` writes the pending changes to the database, `clear()` empties the persistence context. The order matters: after `clear()` without `flush()` the changes would be lost.
+    - prompt: A test saves three books. How many books does the next test in the same class find?
+      options: ["Three", "None, every test in `@DataJpaTest` is rolled back", "That depends on the order of the tests"]
+      explanation: |
+        `@DataJpaTest` runs every test in a transaction and rolls it back at the end. Every test starts with empty tables.
+
+- id: jpa-enums-ordinal
+  main:
+    prompt: "`private Genre genre;` without an annotation, `enum Genre { FICTION, NON_FICTION, COMIC }`. What is in the database for `COMIC`?"
+    options: ["`'COMIC'`", "`2`", "`'C'`", "`3`"]
+    explanation: |
+      Without an annotation JPA stores the ordinal, i.e. the position from 0: `FICTION` = 0, `NON_FICTION` = 1, `COMIC` = 2.
+  followUps:
+    - prompt: Someone inserts `BIOGRAPHY` as the first value in the enum. What happens to the stored comics?
+      options:
+        - Nothing, Hibernate adapts the data
+        - "When read they become `NON_FICTION`, because `2` is now `NON_FICTION`"
+        - Reading throws an exception
+      explanation: |
+        The database still says `2`. After the insertion, however, `2` is `NON_FICTION`. That is exactly why the ordinal is "faulty" for the exam and needs handling.
+
+- id: jpa-enums-converter
+  main:
+    prompt: Complete the null-safe converter that stores `Genre` as a code.
+    explanation: |
+      The first type argument is the Java type, the second the database type. `autoApply` is written with a capital `A` (the cheat sheet has it wrong). `Genre.valueOf` would expect the name (`"COMIC"`), not the code (`"C"`).
+  followUps:
+    - prompt: Why does the converter need the `null` check?
+      options:
+        - "It does not, Hibernate never calls converters with `null`"
+        - "Hibernate also calls the converter with `null` for empty values, in both directions"
+        - Only so that the code compiles
+      explanation: |
+        For a book without a genre Hibernate calls `convertToDatabaseColumn(null)`, and when reading an empty column `convertToEntityAttribute(null)`. Without the check an exception is thrown.
+    - prompt: What does `autoApply = true` do?
+      options:
+        - "The converter applies to every field of type `Genre`, without an annotation on the field"
+        - The converter is tested automatically at startup
+        - "Hibernate generates the method `fromCode` automatically"
+      explanation: |
+        With `autoApply = true`, `private Genre genre;` is enough. Without `autoApply` you need `@Convert(converter = GenreConverter.class)` on the field.
+
+- id: jpa-enums-string
+  main:
+    prompt: What is the disadvantage of `@Enumerated(EnumType.STRING)` compared to a converter with codes?
+    options:
+      - It only works with H2
+      - According to the cheat sheet it costs points, and renaming a value breaks the stored data
+      - It still stores the ordinal
+    explanation: |
+      `STRING` stores the name (`'COMIC'`). The order no longer matters then, but a renamed value no longer fits the data. The cheat sheet says "lose some points" about it and recommends a null-safe converter.
+  followUps:
+    - prompt: In the `@DataJpaTest` every insert of a book fails with "Check constraint invalid", even though the genre code is right. What helps if you cannot change the H2 version?
+      options:
+        - "`@Enumerated(EnumType.ORDINAL)`"
+        - "`@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` on the test class"
+        - "`@Column(length = 1)` on the field"
+      explanation: |
+        This is a bug in H2 2.4.240 with `check (... in (...))` constraints. With `replace = NONE` the test uses Spring Boot's normal H2 configuration, and the bug does not occur. `length` does not help.
+
+- id: jpa-embedded-basics
+  main:
+    prompt: "`Branch` has a field `@Embedded private Address address;`, `Address` is an `@Embeddable` record with `street`, `zip`, `city`. Which tables are there?"
+    options:
+      - "`branches` and `address`"
+      - "Only `branches`, with the columns `street`, `zip` and `city`"
+      - "`branches` and a join table `branches_address`"
+    explanation: |
+      An embedded value object has no table of its own. Its attributes become columns in the entity's table.
+  followUps:
+    - prompt: The record says `@Size(max = 64) String street`, but the column is `varchar(255)`. What is missing?
+      options:
+        - "`@Valid` on the field `address` in the entity"
+        - "`@Column(length = 64)` on the record"
+        - "`@Entity` on the record"
+      explanation: |
+        Without `@Valid` Hibernate does not look into the value object – neither for the column length nor for the check when saving.
+
+- id: jpa-embedded-twice
+  main:
+    prompt: An entity has `@Embedded Address homeAddress;` and `@Embedded Address billingAddress;`, nothing else. What happens?
+    options:
+      - "Hibernate automatically names the columns `home_address_street` etc."
+      - "The start fails with `Column 'street' is duplicated`"
+      - The second address overwrites the first
+    explanation: |
+      Both addresses want the columns `street`, `zip` and `city`. You have to rename them: with `@EmbeddedColumnNaming` or `@AttributeOverrides`.
+  followUps:
+    - prompt: Give all columns of the home address the prefix `home_`.
+      explanation: |
+        The value is a format pattern, `%s` stands for the original column name: `home_street`, `home_zip`, `home_city`. The `%s` is missing in the cheat sheet.
+    - prompt: Rename the column `street` of the billing address to `billing_street`.
+      explanation: |
+        `name` is the attribute in the value object, `column` the new column. For `zip` and `city` you need one more `@AttributeOverride` each.
+
+- id: jpa-embedded-record
+  main:
+    prompt: What is true for a value object as an `@Embeddable` record?
+    options:
+      - It needs no id
+      - It needs no constructor without parameters
+      - "`equals` and `hashCode` compare all values"
+      - It needs a repository of its own
+    explanation: |
+      Value objects have no identity and no repository. Records generate `equals` and `hashCode` over all attributes, and Hibernate can create them via the canonical constructor. A **class** as an `@Embeddable` would need a constructor without parameters.
+
+- id: jpa-richtype-converter
+  main:
+    prompt: A `«RichType»` `RoomName` has the parts `building`, `floor` and `roomNumber`. How do you map it to **one** column?
+    options:
+      - "`@Embeddable` and `@Embedded`"
+      - "An `AttributeConverter<RoomName, String>` that stores `shortName()` and reads with `fromShortName(...)`"
+      - Three fields in the entity
+    explanation: |
+      With `@Embeddable` there would be three columns – that would be a value object. The converter puts the parts together into one string (`B307`) and splits it again when reading.
+  followUps:
+    - prompt: Complete the converter for `RoomName`.
+      explanation: |
+        `convertToDatabaseColumn` goes from Java into the database, `convertToEntityAttribute` back. `toString()` of a record returns `RoomName[building=B, ...]`, not `B307`.
+
+- id: jpa-richtype-validation
+  main:
+    prompt: Where do you check the rules of a rich type, e.g. "the ISBN has exactly 13 digits"?
+    options:
+      - In the compact constructor of the record – then an invalid ISBN cannot exist
+      - In the converter, only when saving
+      - In the repository test
+    explanation: |
+      The compact constructor runs on every `new Isbn(...)`, also when reading via the converter. An invalid value throws an `IllegalArgumentException` right away.
+  followUps:
+    - prompt: "Rules: `building` ∈ {A, B, C, D}, `floor` ∈ {E, H, 1–5}, `roomNumber` two digits. Which calls of `RoomName.fromShortName` have to throw an exception?"
+      options: ["`\"B307\"`", "`\"E307\"`", "`\"B607\"`", "`\"AE01\"`", "`\"B37\"`"]
+      explanation: |
+        `E` is not a building, `6` not a floor, and `B37` has only one digit as the room number. `B307` and `AE01` are valid.
+
+- id: jpa-richtype-number
+  main:
+    prompt: "Rule: the latitude lies between −90 and 90, both limits are allowed. For which values must `new Latitude(...)` throw an exception?"
+    options: ["`-90`", "`-90.5`", "`0`", "`90`", "`91`"]
+    explanation: |
+      The limits −90 and 90 themselves are allowed, only values **below** or **above** are wrong. These are exactly the boundary values that belong in the test.
+  followUps:
+    - prompt: Complete the rich type `Latitude` and its converter. The database stores a floating-point number.
+      explanation: |
+        With `<=`/`>=` the allowed limits −90 and 90 would be forbidden. The second type parameter of the converter is the type of the column – here `Double`, not `String`.
+
+- id: jpa-manytoone-column
+  main:
+    prompt: Which column does Hibernate create in `books`?
+    options:
+      - "`branch varchar(255)`"
+      - "`branch_id bigint` with a foreign key to `branches`"
+      - None, Hibernate creates a join table
+    explanation: |
+      A `@ManyToOne` becomes a foreign key column `<field>_id`. Hibernate generates the name of the constraint itself, e.g. `FKkbcx...`.
+  followUps:
+    - prompt: Every book **must** have a branch, and the foreign key should be called `fk_books_branch`.
+      explanation: |
+        `@JoinColumn` describes the foreign key column, `nullable = false` makes it mandatory, `@ForeignKey` names the constraint. Descriptive names instead of generated ones are a criterion for "Sehr gut".
+
+- id: jpa-manytoone-transient
+  main:
+    prompt: What happens at the flush?
+    code: |
+      Branch branch = new Branch("Main Library", address);
+      Book book = new Book(isbn, "The Trial", Genre.FICTION, price, publishedOn);
+      book.setBranch(branch);
+      bookRepository.save(book);
+      entityManager.flush();
+    options:
+      - Book and branch are saved
+      - "`TransientPropertyValueException`: the book refers to a branch that has not been saved yet"
+      - The book is saved without a branch
+    explanation: |
+      The branch is new (*transient*). Without cascade Hibernate does not save it along and refuses to write a foreign key to something unsaved.
+  followUps:
+    - prompt: How do you fix that?
+      options:
+        - "Save the branch first with `branchRepository.save(branch)`"
+        - "`@ManyToOne(cascade = CascadeType.PERSIST)` on the field `branch`"
+        - "`@ManyToOne(fetch = FetchType.LAZY)` on the field `branch`"
+        - "`entityManager.clear()` before the flush"
+      explanation: |
+        Either you save the branch yourself first, or cascade `PERSIST` passes saving on from the book to the branch. `LAZY` only affects loading, `clear()` would throw the book away.
+
+- id: jpa-onetomany-mappedby
+  main:
+    prompt: "`Book` has `@ManyToOne private Branch branch;`. What does `mappedBy` in `Branch` do?"
+    options:
+      - "The list is the same relation as `Book.branch`, the foreign key stays `branch_id` in `books`"
+      - "Hibernate creates a join table `branches_books`"
+      - "The list is stored in a column `books` in `branches`"
+    explanation: |
+      `mappedBy` refers to the field of the owning side. Without `mappedBy` a second, independent relation with the join table `branches_books` would come about.
+  followUps:
+    - prompt: You only call `books.add(book)` (without `book.setBranch(...)`) and save the branch with cascade. `branch_id` may be `null`. What is in `books.branch_id` afterwards?
+      options: ["The id of the branch", "`null`", "Hibernate throws an exception because the list does not fit"]
+      explanation: |
+        Hibernate only saves what is on the owning side (`Book.branch`). The list with `mappedBy` is the inverse side and is ignored when saving.
+
+- id: jpa-onetomany-helpers
+  main:
+    prompt: The helper method should set both sides of the relation.
+    explanation: |
+      `books.add(book)` keeps the inverse side up to date in Java, `book.setBranch(this)` sets the owning side that Hibernate saves. If one of the two lines is missing, Java objects and database do not match.
+  followUps:
+    - prompt: What does `orphanRemoval = true` on `@OneToMany(mappedBy = "branch", ...)` do?
+      options:
+        - "A book that is removed from the list with `removeBook` is deleted"
+        - A branch without books is deleted
+        - Books without a branch must not be saved
+      explanation: |
+        An "orphan" is a child that has lost its parent. With `orphanRemoval` Hibernate deletes it at the next flush.
+
+- id: jpa-manytomany-jointable
+  main:
+    prompt: "`Book \"n\" -- \"n\" Author`: where does the database store which authors a book has?"
+    options:
+      - "In a column `author_id` in `books`"
+      - "In a column `book_id` in `authors`"
+      - "In a join table with the columns `book_id` and `author_id`"
+      - In a text column with all ids, separated by commas
+    explanation: |
+      A foreign key column can only point to **one** row. For n:m you need a join table with two foreign keys. With `@JoinTable(name = "book_authors", joinColumns = …, inverseJoinColumns = …)` you set its names.
+  followUps:
+    - prompt: "In `@JoinTable(name = \"book_authors\", joinColumns = @JoinColumn(name = \"book_id\"), inverseJoinColumns = @JoinColumn(name = \"author_id\"))` on `Book.authors`: what does `book_id` point to?"
+      options:
+        - "To `books`, the class with the field"
+        - "To `authors`, the class in the set"
+        - To the join table itself
+      explanation: |
+        `joinColumns` points to the **own** class (the one with `@JoinTable`), `inverseJoinColumns` to the other side.
+    - prompt: "`authors` is a `Set<Author>`. What is the primary key of `book_authors`?"
+      options: ["There is none", "The pair `(author_id, book_id)`", "A column `id` of its own"]
+      explanation: |
+        With a `Set` Hibernate makes the pair the primary key – the same connection can only exist once. With a `List` there is no primary key.
+
+- id: jpa-manytomany-owning
+  main:
+    prompt: "`Book.authors` has `@JoinTable`, `Author.books` has `@ManyToMany(mappedBy = \"authors\")`. A method in `Author` only adds the book to `this.books`, `book.authors` stays unchanged. What is in `book_authors` after saving?"
+    options:
+      - A new row for book and author
+      - "Nothing – Hibernate only saves the owning side `Book.authors`"
+      - Hibernate throws an exception because the sides do not match
+    explanation: |
+      The side with `mappedBy` is the inverse side. What is only there, Hibernate ignores when saving. That is why the relation is changed via helper methods like `book.addAuthor(author)` that set both sides.
+  followUps:
+    - prompt: What speaks for `Set` instead of `List` with `@ManyToMany`?
+      options:
+        - The join table gets a primary key
+        - When removing an element, Hibernate deletes exactly one row instead of all
+        - The order is kept when reading
+        - Helper methods are no longer needed
+      explanation: |
+        With `List` Hibernate deletes all rows of the owner when removing and writes the remaining ones anew, and duplicate connections are possible. The order is kept by neither, and you always need helper methods.
+    - prompt: Why is `cascade = CascadeType.REMOVE` on `Book.authors` dangerous?
+      options:
+        - "Because Hibernate does not support it with `@ManyToMany`"
+        - Because deleting a book then deletes authors who also wrote other books
+        - Because then the join table is no longer created
+      explanation: |
+        With n:m the other side does not belong to a single object. Cascade REMOVE would delete shared authors along with it.
+
+- id: jpa-onetoone-unique
+  main:
+    prompt: "`Member` has `@OneToOne @JoinColumn(name = \"card_id\") private LibraryCard card;`. What distinguishes the column `card_id` from a `@ManyToOne` column?"
+    options: ["It is `unique`", "It is automatically `not null`", "It is in the table `library_cards`", "Nothing"]
+    explanation: |
+      `@OneToOne` creates the same foreign key as `@ManyToOne`, but with `unique`. The database rejects two members with the same card.
+  followUps:
+    - prompt: "`Member --> \"1\" Address`, and `Address` is a `«ValueObject»`. Which implementation is right?"
+      options:
+        - "`@OneToOne` with a table `addresses`"
+        - "`@Embedded` with the columns in `members`"
+        - "`@ManyToOne` with `unique = true`"
+      explanation: |
+        A value object has no id and no table – even with multiplicity 1 it is `@Embedded`. `@OneToOne` connects two entities.
+
+- id: jpa-onetoone-mappedby
+  main:
+    prompt: The card should know its member. Which annotation does `LibraryCard.member` get?
+    options:
+      - "`@OneToOne(mappedBy = \"card\")`"
+      - "`@OneToOne @JoinColumn(name = \"member_id\")`"
+      - "`@ManyToOne(mappedBy = \"card\")`"
+    explanation: |
+      The foreign key is already in `members.card_id`. The inverse side refers to the field `card` with `mappedBy`. A second `@JoinColumn` would create a second, independent relation.
+  followUps:
+    - prompt: Which helper method keeps both sides in sync?
+      options: ["A", "B"]
+      explanation: |
+        As with `@OneToMany`: the helper method sets the owning side (`card`) **and** the inverse side (`member`).
+
+- id: jpa-elementcollection-basics
+  main:
+    prompt: "`Book` has `keywords : Set<String>`. How do you implement that?"
+    options:
+      - "`@OneToMany` to a new entity `Keyword`"
+      - "`@ElementCollection` with `@CollectionTable(name = \"book_keywords\", …)`"
+      - "`@Embedded`"
+      - Not at all, sets of strings cannot be saved
+    explanation: |
+      A set of simple values is an element collection. It gets a table of its own with a foreign key to `books`, but no entity and no repository.
+  followUps:
+    - prompt: What is true for elements of an `@ElementCollection`?
+      options:
+        - They have no id of their own
+        - They are always saved and deleted with the entity
+        - They need a repository of their own
+        - "They can be `@Embeddable`s"
+      explanation: |
+        Elements belong entirely to the entity: no id, no repository, saving and deleting always go along. Simple types and `@Embeddable`s are allowed.
+
+- id: jpa-elementcollection-list
+  main:
+    prompt: A branch has 7 opening hours in a `List<OpeningHours>` (`@ElementCollection`). You remove one. Which SQL statements does Hibernate send?
+    options:
+      - "One `delete` for exactly this row"
+      - "One `delete` of all 7 rows of the branch and 6 `insert`s"
+      - "An `update` that sets the row to `null`"
+    explanation: |
+      The elements have no id by which Hibernate could recognise the one row. With a `List` it writes the whole collection anew.
+  followUps:
+    - prompt: Why is the field in `OpeningHours` called `weekday` and not `day`?
+      options:
+        - "`day` is a reserved word in H2, the table could not be created"
+        - "`day` is a keyword in Java"
+        - Just a matter of taste
+      explanation: |
+        `create table opening_hours (… day tinyint …)` fails in H2 with a syntax error. Further reserved words: `year`, `month`, `from`, `to`, `order`, `user`, `value`, `key` (unit 4).
+
+- id: jpa-inheritance-singletable
+  main:
+    prompt: "`Reading` and `Workshop` extend `@Entity abstract class LibraryEvent`, without `@Inheritance`. Which tables come about?"
+    options:
+      - "One table for all three classes, with a column `dtype`"
+      - "One table each for `Reading` and `Workshop`"
+      - Three tables, connected via the id
+    explanation: |
+      The default is `SINGLE_TABLE`: all fields of all subclasses in one table. The column `dtype` says which class a row is.
+  followUps:
+    - prompt: "`Reading.authorName` has `@Column(nullable = false)`. What happens when a `Workshop` is saved?"
+      options:
+        - Nothing special
+        - "The database rejects it because `author_name` is `not null`"
+        - "Hibernate sets `author_name` to an empty string"
+      explanation: |
+        With `SINGLE_TABLE` all subclasses share the columns. A `not null` for one subclass applies to all. Use `@NotNull` (Bean Validation) instead of `nullable = false`.
+    - prompt: "`libraryEventRepository.findAll()` after saving a reading and a workshop returns …"
+      options:
+        - "two objects of type `LibraryEvent`"
+        - "one `Reading` and one `Workshop`"
+        - "nothing, because `LibraryEvent` is abstract"
+      explanation: |
+        Queries via the superclass are polymorphic: Hibernate reads `dtype` and creates the right subclass in each case.
+
+- id: jpa-inheritance-strategies
+  main:
+    prompt: With which strategy does every class of the hierarchy have a table of its own, and the subclasses refer to the superclass via their id?
+    options: ["`SINGLE_TABLE`", "`JOINED`", "`TABLE_PER_CLASS`"]
+    explanation: |
+      `JOINED`: one table per class, they are joined via the id when reading. `TABLE_PER_CLASS` only has tables for concrete classes, each with all inherited columns.
+  followUps:
+    - prompt: What is `@MappedSuperclass` for?
+      options:
+        - For a superclass with common fields that is not an entity itself and has no table
+        - "For the superclass with `SINGLE_TABLE`"
+        - For value objects with inheritance
+      explanation: |
+        The fields end up in the subclasses' tables. You cannot query via a `@MappedSuperclass`. `AbstractPersistable` is exactly such a class.
+
+- id: jpa-graph-flush-clear
+  main:
+    prompt: A test saves a branch with two books and reads it right away with `findById` – **without** `flush`/`clear`. Why does that prove little?
+    options:
+      - "`findById` returns the same object from the first-level cache, the database is not read at all"
+      - "`findById` finds nothing without `flush`"
+      - "Because `save` without `flush` throws an exception"
+    explanation: |
+      Without `clear` Hibernate returns the object from memory – including the list you filled yourself. Only after `flush` and `clear` is the database really read.
+  followUps:
+    - prompt: What does `entityManager.persistFlushFind(author)` do?
+      options:
+        - Save, write to the database, clear the cache and read anew
+        - Only save
+        - Look for the author and save them if they are missing
+      explanation: |
+        The three steps in one call – handy for test data and quick lifecycle tests.
+
+- id: jpa-graph-lazy
+  main:
+    prompt: A test runs with `@Transactional(propagation = NOT_SUPPORTED)`. After `branchRepository.findById(id)` it calls `branch.getBooks().size()`. What happens?
+    options:
+      - The books are loaded later
+      - "`LazyInitializationException`, because no session is open any more"
+      - The list is empty
+    explanation: |
+      `@OneToMany` loads lazily. Without a transaction the session is closed after `findById`. In a normal `@DataJpaTest` every test runs in a transaction, then it works. Otherwise a query with `join fetch` helps.
+  followUps:
+    - prompt: What belongs to a complete set of tests for the task?
+      options:
+        - Saving and reading every entity
+        - One test for every relation, in every direction of the model
+        - A test that invalid data is rejected
+        - Tests for every getter method
+      explanation: |
+        Entities, relations and constraints must be tested – untested classes do not count. Testing getters one by one brings nothing, they are used in the other tests anyway.
+
+- id: jpa-derived-keywords
+  main:
+    prompt: "\"All persons with the last name 'Schmidt', regardless of upper/lower case.\" Which method in the `PersonRepository`?"
+    options:
+      - "`List<Person> findByLastNameIgnoreCase(String lastName);`"
+      - "`List<Person> findByLastNameContaining(String lastName);`"
+      - "`List<Person> findByLast_NameIgnoreCase(String lastName);`"
+      - "`List<Person> findAllSchmidt();`"
+    explanation: |
+      `IgnoreCase` compares with `upper(last_name) = upper(?)`. The name uses the Java field `lastName`, not the column `last_name`. `Containing` would also find "Schmidtbauer".
+  followUps:
+    - prompt: Which method finds all books of a branch in a particular city? (`Book.branch` → `Branch.address` → `Address.city`)
+      options: ["`findByCity(String city)`", "`findByBranchAddressCity(String city)`", "`findByBranch_City(String city)`"]
+      explanation: |
+        The name follows the path across the relation and the value object: `branch.address.city`. Spring Data creates the join itself.
+    - prompt: "`Optional<Book> findByPriceLessThan(BigDecimal max)` finds two books. What happens?"
+      options: ["It returns the first one", "It returns `Optional.empty()`", "`IncorrectResultSizeDataAccessException`"]
+      explanation: |
+        `Optional` means "at most one hit". With several Spring Data throws an exception. For several use `List<Book>`, for the first one `findFirstBy…`.
+
+- id: jpa-derived-errors
+  main:
+    prompt: The repository says `List<Book> findByTitel(String t);`. What happens?
+    options:
+      - The method always returns an empty list
+      - "The Spring context does not start – every test fails with `No property 'titel' found for type 'Book'`"
+      - Only tests that call the method fail
+    explanation: |
+      Spring Data checks all method names at startup. A typo aborts the start – the message even suggests `title`.
+  followUps:
+    - prompt: A test for `findByTitleContainingIgnoreCase("MOHN")` only saves the book "Mohn und Gedächtnis". What is missing?
+      options: ["Nothing", "A book that must **not** be found", "A test with `null`"]
+      explanation: |
+        With only one matching book, a method that returns everything would pass too. Test data must also exclude hits.
+
+- id: jpa-jpql-basics
+  main:
+    prompt: Which `@Query` is valid JPQL for "books by an author"?
+    options:
+      - "`select * from books b join book_authors ba on ba.book_id = b.id where ba.author_name = :name`"
+      - "`select b from Book b join b.authors a where a.name = :name`"
+      - "`select b from books b where b.authors.name = :name`"
+    explanation: |
+      JPQL works with entities (`Book`) and fields (`b.authors`), not with tables. The join follows the field of the relation. There is no `select *` in JPQL.
+  followUps:
+    - prompt: What happens with `@Query("select b from books b")`?
+      options:
+        - The query returns all books
+        - "The context does not start: `Could not resolve root entity 'books'`"
+        - Only the call fails
+      explanation: |
+        JPQL queries are checked at startup. `books` is the table name, the entity is called `Book`.
+    - prompt: How is `nativeQuery = true` different?
+      options:
+        - It is real SQL with table and column names and is not checked at startup
+        - It is faster and therefore always to be preferred
+        - It allows parameters, JPQL does not
+      explanation: |
+        Native queries depend on the database and only show errors when called. Only use them when JPQL is not enough.
+
+- id: jpa-jpql-fetch
+  main:
+    prompt: What is `select b from Book b left join fetch b.authors where b.isbn = :isbn` for?
+    options:
+      - It loads the book and its authors in one query
+      - It only loads books that have authors
+      - It saves the authors along with it
+    explanation: |
+      `fetch` fills the lazy list right away. `left` also keeps books without authors.
+  followUps:
+    - prompt: "`@Query(\"select b from Book b where b.price <= :max\") List<Book> cheap(BigDecimal max);` – how does Spring know that `:max` is the parameter `max`?"
+      options:
+        - "Via the parameter name; the Gradle plugin compiles with `-parameters`. With `@Param(\"max\")` it is safe"
+        - "Via the position, the first parameter is always `:max`"
+        - "Not at all, you have to write `?1`"
+      explanation: |
+        Without `-parameters` the names are unknown at runtime. `@Param` makes the mapping independent of that.
+
+- id: jpa-projection-constructor
+  main:
+    prompt: "`record BookOverview(String title, String branchName, BigDecimal price)` is in `ormapping.persistence`. Which query fills it?"
+    options:
+      - "`select new BookOverview(b.title, b.branch.name, b.price) from Book b`"
+      - "`select new ormapping.persistence.BookOverview(b.title, b.branch.name, b.price) from Book b`"
+      - "`select BookOverview(b) from Book b`"
+    explanation: |
+      The constructor expression needs the class name with its package. Without the package the start fails with `Could not resolve class 'BookOverview' named for instantiation`.
+  followUps:
+    - prompt: Room number from `building`, `level` and `roomNo` as **one** attribute, e.g. `"C.3.07"`. Which expression?
+      options:
+        - "`concat(r.building, '.', r.level, '.', r.roomNo)`"
+        - "`r.building + '.' + r.level + '.' + r.roomNo`"
+        - "`format(r.building, r.level, r.roomNo)`"
+      explanation: |
+        `concat` takes any number of arguments. `||` works too, `+` does not join texts in JPQL.
+
+- id: jpa-projection-aggregate
+  main:
+    prompt: "`select br.name, count(b), sum(b.price) from Branch br left join br.books b group by br.name` – what does a branch without books return?"
+    options: ["It is missing from the result", "`count` = 0 and `sum` = `null`", "`count` = 0 and `sum` = 0"]
+    explanation: |
+      `left join` keeps the branch. `count` counts no books (0), `sum` over nothing is `null` in SQL. With `coalesce(sum(b.price), 0)` it becomes 0.
+  followUps:
+    - prompt: Which Java type does `count(…)` return?
+      options: ["`Integer`", "`Long`", "`BigDecimal`"]
+      explanation: |
+        `count` always returns `Long`. In the record you can use `long` or `Long`. `sum` over `Integer` also returns `Long`, `avg` returns `Double`.
+    - prompt: A test expects `new BranchStock("HB", 2, new BigDecimal("40.4"))`, the query returns `totalValue = 40.40`. Why does `containsExactly` fail?
+      options:
+        - "`BigDecimal.equals` also compares the scale: `40.4` is not equal to `40.40`"
+        - Records have no `equals`
+        - "`count` is `Long`, the record says `long`"
+      explanation: |
+        The database returns the scale of the column (`numeric(38,2)`). Write the expected value with the same scale or compare with `isEqualByComparingTo`.

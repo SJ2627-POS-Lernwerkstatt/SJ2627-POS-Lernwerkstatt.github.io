@@ -628,6 +628,63 @@
       explanation: |
         `E` ist kein Gebäude, `6` kein Stockwerk, und `B37` hat nur eine Ziffer als Raumnummer. `B307` und `AE01` sind gültig.
 
+- id: jpa-richtype-number
+  unit: jpa/rich-types
+  main:
+    kind: multi
+    prompt: "Regel: Der Breitengrad liegt zwischen −90 und 90, beide Grenzen sind erlaubt. Bei welchen Werten muss `new Latitude(...)` eine Exception werfen?"
+    code: |
+      public record Latitude(double value) {
+
+          public Latitude {
+              if (value < -90 || value > 90) {
+                  throw new IllegalArgumentException("latitude must be between -90 and 90: " + value);
+              }
+          }
+      }
+    options:
+      - "`-90`"
+      - "`-90.5`"
+      - "`0`"
+      - "`90`"
+      - "`91`"
+    answer: [1, 4]
+    explanation: |
+      Die Grenzen −90 und 90 selbst sind erlaubt, nur Werte **darunter** oder **darüber** sind falsch. Genau diese Grenzwerte gehören in den Test.
+  followUps:
+    - kind: template
+      prompt: Vervollständige den Rich Type `Latitude` und seinen Converter. In der Datenbank steht eine Kommazahl.
+      template: |
+        public record Latitude(double value) {
+
+            public Latitude {
+                if ({{value < -90}} || {{value > 90}}) {
+                    throw new {{IllegalArgumentException}}("invalid latitude: " + value);
+                }
+            }
+        }
+
+        @Converter(autoApply = true)
+        public class LatitudeConverter implements AttributeConverter<Latitude, {{Double}}> {
+
+            @Override
+            public Double convertToDatabaseColumn(Latitude latitude) {
+                return latitude == null ? null : {{latitude.value()}};
+            }
+
+            @Override
+            public Latitude convertToEntityAttribute(Double value) {
+                return value == null ? null : {{new Latitude(value)}};
+            }
+        }
+      redHerrings:
+        - value <= -90
+        - value >= 90
+        - String
+        - IllegalStateException
+      explanation: |
+        Mit `<=`/`>=` wären die erlaubten Grenzen −90 und 90 verboten. Der zweite Typparameter des Converters ist der Typ der Spalte – hier `Double`, nicht `String`.
+
 - id: jpa-manytoone-column
   unit: jpa/many-to-one
   main:

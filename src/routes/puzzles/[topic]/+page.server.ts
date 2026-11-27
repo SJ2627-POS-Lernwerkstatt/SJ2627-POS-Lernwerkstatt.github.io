@@ -10,6 +10,6 @@ export const load: PageServerLoad = ({ params }) => {
 	if (!topic) error(404, 'Dieses Puzzle-Thema gibt es nicht.');
 	return {
 		topic,
-		puzzles: puzzlesOf(topic.slug).map(({ id, title, kind, mindest }) => ({ id, title, kind, mindest }))
+		puzzles: puzzlesOf(topic.slug).map(({ id, title, kind, mindest, en }) => ({ id, title, titleEn: en?.title, kind, mindest }))
 	};
 };

@@ -1,0 +1,99 @@
+# English text for src/content/puzzles/jpa-repository.yaml (same ids).
+
+- id: repo-movie-interface
+  title: Movies – the repository
+  prompt: |
+    Write the repository for `Movie`. It should find a movie by its title (at most one) and then all movies that last longer than a number of minutes.
+  explanation: |
+    A repository is an **interface**, Spring Data generates the implementation. The type arguments are the entity and the type of the id: `JpaRepository<Movie, Long>`. The method name has to use field names – `findByName` fails at startup because `Movie` has no field `name`. `Optional` for at most one hit.
+
+- id: repo-movie-return-types
+  title: Movies – return types and prefixes
+  prompt: |
+    Fill in the return types and prefixes: a movie by its IMDb number (at most one), all movies of a genre, the number of movies of a genre and whether an IMDb number already exists.
+  explanation: |
+    `Optional<…>` for at most one hit, `List<…>` for any number. `countBy…` returns the number as a `long`, `existsBy…` a `boolean` – Spring Data builds `select count(…)` from it, or a query that stops at the first hit. Spring Data does not know `hasBy` and `countAll`.
+
+- id: repo-concert-path
+  title: Concerts – paths across relations
+  prompt: |
+    Find all concerts in a city (the city is in the `Location` of the venue) and all concerts of a venue by its name.
+  explanation: |
+    A derived name follows the fields like a path: `concert.venue.location.city` becomes `findByVenueLocationCity`. This works across relations (`venue`) and value objects (`location`). `VenueCity` or `VenueAddressCity` do not exist here – the name has to match the fields exactly, otherwise the context does not start.
+
+- id: repo-concert-first-top
+  title: Concerts – sorting and limiting
+  prompt: |
+    Find the **most expensive** concert and the **three earliest** concerts.
+  explanation: |
+    `First` (or `Top`) returns one hit, `Top3` the first three – after sorting with `OrderBy…Desc` or `…Asc`. The most expensive one is the first with descending price. `Last` and `Max` do not exist as keywords.
+
+- id: repo-concert-keywords
+  title: Concerts – keywords
+  prompt: |
+    Three searches: concerts between two dates (both included), concerts whose title contains a text (case does not matter), and concerts whose ticket costs **at most** an amount.
+  explanation: |
+    `Between` includes both limits. `Containing` adds the `%` itself, `IgnoreCase` compares without regard to case – `Containing` alone would be empty for "Rock" against "rock". "At most" means `LessThanEqual` – `LessThan` would leave out exactly that amount. `Like` exists, but there you have to pass the `%` yourself.
+
+- id: repo-jpql-basic
+  title: Concerts – the first JPQL query
+  prompt: |
+    Write the query in JPQL: all concerts up to a maximum price, sorted by date.
+  explanation: |
+    JPQL queries **entities and fields**, not tables and columns: `from Concert c`, not `from concerts`. You select the alias (`select c`), there is no `select *`. Parameters are called `:name` and are filled via the name of the method parameter.
+
+- id: repo-jpql-join
+  title: Seminars – join across n:m
+  prompt: |
+    Find all seminars that a person with a particular name attends, sorted by title.
+  explanation: |
+    `join s.participants p` follows the relation from the seminar and gives every participant the alias `p`. Then you compare `p.name`. A path like `s.participants.name` does not work with a collection – for that you need the join. `join Participant p` would name a whole entity, not a field.
+
+- id: repo-jpql-params
+  title: Concerts – query with parameters
+  prompt: |
+    Write `ConcertRepository` with a JPQL query: all concerts in a city up to a maximum price. Bind the parameters explicitly with `@Param`.
+  explanation: |
+    A path with dots (`c.venue.location.city`) creates the join itself. `c.venue.city` does not exist – the city is in `location`. `@Param("city")` binds the parameter `:city` to the method parameter – swapped names compile, but return the wrong values.
+
+- id: repo-jpql-distinct
+  title: Venues – distinct
+  prompt: |
+    Find all venues that have **at least one** concert above a price – every venue only once.
+  explanation: |
+    The join returns one row per matching concert – a venue with three expensive concerts would appear three times. `distinct` makes one entry out of them. A `left join` would also return venues without a concert; but those fail the condition here anyway.
+
+- id: repo-projection-record
+  title: Concerts – projection into a record
+  prompt: |
+    For every concert return only title, name of the venue and price, sorted by title – as a record `ConcertOverview` in the package `ormapping.persistence`.
+  explanation: |
+    `select new` calls the constructor of the record for every row – types and order have to match. The class name needs the **whole package**, otherwise the context does not start: `Could not resolve class 'ConcertOverview'`. `c.venue` would be the whole venue, the record wants its name.
+
+- id: repo-aggregate-group-by
+  title: Venues – counting with group by
+  prompt: |
+    Count the concerts per venue, sorted by name. Venues **without** a concert should be included with `0`.
+  explanation: |
+    `left join` keeps venues without a concert; a normal `join` would leave them out. `count(c)` only counts real concerts, so `0` for an empty venue – `count(v)` would count the venue itself and give `1`. Everything in the `select` that is not an aggregate belongs in `group by`.
+
+- id: repo-interface-projection
+  title: Concerts – interface projection
+  prompt: |
+    For a list, title and date are enough. Complete the interface projection that Spring Data fills for every concert above a price.
+  explanation: |
+    An interface projection consists of getters named like the fields of the entity: `getTitle()` for `title`. Spring Data then only loads these columns. With `List<Concert>` you would get the whole entities again.
+
+- id: repo-lifecycle-test
+  title: Movies – the lifecycle test
+  prompt: |
+    Write the lifecycle test: save, check the id, clear the persistence context, read anew and check the title.
+  explanation: |
+    The id is set after `save` – the database assigns it, it never belongs in the constructor. `flush()` writes everything to the database, `clear()` empties the persistence context: only then does `findById` really read from the database. In this order – after `clear` there would be nothing left to write. `findById` returns an `Optional`, hence `hasValueSatisfying`.
+
+- id: repo-derived-query-test
+  title: Movies – testing a query
+  prompt: |
+    Test `findByTitleContainingIgnoreCase`: searching for `heat` finds "Heat" and "Heathers" – but not "Alien".
+  explanation: |
+    `extracting(Movie::getTitle)` turns the movies into their titles. `containsExactlyInAnyOrder` checks that **exactly** these two are found – so it also shows if "Alien" were wrongly included. That is why the test deliberately saves a movie that must not be found.

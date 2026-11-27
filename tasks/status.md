@@ -58,6 +58,9 @@ Content so far: modern-java 5 units, testing 12, streams 9, jpa 18, service 10, 
 
 ## Next
 
+- **English version (2026-11-27):** DE/EN switch in the header, translations in `src/content/en/` for all 90 units, 182 question groups and 99 puzzles (SPEC „English translation“). Exercises, mock exams and the site UI stay German. Machine-made first draft – review like the German content. When a German unit, group or puzzle changes, update its English twin (the build only checks the shape, not the content).
+- **Plain checks instead of helpers (2026-11-27):** `Objects.requireNonNull` replaced with `if` + `IllegalArgumentException` in all units and the two service puzzles (verified with `verify-puzzles service-method`); the helper is shown once as a `:::info` box (new callout kind) in service/fehlerfaelle. Rich types unit: new numeric rich type `Latitude` (−90..90, `AttributeConverter<Latitude, Double>`, boundary tests) and ISBN/RoomName checks without regex; the regex versions are `:::info` boxes. New question group `jpa-richtype-number`. `@Pattern(regexp = …)` in rest/validierung is unchanged.
+
 0. Puzzles: all seven topics written (91 puzzles, all verified) – review them on the site and set `status: reviewed`; merge branch `puzzles` into `main` to deploy.
 1. Review the `modern-java` units on the live site → `status: reviewed` (D1).
 2. Re-check the `cheatsheet` page numbers against the hosted PDF once the cheat sheet PR is merged and deployed (local build says current refs match; Optional/Git still have no sheet section).

@@ -1,0 +1,71 @@
+# English text for src/content/puzzles/rest-test.yaml (same ids).
+
+- id: rt-test-class
+  title: The test class
+  prompt: |
+    Write the test class for `BookController`: only the web layer, `MockMvc` and a mocked `BookService` (in this order), plus a test that `GET /api/books` returns `200` and `[]` for an empty list.
+  explanation: |
+    `@WebMvcTest(BookController.class)` only starts the web layer with this controller – fast and without a database. `MockMvc` sends requests without a real server. `@MockitoBean` replaces the service with a mock; `@MockBean` no longer exists in Spring Boot 4. A real `BookService` would not support the methods here at all.
+
+- id: rt-get-ok
+  title: Reading a book – 200 and JSON
+  prompt: |
+    For `9783518365000` the service returns the book "Malina". Check status, content type and title of the response.
+  explanation: |
+    `when(…).thenReturn(…)` sets what the mock returns – here an `Optional`, because the service returns one. `perform(get(…))` sends the request, `andExpect` checks the response. `jsonPath("$.title")` reaches into the JSON body: `$` is the root object.
+
+- id: rt-not-found
+  title: A book is missing – 404
+  prompt: |
+    The service finds no book with the ISBN `0000000000000`. Check that the controller answers with `404`.
+  explanation: |
+    For the service, "not found" is an **empty** `Optional`, not `null` – with `null` the controller would throw a `NullPointerException`. `Optional.of(null)` already throws when it is created. The exception case belongs to every endpoint.
+
+- id: rt-request-param
+  title: Filter – passing a parameter on
+  prompt: |
+    `GET /api/books?author=Paul Celan` should pass the author on to the service. Check the result **and** that the service was called with exactly this author.
+  explanation: |
+    `.param(name, value)` appends a query parameter. `verify(mock).method(…)` checks that the controller called the service exactly like that. If the controller ignores the parameter, the mock returns an empty list for `findAll(null)` – and the test fails.
+
+- id: rt-post-created
+  title: Creating – 201 and Location
+  prompt: |
+    Test `POST /api/books`: the body is the JSON of `CREATE_HIOB`. Expected are `201`, a `Location` header pointing to the new book and a call of the service with exactly this data.
+  explanation: |
+    `any(BookCreateCmd.class)` lets the mock answer every command; `verify` checks afterwards which one exactly arrived. `objectMapper.writeValueAsString(…)` writes the body as JSON – `toString()` of a record is not JSON. Without `contentType(APPLICATION_JSON)` Spring answers with `415`.
+
+- id: rt-post-invalid
+  title: Creating – invalid input
+  prompt: |
+    An ISBN with only two digits is invalid. Check that the controller answers with `400` and does **not call** the service at all.
+  explanation: |
+    Because of `@Valid`, Spring rejects invalid input **before** the controller calls the service. `verifyNoInteractions(bookService)` checks exactly that. If `@Valid` is missing in the controller, the invalid command ends up at the service – and the test fails.
+
+- id: rt-delete
+  title: Deleting – 204 and verify
+  prompt: |
+    Write the test for `DELETE /api/books/9783518365000`: `204` is expected, and the service must have deleted the book. First the request, then `verify`.
+  explanation: |
+    `delete` returns nothing: a `void` call needs no `when` – by default the mock does nothing. `verify(bookService).delete(…)` (the parenthesis after `bookService` closes **before** the method call) checks that the controller really deleted.
+
+- id: rt-delete-not-found
+  title: Deleting – exception from the mock
+  prompt: |
+    When deleting an unknown ISBN the service throws a `BookNotFoundException`. Check `404`, the content type of a `ProblemDetail` and the message in the field `detail`.
+  explanation: |
+    For `void` methods `when(…).thenThrow(…)` does not work – there it is `doThrow(…).when(mock).method(…)`. A `ProblemDetail` comes as `application/problem+json`, the message is in the field `detail`. That way you also check that the exception handler applies.
+
+- id: rt-json-list
+  title: Checking a list in the JSON
+  prompt: |
+    The service returns two books. Check that both are in the JSON, with "Mohn und Gedächtnis" in **second** place.
+  explanation: |
+    With a list, `$` is the array: `hasSize(2)` checks the length, `$[1]` is the **second** element – indices start at 0. `hasSize` comes from Hamcrest (`org.hamcrest.Matchers`).
+
+- id: rt-nested
+  title: Grouping tests with Nested
+  prompt: |
+    Group the tests for `DELETE` in a nested class `Delete`: first the good case `good` (204), then `not_found` (404, the service throws).
+  explanation: |
+    `@Nested` groups good, edge and exception cases of an endpoint – the test report then shows `Delete > good`, `Delete > not_found`. The inner class must **not** be `static`, otherwise it does not see `mockMvc` and `bookService` of the outer class.

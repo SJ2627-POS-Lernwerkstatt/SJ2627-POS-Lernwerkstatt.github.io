@@ -6,7 +6,12 @@ import { LINE_LIMITS, lineKey, parseLines, toLine } from '#lib/puzzle/lines.js';
 import { buildPool, parseTemplate } from '#lib/puzzle/template.js';
 import {
 	exerciseFrontmatter,
+	groupTranslationPool,
 	puzzlePool,
+	puzzleTranslationPool,
+	unitTranslationFrontmatter,
+	type GroupTranslation,
+	type PuzzleTranslation,
 	questionPool,
 	type Puzzle,
 	unitFrontmatter,
@@ -25,6 +30,8 @@ export type Unit = UnitFrontmatter & {
 	order: number;
 	/** Source path, used to load the rendered component. */
 	file: string;
+	/** English translation, if there is one (src/content/en/<file>). */
+	en?: { title: string; file: string };
 };
 
 export type Exercise = ExerciseFrontmatter & {
@@ -39,12 +46,15 @@ export type PuzzleEntry = Puzzle & {
 	topic: string;
 	/** Position in the topic's file, from 0. */
 	order: number;
+	en?: PuzzleTranslation;
 };
+
+export type GroupEntry = QuestionGroup & { en?: GroupTranslation };
 
 export type ContentIndex = {
 	units: Unit[];
 	exercises: Exercise[];
-	groups: QuestionGroup[];
+	groups: GroupEntry[];
 	puzzles: PuzzleEntry[];
 };
 
@@ -55,6 +65,8 @@ export type ContentFiles = {
 	pools: Record<string, string>;
 	/** "puzzles/<topic>.yaml"; optional so older callers need not pass it. */
 	puzzles?: Record<string, string>;
+	/** English translations, paths relative to src/content/en/ ("jpa/06-enums.md", "questions/jpa.yaml", "puzzles/jpa-entity.yaml"). */
+	en?: { units?: Record<string, string>; pools?: Record<string, string>; puzzles?: Record<string, string> };
 };
 
 const MODULE_PART = '([a-z]+(?:-[a-z0-9]+)*)';
@@ -122,7 +134,7 @@ export function buildIndex(files: ContentFiles): { index: ContentIndex; errors: 
 	const errors: string[] = [];
 	const units: Unit[] = [];
 	const exercises: Exercise[] = [];
-	const groups: QuestionGroup[] = [];
+	const groups: GroupEntry[] = [];
 
 	for (const [file, raw] of Object.entries(files.units)) {
 		const m = UNIT_PATH.exec(file);
@@ -227,6 +239,8 @@ export function buildIndex(files: ContentFiles): { index: ContentIndex; errors: 
 		if (!unitIds.has(g.unit)) errors.push(`question group "${g.id}": unit "${g.unit}" does not exist`);
 	}
 
+	translate(files.en ?? {}, units, groups, puzzles, errors);
+
 	const byOrder = <T extends { module: string; order: number }>(a: T, b: T) =>
 		a.module === b.module ? a.order - b.order : 0;
 	return { index: { units: units.sort(byOrder), exercises: exercises.sort(byOrder), groups, puzzles }, errors };
@@ -238,5 +252,141 @@ function duplicates<T>(items: T[], key: (item: T) => string, message: (key: stri
 		const k = key(item);
 		if (seen.has(k)) errors.push(message(k));
 		seen.add(k);
+	}
+}
+
+/** Raw YAML list → validated entries, or errors. */
+function parsePool<T>(file: string, raw: string, schema: z.ZodType<T[]>, errors: string[]): T[] {
+	let data: unknown;
+	try {
+		data = parseYaml(raw) ?? [];
+	} catch (e) {
+		errors.push(`${file}: ${(e as Error).message}`);
+		return [];
+	}
+	const parsed = schema.safeParse(data);
+	if (!parsed.success) {
+		errors.push(...zodErrors(file, parsed.error));
+		return [];
+	}
+	return parsed.data;
+}
+
+function checkQuestionText(q: Question, t: GroupTranslation['main'], where: string, errors: string[]) {
+	if (q.kind !== 'template' && (t.template || t.redHerrings || t.reusable)) {
+		errors.push(`${where}: only template questions have a template`);
+	}
+	if (q.kind === 'template') {
+		if (t.options) errors.push(`${where}: a template question has no options`);
+		if (t.template) checkTemplateTranslation(q, t, where, errors);
+	} else if (!t.options) errors.push(`${where}: options are missing`);
+	else if (t.options.length !== q.options.length) {
+		errors.push(`${where}: ${t.options.length} options, the German question has ${q.options.length}`);
+	}
+}
+
+/** The English template must have the same shape: answers are stored as piece positions ("t3"). */
+function checkTemplateTranslation(
+	q: Extract<Question, { kind: 'template' }>,
+	t: GroupTranslation['main'],
+	where: string,
+	errors: string[]
+) {
+	const de = parseTemplate(q.template.trimEnd());
+	const en = parseTemplate(t.template!.trimEnd());
+	for (const e of en.errors) errors.push(`${where}: template line ${e.line}: ${e.message}`);
+	if (en.errors.length) return;
+	const shape = (p: typeof de) => p.gaps.map((g) => `${g.expected.length}${g.anyOrder ? '~' : ''}`).join(',');
+	if (shape(en) !== shape(de)) errors.push(`${where}: the template's gaps differ from the German one`);
+	const pool = (p: typeof de, herrings: string[], reusable: string[]) => buildPool(p, herrings, reusable);
+	const dePool = pool(de, q.redHerrings, q.reusable);
+	const enPool = pool(en, t.redHerrings ?? q.redHerrings, t.reusable ?? q.reusable);
+	for (const e of enPool.errors) errors.push(`${where}: ${e}`);
+	const kinds = (tiles: typeof dePool.tiles) => tiles.map((x) => `${x.herring ? 'h' : 'p'}${x.reusable ? 'r' : ''}`).join(',');
+	if (kinds(enPool.tiles) !== kinds(dePool.tiles)) errors.push(`${where}: the template's pieces differ from the German ones`);
+}
+
+/** Applies a translation's code replacements (German comments → English). */
+export function replaceAll(code: string, replacements: { find: string; replace: string }[]): string {
+	return replacements.reduce((text, r) => text.split(r.find).join(r.replace), code);
+}
+
+function checkPuzzleReplacements(p: PuzzleEntry, t: PuzzleTranslation, where: string, errors: string[]) {
+	const template = p.kind === 'template' ? p.template : '';
+	for (const r of t.replace) {
+		if (!p.given?.includes(r.find) && !template.includes(r.find)) {
+			errors.push(`${where}: replace "${r.find}" occurs neither in given nor in the template`);
+		}
+	}
+	if (p.kind !== 'template' || !t.replace.length) return;
+	const pieces = (text: string) => JSON.stringify(parseTemplate(text.trimEnd()).gaps.map((g) => g.expected));
+	if (pieces(replaceAll(p.template, t.replace)) !== pieces(p.template)) {
+		errors.push(`${where}: replace must not change the template's pieces`);
+	}
+}
+
+/** Attaches the English translations and checks that they match the German originals. Missing ones are fine. */
+function translate(en: NonNullable<ContentFiles['en']>, units: Unit[], groups: GroupEntry[], puzzles: PuzzleEntry[], errors: string[]) {
+	const unitByFile = new Map(units.map((u) => [u.file, u]));
+	for (const [file, raw] of Object.entries(en.units ?? {})) {
+		const where = `en/${file}`;
+		const unit = unitByFile.get(file);
+		if (!unit) {
+			errors.push(`${where}: there is no German unit ${file}`);
+			continue;
+		}
+		try {
+			const parsed = unitTranslationFrontmatter.safeParse(frontmatter(raw));
+			if (!parsed.success) errors.push(...zodErrors(where, parsed.error));
+			else unit.en = { title: parsed.data.title, file: `en/${file}` };
+		} catch (e) {
+			errors.push(`${where}: ${(e as Error).message}`);
+		}
+	}
+
+	const groupById = new Map(groups.map((g) => [g.id, g]));
+	for (const [file, raw] of Object.entries(en.pools ?? {})) {
+		const where = `en/${file}`;
+		const m = POOL_PATH.exec(file);
+		if (!m) {
+			errors.push(`${where}: translated question pools must be named "en/questions/<module>.yaml"`);
+			continue;
+		}
+		for (const t of parsePool(where, raw, groupTranslationPool, errors)) {
+			const g = groupById.get(t.id);
+			if (!g || !g.unit.startsWith(`${m[1]}/`)) {
+				errors.push(`${where}: there is no question group "${t.id}" in questions/${m[1]}.yaml`);
+				continue;
+			}
+			if (g.en) errors.push(`${where}: "${t.id}" is translated twice`);
+			if (t.followUps.length !== g.followUps.length) {
+				errors.push(`${where}: ${t.id}: ${t.followUps.length} follow-ups, the German group has ${g.followUps.length}`);
+				continue;
+			}
+			checkQuestionText(g.main, t.main, `${where}: ${t.id}.main`, errors);
+			g.followUps.forEach((q, i) => checkQuestionText(q, t.followUps[i]!, `${where}: ${t.id}.followUps.${i}`, errors));
+			g.en = t;
+		}
+	}
+
+	const puzzleById = new Map(puzzles.map((p) => [p.id, p]));
+	for (const [file, raw] of Object.entries(en.puzzles ?? {})) {
+		const where = `en/${file}`;
+		const m = PUZZLE_PATH.exec(file);
+		if (!m) {
+			errors.push(`${where}: translated puzzle pools must be named "en/puzzles/<topic>.yaml"`);
+			continue;
+		}
+		for (const t of parsePool(where, raw, puzzleTranslationPool, errors)) {
+			const p = puzzleById.get(t.id);
+			if (!p || p.topic !== m[1]) {
+				errors.push(`${where}: there is no puzzle "${t.id}" in puzzles/${m[1]}.yaml`);
+				continue;
+			}
+			if (p.en) errors.push(`${where}: "${t.id}" is translated twice`);
+			if (t.given && !p.given) errors.push(`${where}: ${t.id}: the German puzzle has no given code`);
+			checkPuzzleReplacements(p, t, `${where}: ${t.id}`, errors);
+			p.en = t;
+		}
 	}
 }

@@ -1,0 +1,105 @@
+# English text for src/content/puzzles/service-method.yaml (same ids).
+
+- id: svc-record-validation
+  title: Booking – record with checks
+  prompt: |
+    `Booking` is a record. In the compact constructor first check that no component is missing (`null`), and then that `to` is not before `from`. Both errors are an `IllegalArgumentException`.
+  explanation: |
+    The **compact** constructor has no parameter list and no assignments – Java does those itself afterwards. With `||` **one** missing component is enough for the exception; with `&&` all three would have to be missing. `from.isBefore(to)` would be exactly the **valid** case.
+
+- id: svc-constructor-copy
+  title: Rental – securing the data in the constructor
+  prompt: |
+    The service gets the list of rentals at the beginning. Throw an `IllegalArgumentException` right away on `null` and store the list so that later changes to the list passed in do not change the service.
+  replace:
+    - { find: "/** returnedOn ist null, solange das Rad unterwegs ist. */", replace: "/** returnedOn is null as long as the bike is out. */" }
+  explanation: |
+    `List.copyOf` creates a copy of its own that cannot be changed. `Collections.unmodifiableList` would only be a **view** of the list passed in – if the caller adds something later, the service still sees it. The `if` check turns `null` into an understandable exception right away; an empty list, on the other hand, is allowed.
+
+- id: svc-days-overdue
+  title: Rental – days past the deadline
+  prompt: |
+    Write `daysOverdue`: the days after the 7 included rental days. A bike that is still out counts until today. Never negative.
+  replace:
+    - { find: "/** returnedOn ist null, solange das Rad unterwegs ist. */", replace: "/** returnedOn is null as long as the bike is out. */" }
+  explanation: |
+    `returned().orElse(today)` takes the return date or – as long as the bike is missing – today. `ChronoUnit.DAYS.between(a, b)` counts from `a` to `b`; swapped, it becomes negative. `Math.max(0, …)` prevents negative values, `Math.min` would push **everything** down to at most 0. `returnedOn()` alone would be `null` for open rentals.
+
+- id: svc-fee-rule
+  title: Rental – the fee
+  prompt: |
+    Up to and including 2 days late cost nothing. After that 50 cents per day, at most €15. Students pay half. Amounts in cents.
+  replace:
+    - { find: "/** returnedOn ist null, solange das Rad unterwegs ist. */", replace: "/** returnedOn is null as long as the bike is out. */" }
+  explanation: |
+    "Up to and including 2 days" means `<=` – with `<` the second day would already cost. `Math.min(…, MAX_CENTS)` caps the amount; `Math.max` would demand **at least** €15. A record accessor is named like the component: `student()`, not `isStudent()`.
+
+- id: svc-stream-sum
+  title: Rental – sum per customer
+  prompt: |
+    `feeFor` returns the sum of the fees of all rentals of a customer.
+  explanation: |
+    `filter` only keeps the customer's rentals, `mapToInt` turns each into its fee as an `int`, `sum` adds them up. With `map` you would get a `Stream<Integer>` without `sum()`. `count` would count the rentals instead of adding the amounts.
+
+- id: svc-percent-rule
+  title: Streaming – percent without decimals
+  prompt: |
+    Under 5 seconds listened, nothing is charged. Whoever listened to **at least 85 %** of a song pays for the whole song, otherwise for the seconds listened.
+  explanation: |
+    Percentages with whole numbers: multiply both sides instead of dividing. `streamed / songLength` is an **integer division** and almost always gives `0`. "Under 5" means `< 5` – exactly 5 seconds are already charged.
+
+- id: svc-fee-level
+  title: Fees – levels with an enum
+  prompt: |
+    Assign an amount to a level: no fee → `NONE`, under €5 → `LOW`, from €5 → `HIGH`. Amounts in cents.
+  explanation: |
+    "From €5" belongs to `HIGH`, so `LOW` is everything **under** 500 cents: `< 500`. With `<= 500` exactly €5 would end up in the wrong level – the tests check exactly such boundaries. An `int` cannot be `null`.
+
+- id: svc-overview-enum-map
+  title: Fees – overview as a map
+  prompt: |
+    `overview` groups the (already sorted) fees by level. **All** levels should be in the result, even without entries. First create the map, fill every level with an empty list and then add the grouped fees.
+  explanation: |
+    `groupingBy` alone only returns levels that occur – that is why the `EnumMap` is filled with empty lists beforehand and `putAll` overwrites the existing ones. `groupingBy` keeps the order of the stream, so the lists stay sorted. `toMap` could only store **one** entry per level.
+
+- id: svc-sort-comparator
+  title: Fees – sorting with a comparator
+  prompt: |
+    Sort the fees by amount in descending order, with equal amounts alphabetically by name.
+  explanation: |
+    `comparingInt(CustomerFee::cents)` sorts ascending, `.reversed()` turns that around. `thenComparing` only applies with a tie and stays ascending. Careful: with a lambda instead of the method reference (`comparingInt(f -> f.cents()).reversed()`) this does not compile – Java then does not know the type of `f`.
+
+- id: svc-distinct-customers
+  title: Rental – every customer once
+  prompt: |
+    Create **one** entry with name and fee per customer – even if they rented several bikes.
+  explanation: |
+    `map(Rental::customer)` turns the rentals into their customers, `distinct()` only lets each one through once – that works because records compare with `equals`. Then a `CustomerFee` is made from every customer. A record accessor is called `name()`, not `getName()`.
+
+- id: svc-exception-class
+  title: Your own exception
+  prompt: |
+    Write `CustomerNotFoundException`. Nobody should have to declare it, the message is `no rentals for customer <name>`.
+  explanation: |
+    `extends RuntimeException` makes it *unchecked*: no `throws`, no mandatory `catch`. You pass the message on to the constructor of `RuntimeException` with `super(…)` – there is no field `message` of your own. A `throw` in the constructor would never let your own exception come into existence.
+
+- id: svc-repository-service
+  title: Rental – repository and service
+  prompt: |
+    The rentals now come from a repository. First write the interface with `findByCustomerName`, then the service that gets the repository and `RentalFees` in its constructor – Lombok generates it.
+  explanation: |
+    Data access is an **interface** – the service does not know where the data comes from, and in the test you pass a stub or mock. `@RequiredArgsConstructor` generates a constructor with all `final` fields: `RentalReportService(RentalRepository, RentalFees)`. Without `final` the field would not be part of it.
+
+- id: svc-not-found
+  title: Rental – unknown customer
+  prompt: |
+    If a customer has no rentals, throw `CustomerNotFoundException`. Otherwise return the sum of their fees.
+  explanation: |
+    For an unknown name the repository returns an **empty list**, not `null`. The service turns that into a descriptive exception – in Task 3 it becomes the status code `404`. With `return` instead of `throw` the code would not compile: an exception is not an `int`.
+
+- id: svc-big-decimal
+  title: Hotel – money with BigDecimal
+  prompt: |
+    The price of a stay is the price per night times the number of nights, rounded commercially to two decimal places.
+  explanation: |
+    `BigDecimal` calculates with methods instead of operators: `multiply`, `add`, … The factor itself has to be a `BigDecimal` – `BigDecimal.valueOf(nights)`. `setScale(2, RoundingMode.HALF_UP)` rounds commercially to two places; `DOWN` would cut off.

@@ -233,3 +233,116 @@ describe('template checks', () => {
 		expect(errors).toEqual([expect.stringContaining('markers "}}{{" touch')]);
 	});
 });
+
+describe('English translations', () => {
+	const de = { units: { 'jpa/06-enums.md': okUnit }, pools: pool(singleGroup()) };
+	const puzzle = `- id: p-one\n  kind: lines\n  title: P\n  prompt: p\n  explanation: e\n  solution: |\n    a\n    b\n    c\n`;
+
+	it('attaches unit, group and puzzle translations', () => {
+		const { index, errors } = build({
+			...de,
+			puzzles: { 'puzzles/jpa-entity.yaml': puzzle },
+			en: {
+				units: { 'jpa/06-enums.md': unit('title: Mapping enums') },
+				pools: { 'questions/jpa.yaml': '- id: jpa-enum-01\n  main: { prompt: How?, options: [Name, Ordinal], explanation: Ordinal. }\n' },
+				puzzles: { 'puzzles/jpa-entity.yaml': '- { id: p-one, title: P en, prompt: p en, explanation: e en }\n' }
+			}
+		});
+		expect(errors).toEqual([]);
+		expect(index.units[0]!.en).toEqual({ title: 'Mapping enums', file: 'en/jpa/06-enums.md' });
+		expect(index.groups[0]!.en?.main.options).toEqual(['Name', 'Ordinal']);
+		expect(index.puzzles[0]!.en?.title).toBe('P en');
+	});
+
+	it('leaves untranslated content alone', () => {
+		const { index, errors } = build(de);
+		expect(errors).toEqual([]);
+		expect(index.units[0]!.en).toBeUndefined();
+		expect(index.groups[0]!.en).toBeUndefined();
+	});
+
+	it('rejects translations without a German original or with a different shape', () => {
+		const { errors } = build({
+			...de,
+			en: {
+				units: { 'jpa/07-value-objects.md': unit('title: X'), 'jpa/06-enums.md': unit('title: X\nminutes: 3') },
+				pools: {
+					'questions/jpa.yaml': [
+						'- id: jpa-enum-01\n  main: { prompt: How?, options: [Name, Ordinal, Neither], explanation: E }',
+						'- id: jpa-nope\n  main: { prompt: P, explanation: E }'
+					].join('\n')
+				},
+				puzzles: { 'puzzles/jpa-entity.yaml': '- { id: p-none, title: T, prompt: P, explanation: E }\n' }
+			}
+		});
+		expect(errors).toEqual(
+			expect.arrayContaining([
+				'en/jpa/07-value-objects.md: there is no German unit jpa/07-value-objects.md',
+				expect.stringMatching(/^en\/jpa\/06-enums\.md: .*"minutes"/),
+				'en/questions/jpa.yaml: jpa-enum-01.main: 3 options, the German question has 2',
+				'en/questions/jpa.yaml: there is no question group "jpa-nope" in questions/jpa.yaml',
+				'en/puzzles/jpa-entity.yaml: there is no puzzle "p-none" in puzzles/jpa-entity.yaml'
+			])
+		);
+	});
+});
+
+describe('English template questions', () => {
+	const de = `
+- id: git-steps
+  unit: jpa/enums
+  main:
+    kind: template
+    prompt: Reihenfolge
+    template: |
+      {{annehmen}}
+      {{git push}}
+    redHerrings: [git push --force]
+    explanation: E
+`;
+	const run = (en: string) =>
+		build({ units: { 'jpa/06-enums.md': okUnit }, pools: pool(de), en: { pools: { 'questions/jpa.yaml': en } } });
+
+	it('accepts a template with the same gaps and pieces', () => {
+		const { index, errors } = run('- id: git-steps\n  main: { prompt: Order, explanation: E, template: "{{accept}}\\n{{git push}}" }\n');
+		expect(errors).toEqual([]);
+		expect(index.groups[0]!.en?.main.template).toContain('accept');
+	});
+
+	it('rejects a template with other gaps or pieces', () => {
+		expect(run('- id: git-steps\n  main: { prompt: O, explanation: E, template: "{{accept}}\\n{{git push}}\\n{{done}}" }\n').errors.join()).toMatch(/gaps differ/);
+		expect(
+			run('- id: git-steps\n  main: { prompt: O, explanation: E, template: "{{accept}}\\n{{git push}}", redHerrings: [a, b] }\n').errors.join()
+		).toMatch(/pieces differ/);
+	});
+});
+
+describe('English puzzle code replacements', () => {
+	const de = `
+- id: p-tpl
+  kind: template
+  title: T
+  prompt: P
+  explanation: E
+  given: |
+    class A {
+        // ✎ hier ergänzen
+    }
+  template: |
+    // fertig geschrieben
+    @{{Entity}}
+    class {{B}} {}
+`;
+	const run = (en: string) => build({ puzzles: { 'puzzles/jpa-entity.yaml': de }, en: { puzzles: { 'puzzles/jpa-entity.yaml': en } } });
+	const head = '- id: p-tpl\n  title: T\n  prompt: P\n  explanation: E\n  replace:\n';
+
+	it('accepts replacements in given and in the fixed text of a template', () => {
+		const { errors } = run(head + '    - { find: "hier ergänzen", replace: "add here" }\n    - { find: "fertig geschrieben", replace: "already written" }\n');
+		expect(errors).toEqual([]);
+	});
+
+	it('rejects replacements that are missing or change a piece', () => {
+		expect(run(head + '    - { find: "nirgends", replace: "x" }\n').errors.join()).toMatch(/occurs neither/);
+		expect(run(head + '    - { find: "Entity", replace: "Table" }\n').errors.join()).toMatch(/must not change the template's pieces/);
+	});
+});

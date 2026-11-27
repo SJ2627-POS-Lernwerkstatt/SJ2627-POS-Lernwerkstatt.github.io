@@ -1,0 +1,195 @@
+# English text for src/content/questions/modern-java.yaml (same ids, same number of options and follow-ups).
+
+- id: modern-java-var-rule
+  main:
+    prompt: When is `var` a good choice?
+    options:
+      - "When the type on the right is obvious, e.g. `var list = new ArrayList<String>();`"
+      - "Always – even with `var x = readData();` the type makes no difference when reading"
+      - "Only with primitive types like `int` and `double`"
+      - Only in loops
+    explanation: |
+      `var` infers the type from the initial value. It makes sense when the type is on the right (`new …`, literals).
+      If you only find the type in the signature of a method like `readData()`, `var` hides important information.
+
+- id: modern-java-var-restrictions
+  main:
+    prompt: Which declarations with `var` compile?
+    options: ["A and D", "A and B", "B and C", "C and D", "All four"]
+    explanation: |
+      `var` needs an initial value from which the type can be inferred – `null` alone is not enough
+      ("cannot infer type …"). Allowed are local variables, loop variables and for-each elements,
+      not fields, parameters or return types.
+
+- id: modern-java-var-collections
+  main:
+    prompt: Fill in the `var` short form for the map and the loop.
+    explanation: |
+      `new HashMap<String, List<Integer>>()` names the type on the right – the typical case for `var`.
+      The for-each line says `var entry : map.entrySet()`; the compiler still knows the type `Map.Entry<String, List<Integer>>`.
+
+- id: modern-java-records-generated
+  main:
+    prompt: Which method does Java NOT generate automatically for `record Person(String name, int age)`?
+    options: ["`Person(String name, int age)`", "`name()`", "`getName()`", "`equals(Object o)`", "`toString()`"]
+    explanation: |
+      In records the accessor method is called `name()` – without the `get` prefix. A `getName()` does not exist
+      unless you write it yourself.
+  followUps:
+    - prompt: What does `new Person("Anna", 19).equals(new Person("Anna", 19))` return?
+      options:
+        - "`true` – `equals` compares all fields"
+        - "`false` – they are two different objects"
+        - Compile error – records cannot be compared
+        - "`true` only for an identical reference"
+      explanation: |
+        Records are pure data classes: `equals`, `hashCode` and `toString` go over all fields.
+        Two records with the same values are equal – exactly what `distinct`, `groupingBy` and `isEqualTo` need.
+
+- id: modern-java-records-compact
+  main:
+    prompt: What happens when `new Grade("POS", 6)` is called?
+    options:
+      - An `IllegalArgumentException` – the compact constructor checks before the object comes into existence
+      - "An object with `value = 6`; the check only runs when printing"
+      - "The check is skipped because the field is `final`"
+      - Compile error – records must not check
+    explanation: |
+      In the compact constructor `public Grade { … }` you check before Java writes the values into the fields.
+      Invalid objects never come into existence. You do not write an assignment like `value = …` there – Java does that.
+
+- id: modern-java-records-vs-class
+  main:
+    prompt: What is a record the right choice for?
+    options:
+      - Data classes with business rules in Task 2
+      - Result type (DTO) for a query
+      - JPA entity in Task 1
+      - A counter that the service increments
+    explanation: |
+      Records are for immutable data. JPA needs entities to be mutable and to have a no-args constructor –
+      a `persist` on a record fails (`Can not set final …`). Mutable state stays a normal class.
+
+- id: modern-java-optional-create
+  main:
+    prompt: A method can return `null`. How do you turn that into an `Optional`?
+    options: ["`Optional.ofNullable(result)`", "`Optional.of(result)`", "`Optional.empty()`", "`new Optional(result)`"]
+    explanation: |
+      `of` demands a value that is not `null` and throws a `NullPointerException` right away if `null` arrives.
+      For everything that may be missing there is `ofNullable`; `empty()` would be an empty Optional without a value.
+  followUps:
+    - prompt: What does `opt.get()` throw on an empty Optional?
+      options: ["`NoSuchElementException`", "`NullPointerException`", "`IllegalStateException`", "Nothing – it returns `null`"]
+      explanation: |
+        `get()` on an empty box throws `NoSuchElementException: No value present`. So handle the empty case
+        deliberately: `orElse`, `orElseGet`, `orElseThrow` or `ifPresent`.
+
+- id: modern-java-optional-or-else
+  main:
+    prompt: "`vorhanden` contains a value. How often does `loadDefault()` – the method with the expensive database query – run?"
+    options:
+      - "Once – `orElse` always evaluates its argument, `orElseGet` only in the empty case"
+      - Never – a value is present in both cases
+      - "Twice – both variants call `loadDefault()`"
+      - "Once, but through `orElseGet`, not through `orElse`"
+    explanation: |
+      The argument of `orElse` is evaluated whether or not something is in the box. `orElseGet` gets
+      a supplier and only calls it when the Optional is empty – with values present the work is skipped.
+
+- id: modern-java-optional-practice
+  main:
+    prompt: Which uses of `Optional` are bad style?
+    options:
+      - "`Optional` as a field of a data class"
+      - "`Optional` as the return type of a search method"
+      - "`Optional` as a method parameter"
+      - "The empty case is ignored and `get()` is called directly"
+    explanation: |
+      `Optional` belongs in signatures of methods that may find nothing. As a field or parameter it is
+      just an expensive box around `null`; a blind `get()` is the same gap as before.
+  followUps:
+    - prompt: Which expression returns an `Optional`?
+      options:
+        - "`students.stream().findFirst()`"
+        - "`students.stream().count()`"
+        - "`students.stream().anyMatch(s -> s.age() > 20)`"
+        - "`students.stream().toList()`"
+      explanation: |
+        `findFirst` (like `min`, `max`, `findAny`) may find nothing – that is why the result is an `Optional`.
+        This is explained in detail in the [stream module](/streams/finden).
+
+- id: modern-java-switch-arrow
+  main:
+    prompt: Turn the old switch into a switch expression with arrow syntax.
+    explanation: |
+      Here `switch` is used as an expression and assigns a value to a `var` variable – that is why it needs
+      neither `break` nor `yield`. There is one `->` per rule, several cases are separated by commas.
+
+- id: modern-java-switch-exhaustive
+  main:
+    prompt: Why does this switch expression not compile?
+    options:
+      - "It does not cover all possible input values – all enum cases or a `default` are missing"
+      - "Because `var` is forbidden in switch expressions"
+      - Because enum cases must not use an arrow
+      - "Because `r` has to be a normal class"
+    explanation: |
+      "The switch expression does not cover all possible input values" – for an enum that means: cover all values
+      or `default`. A `default` fits when all remaining values are treated the same.
+
+- id: modern-java-switch-sealed
+  main:
+    prompt: Why does this switch expression need no `default`?
+    options:
+      - "`sealed` names all allowed subtypes – the compiler checks completeness"
+      - Because interfaces are always matched completely
+      - "Because `double` has a default value of 0"
+      - "Because `default` is never allowed in switch expressions"
+    explanation: |
+      The `permits` list makes the family of types finite: only Circle and Rectangle can occur, both are
+      covered. If you allow a third subtype later, the compiler complains – that is exactly the benefit.
+  followUps:
+    - prompt: What does `case null` do in a pattern switch?
+      options:
+        - "The `null` case becomes part of the expression – no check beforehand needed"
+        - "It behaves exactly like `default`"
+        - "It only allows `null` as the only case"
+        - "It aborts on `null` without checking the remaining cases"
+      explanation: |
+        Since Java 21 `null` may be a case of its own (`case null`, often `case null, default`).
+        Without `case null` the switch throws a `NullPointerException` on `null` – like the classic one; `case null` is the explicit way out.
+
+- id: modern-java-git-commit-push
+  main:
+    prompt: What is the difference between `git commit` and `git push`?
+    options:
+      - "`commit` saves into your local repo, `push` transfers the commits to the remote"
+      - "`commit` puts into the staging area, `push` into the local repo"
+      - "Both do the same, `push` just with a message"
+      - "`commit` downloads from the remote, `push` saves locally"
+    explanation: |
+      The three places: working directory → staging area (`git add`) → local repo (`git commit`) → remote (`git push`).
+      Only with the push does Classroom50 see your submission.
+  followUps:
+    - prompt: What is a merge conflict?
+      options:
+        - Two branches changed the same place – you decide by hand what counts
+        - The push was rejected because the network was gone
+        - A commit was accidentally saved twice
+        - The repo is full, Git cleans up
+      explanation: |
+        Git joins whatever is unambiguous. If both branches changed the same line, it stops and lets you
+        choose. Nothing gets lost – it is just manual work.
+
+- id: modern-java-git-classroom
+  main:
+    prompt: Put the steps of a Classroom50 submission in the right order.
+    template: |
+      {{Accept the assignment in Classroom50}}
+      {{git clone …}}
+      {{Change files, git add, git commit}}
+      {{git push}}
+      {{Look at the release with the grading tests}}
+    explanation: |
+      Accepting creates your own private repo on GitHub. You work there: clone, change, add, commit, push.
+      The push triggers the grading. You never need force pushes for a submission.

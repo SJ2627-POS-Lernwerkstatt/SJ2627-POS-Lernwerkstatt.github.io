@@ -1,0 +1,63 @@
+# English text for src/content/puzzles/fundament.yaml (same ids). Code stays as in German unless `given` is set here.
+
+- id: fund-book-class
+  title: Book – fields, constructor, getter
+  prompt: |
+    Write the class `Book` with the private fields `title` and `pages`, a constructor that sets both, and a getter for `title`.
+  explanation: |
+    A constructor is named like the class and has **no** return type – with `void` it would be a normal method. `this.title = title` writes the parameter into the field; `title = title` would leave the field empty. A getter needs no parameter.
+
+- id: fund-book-validation
+  title: Book – only valid objects
+  prompt: |
+    Complete the constructor: if `pages` is not greater than 0, an `IllegalArgumentException` should be thrown. Only then are the fields set.
+  replace:
+    - { find: "// ✎ Konstruktor", replace: "// ✎ constructor" }
+  explanation: |
+    "Not greater than 0" means `pages <= 0` – 0 pages are invalid too. A constructor cannot return anything, so only the exception remains. Because the fields are `final`, the constructor has to set both exactly once.
+
+- id: fund-interface-policy
+  title: Late fee – implementing an interface
+  prompt: |
+    `StudentPolicy` keeps the contract `LateFeePolicy`: the first 3 days are free, after that every day costs 20 cents.
+  explanation: |
+    A class **implements** an interface (`implements`), `extends` is for superclasses. The method needs a body – only the interface may write it without `{ … }`. `@Override` makes the compiler check that name and parameters match the interface. `Math.max(0, …)` prevents negative fees for 1–3 days.
+
+- id: fund-override-tostring
+  title: Book – overriding toString
+  prompt: |
+    `System.out.println(book)` should print `Der Hobbit (310 Seiten)`. Complete the method.
+  explanation: |
+    `toString()` comes from `Object` and returns a `String`, without parameters. `@Override` catches typos like `toSting` – without the annotation `println` would still print `Book@1b6d3586`.
+
+- id: fund-inheritance-ebook
+  title: E-book – inheriting from Medium
+  prompt: |
+    `Ebook` inherits from `Medium`, additionally has `sizeMb` and may only be borrowed for 7 days.
+  explanation: |
+    You inherit from a class with `extends`. The constructor first calls `super(title)`, because `title` is private in `Medium` and there is no empty constructor. `loanDays()` is overridden with `@Override`.
+
+- id: fund-equals-isbn
+  title: ISBN – equals and hashCode
+  prompt: |
+    Two `Isbn` objects with the same text should be equal – in a `HashSet` too.
+  replace:
+    - { find: "// ✎ equals und hashCode", replace: "// ✎ equals and hashCode" }
+  explanation: |
+    `equals` has to take `Object` as its parameter, otherwise it overrides nothing (`@Override` would report that). You compare the text with `equals`, not with `==`. `hashCode` always belongs to it – same ISBN, same hash.
+
+- id: fund-map-count
+  title: Counting loans per branch
+  prompt: |
+    Count with a `Map` how many loans there are per branch.
+  replace:
+    - { find: "// ✎ zählen", replace: "// ✎ count" }
+  explanation: |
+    `getOrDefault(branch, 0)` returns 0 if the branch does not occur yet – `get` would return `null`, and `null + 1` throws a `NullPointerException`. `put` with the same key overwrites the old counter. `Integer` goes in `< >`, not `int`.
+
+- id: fund-exception-not-found
+  title: Book not found – your own exception
+  prompt: |
+    Write `BookNotFoundException` (unchecked) and throw it in `find` if there is no book with this id.
+  explanation: |
+    With `extends RuntimeException` the exception is unchecked – `find` needs no `throws`. With `extends Exception`, `find` would not compile. The message goes to the superclass via `super(…)`.

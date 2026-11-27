@@ -8,13 +8,13 @@
   kind: lines
   title: Buchung – Record mit Prüfungen
   prompt: |
-    `Booking` ist ein Record. Prüfe im kompakten Konstruktor in der Reihenfolge der Komponenten, dass keine fehlt, und danach, dass `to` nicht vor `from` liegt.
+    `Booking` ist ein Record. Prüfe im kompakten Konstruktor zuerst, dass keine Komponente fehlt (`null`), und danach, dass `to` nicht vor `from` liegt. Beide Fehler sind eine `IllegalArgumentException`.
   solution: |
     public record Booking(String guest, LocalDate from, LocalDate to) {
         public Booking {
-            Objects.requireNonNull(guest, "guest");
-            Objects.requireNonNull(from, "from");
-            Objects.requireNonNull(to, "to");
+            if (guest == null || from == null || to == null) {
+                throw new IllegalArgumentException("missing value");
+            }
             if (to.isBefore(from)) {
                 throw new IllegalArgumentException("to before from");
             }
@@ -24,8 +24,9 @@
     - "    public Booking(String guest, LocalDate from, LocalDate to) {"
     - "        this.guest = guest;"
     - "        if (from.isBefore(to)) {"
+    - "        if (guest == null && from == null && to == null) {"
   explanation: |
-    Der **kompakte** Konstruktor hat keine Parameterliste und keine Zuweisungen – die macht Java danach selbst. `Objects.requireNonNull` wirft eine `NullPointerException` mit dem Namen als Nachricht, unsinnige Werte eine `IllegalArgumentException`. `from.isBefore(to)` wäre genau der **gültige** Fall.
+    Der **kompakte** Konstruktor hat keine Parameterliste und keine Zuweisungen – die macht Java danach selbst. Mit `||` reicht **eine** fehlende Komponente für die Exception; mit `&&` müssten alle drei fehlen. `from.isBefore(to)` wäre genau der **gültige** Fall.
   check: |
     class BookingCheck {
         @Test
@@ -33,7 +34,8 @@
             LocalDate d = LocalDate.of(2026, 3, 1);
             assertThat(new Booking("Anna", d, d.plusDays(2)).guest()).isEqualTo("Anna");
             assertThat(new Booking("Anna", d, d).to()).isEqualTo(d);
-            assertThatThrownBy(() -> new Booking(null, d, d)).isInstanceOf(NullPointerException.class).hasMessage("guest");
+            assertThatThrownBy(() -> new Booking(null, d, d)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new Booking("Anna", d, null)).isInstanceOf(IllegalArgumentException.class);
             assertThatThrownBy(() -> new Booking("Anna", d, d.minusDays(1))).isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -42,7 +44,7 @@
   kind: template
   title: Verleih – Daten im Konstruktor sichern
   prompt: |
-    Der Service bekommt zu Beginn die Liste der Ausleihen. Speichere sie so, dass `null` sofort auffällt und spätere Änderungen an der übergebenen Liste den Service nicht verändern.
+    Der Service bekommt zu Beginn die Liste der Ausleihen. Wirf bei `null` sofort eine `IllegalArgumentException` und speichere die Liste so, dass spätere Änderungen an der übergebenen Liste den Service nicht verändern.
   given: &rentalModel |
     public record Customer(String name, boolean student) {
     }
@@ -60,16 +62,19 @@
         private final List<Rental> rentals;
 
         public RentalFeeService(List<Rental> rentals) {
-            this.rentals = {{List.copyOf}}({{Objects.requireNonNull}}(rentals, "rentals"));
+            if ({{rentals == null}}) {
+                throw new {{IllegalArgumentException}}("rentals must not be null");
+            }
+            this.rentals = {{List.copyOf}}(rentals);
         }
 
         int count() {
             return rentals.size();
         }
     }
-  redHerrings: [Collections.unmodifiableList, new ArrayList<>, Optional.of, rentals]
+  redHerrings: [Collections.unmodifiableList, new ArrayList<>, rentals.isEmpty(), IllegalStateException]
   explanation: |
-    `List.copyOf` legt eine eigene, unveränderliche Kopie an. `Collections.unmodifiableList` wäre nur eine **Sicht** auf die übergebene Liste – fügt der Aufrufer später etwas hinzu, sieht es der Service trotzdem. `Objects.requireNonNull` macht aus `null` sofort eine verständliche Exception.
+    `List.copyOf` legt eine eigene, unveränderliche Kopie an. `Collections.unmodifiableList` wäre nur eine **Sicht** auf die übergebene Liste – fügt der Aufrufer später etwas hinzu, sieht es der Service trotzdem. Die `if`-Prüfung macht aus `null` sofort eine verständliche Exception; eine leere Liste ist dagegen erlaubt.
   check: |
     class ConstructorCopyCheck {
         @Test
@@ -78,7 +83,8 @@
             RentalFeeService service = new RentalFeeService(list);
             list.add(new Rental(new Customer("Ben", true), "B2", LocalDate.of(2026, 3, 2), null));
             assertThat(service.count()).isEqualTo(1);
-            assertThatThrownBy(() -> new RentalFeeService(null)).hasMessage("rentals");
+            assertThatThrownBy(() -> new RentalFeeService(null)).isInstanceOf(IllegalArgumentException.class).hasMessage("rentals must not be null");
+            assertThat(new RentalFeeService(List.of()).count()).isZero();
         }
     }
 

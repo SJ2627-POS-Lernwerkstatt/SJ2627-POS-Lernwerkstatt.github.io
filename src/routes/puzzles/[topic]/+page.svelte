@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Bi from '#lib/components/Bi.svelte';
 	import { resolve } from '$app/paths';
 	import MindestBadge from '#lib/components/MindestBadge.svelte';
 	import Button from '#lib/components/Button.svelte';
@@ -31,7 +32,7 @@
 		<li>
 			<a href={href(p.id)}>
 				<span class="nr">{i + 1}</span>
-				<span class="title">{p.title}</span>
+				<span class="title"><Bi de={p.title} en={p.titleEn} /></span>
 				{#if p.mindest}<MindestBadge />{/if}
 				<span class="kind">{p.kind === 'lines' ? 'Zeilen' : 'Lücken'}</span>
 				<span class="state" aria-label={progress.isSolved(p.id) ? 'gelöst' : 'offen'}>{progress.isSolved(p.id) ? '✓' : ''}</span>

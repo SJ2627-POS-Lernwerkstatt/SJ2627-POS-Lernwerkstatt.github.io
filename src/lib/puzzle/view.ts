@@ -19,6 +19,16 @@ export type PuzzleView = {
 	layout: 'stacked' | 'split';
 	/** Given code + solution lines exceed `SPLIT_FROM_LINES`: a phone shows "Laptop empfohlen". */
 	long: boolean;
+	/** English text, if translated. The code and the pieces are the same in both languages. */
+	en?: {
+		title: string;
+		promptHtml: string;
+		givenHtml?: string;
+		explanationHtml: string;
+		/** Template puzzles whose fixed text was translated: same gaps and pieces, other text. */
+		lines?: Segment[][];
+		solutionHtml?: string;
+	};
 } & (
 	| {
 			kind: 'lines';
@@ -31,4 +41,4 @@ export type PuzzleView = {
 );
 
 /** Link to a neighbouring puzzle. */
-export type PuzzleLink = { id: string; title: string };
+export type PuzzleLink = { id: string; title: string; titleEn?: string };

@@ -45,7 +45,9 @@ export const progressSchema = z.object({
 		.default({}),
 	settings: z
 		.object({
-			theme: z.enum(['light', 'dark', 'system']).optional()
+			theme: z.enum(['light', 'dark', 'system']).optional(),
+			/** Language of the course content (units, questions, puzzles). The site itself stays German. */
+			lang: z.enum(['de', 'en']).optional()
 		})
 		.default({})
 });

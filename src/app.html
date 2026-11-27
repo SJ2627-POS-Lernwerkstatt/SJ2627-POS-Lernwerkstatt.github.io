@@ -10,6 +10,11 @@
 				const t = JSON.parse(localStorage.getItem('lernwerkstatt:v1') ?? '{}')?.settings?.theme;
 				if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
 			} catch {}
+			// Same for the content language (see lib/lang.ts).
+			try {
+				const l = JSON.parse(localStorage.getItem('lernwerkstatt:v1') ?? '{}')?.settings?.lang;
+				if (l === 'en') document.documentElement.dataset.lang = 'en';
+			} catch {}
 			// Same for a collapsed side panel (see lib/sidebar.ts).
 			try {
 				if (localStorage.getItem('lernwerkstatt:sidebar') === 'closed') document.documentElement.dataset.sidebar = 'closed';

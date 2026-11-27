@@ -107,6 +107,10 @@
 	--callout: var(--success);
 	--callout-bg: var(--success-soft);
 }
+.prose .callout-info {
+	--callout: var(--warn);
+	--callout-bg: var(--warn-soft);
+}
 
 /* Diagrams (```plantuml, ```mermaid). PlantUML keeps its exam look on a white card in both themes. */
 .prose .diagram {

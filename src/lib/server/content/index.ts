@@ -4,9 +4,10 @@ import { buildIndex, type ContentFiles, type ContentIndex } from './build.js';
 export type { Unit, Exercise } from './build.js';
 
 const ROOT = '/src/content/';
+const EN_ROOT = '/src/content/en/';
 
-function relative(files: Record<string, string>): Record<string, string> {
-	return Object.fromEntries(Object.entries(files).map(([path, raw]) => [path.slice(ROOT.length), raw]));
+function relative(files: Record<string, string>, root = ROOT): Record<string, string> {
+	return Object.fromEntries(Object.entries(files).map(([path, raw]) => [path.slice(root.length), raw]));
 }
 
 function load(): ContentIndex {
@@ -16,7 +17,18 @@ function load(): ContentIndex {
 			import.meta.glob('/src/content/*/exercises/*.md', { query: '?raw', import: 'default', eager: true })
 		),
 		pools: relative(import.meta.glob('/src/content/questions/*.yaml', { query: '?raw', import: 'default', eager: true })),
-		puzzles: relative(import.meta.glob('/src/content/puzzles/*.yaml', { query: '?raw', import: 'default', eager: true }))
+		puzzles: relative(import.meta.glob('/src/content/puzzles/*.yaml', { query: '?raw', import: 'default', eager: true })),
+		en: {
+			units: relative(import.meta.glob('/src/content/en/*/*.md', { query: '?raw', import: 'default', eager: true }), EN_ROOT),
+			pools: relative(
+				import.meta.glob('/src/content/en/questions/*.yaml', { query: '?raw', import: 'default', eager: true }),
+				EN_ROOT
+			),
+			puzzles: relative(
+				import.meta.glob('/src/content/en/puzzles/*.yaml', { query: '?raw', import: 'default', eager: true }),
+				EN_ROOT
+			)
+		}
 	};
 	const { index, errors } = buildIndex(files);
 	if (errors.length) {

@@ -1,0 +1,93 @@
+# English text for src/content/puzzles/unit-test.yaml (same ids).
+# String literals in the code ("Buch", "Heft", "Stift") stay German.
+
+- id: ut-arrange-act-assert
+  title: Discount – arrange, act, assert
+  prompt: |
+    From €100 there is a 10 % discount. Test that €120 becomes €108 – in the three steps arrange, act, assert, each with a comment.
+  explanation: |
+    **Arrange** builds the objects, **act** calls exactly one method, **assert** checks the result. AssertJ writes the actual value first: `assertThat(price)`, then the expected one. One test per behaviour, and the name says which.
+
+- id: ut-csv-boundaries
+  title: Ticket – boundaries with CsvSource
+  prompt: |
+    Children are under 6, youths under 18, adults under 65, from 65 seniors. Test **the boundaries**: the first value of every new category.
+  explanation: |
+    Bugs sit at the boundaries: `<` instead of `<=` only shows with the value exactly at the boundary. That is why the table holds the last value of the old and the first value of the new category each time. JUnit converts the text `ADULT` into the enum value itself.
+
+- id: ut-value-source
+  title: Ticket – the same test for several values
+  prompt: |
+    Adults pay €10. Check that for 18, 30 and 64 years with **one** parameterised test.
+  explanation: |
+    `@ValueSource(ints = {…})` passes one value per run to the single parameter. For pairs of input and expectation you use `@CsvSource`. 64 is the last adult – exactly there a wrong `<=` for the seniors shows.
+
+- id: ut-extracting
+  title: Cart – checking a list
+  prompt: |
+    Check that the cart contains exactly "Buch" and "Stift", **in this order**.
+  explanation: |
+    `extracting(Item::name)` turns the items into their names. `containsExactly` checks **all** elements in **exactly** this order. `contains` would also be happy with additional elements, `containsExactlyInAnyOrder` ignores the order – both miss the bug in the mutant.
+
+- id: ut-exception
+  title: Cart – checking an exception
+  prompt: |
+    Removing an item that does not exist throws an `IllegalArgumentException` with the message `no item named Heft`.
+  explanation: |
+    The call is in a **lambda**: that way only `assertThatThrownBy` calls it and catches the exception. Without the lambda `cart.remove("Heft")` would already throw before, and the test would abort with an error instead of checking anything.
+
+- id: ut-optional
+  title: Cart – checking Optional
+  prompt: |
+    Put a book into the cart. First check that `find("Buch")` finds it with the price €20, then that `find("Heft")` finds nothing.
+  explanation: |
+    `find` returns an `Optional`, never `null` – hence `isEmpty()` instead of `isNull()`. `hasValueSatisfying` checks that a value is there and then checks it. `find("Buch").price()` does not compile: an `Optional` has no price.
+
+- id: ut-nested-before-each
+  title: Cart – BeforeEach and Nested
+  prompt: |
+    Write the test class: a field for the cart, a fresh cart before every test, and a nested class `Empty` with the test that the total of an empty cart is 0.
+  explanation: |
+    `@BeforeEach` runs before **every** test – each gets a fresh cart. `@BeforeAll` would run only once and would have to be `static`. A `@Nested` class must **not** be `static`, otherwise JUnit does not find its tests. `Cart cart = new Cart();` in `setUp` would be a local variable – the field would stay `null`.
+
+- id: ut-close-to
+  title: Discount – decimals and boundaries
+  prompt: |
+    Test the discount boundary with three prices: just below, exactly €100 and just above. You compare decimal numbers with a tolerance.
+  explanation: |
+    The discount starts at €100 – so you need 99.99, 100.00 and 100.01. `double` does not calculate exactly: `100.01 * 0.9` is not exactly `90.009`. `isCloseTo(…, within(0.001))` allows a small deviation, `isEqualTo` would fail here.
+
+- id: ut-method-source
+  title: Cart – test data from a method
+  prompt: |
+    The total of a cart is the sum of its prices. Check an empty cart, one with one item and one with two items – a method provides the cases.
+  explanation: |
+    `@MethodSource("carts")` names a `static` method that provides the cases – with `arguments(…)` per case. That way values that do not fit into a text, like lists of items, work too. The name is written without parentheses.
+
+- id: ut-null-and-empty
+  title: Ticket – invalid codes
+  prompt: |
+    A code is valid if it looks like `ABC-1234`. Test that `null`, an empty text, a space and `ABC1234` (without a hyphen) are invalid.
+  explanation: |
+    `@NullAndEmptySource` adds `null` and `""` to the values from `@ValueSource` – neither can be written in `@ValueSource`. Implementations often forget exactly these edge cases: without the check for `null`, `isValidCode` throws a `NullPointerException`.
+
+- id: ut-test-fixtures
+  title: Test data – a fixture class
+  prompt: |
+    Write a helper class for test data: not instantiable, a method `book()` and a method `cartWith(Item...)` that fills a cart with the items.
+  explanation: |
+    Fixtures collect test data in one place: if a constructor changes, you change one method instead of twenty tests. A `private` constructor and `final` prevent anyone from instantiating the class; the methods are `static`. `cart.add(item)` returns nothing that could be returned.
+
+- id: ut-filtered-tuple
+  title: Cart – filtering and checking pairs
+  prompt: |
+    Check only the items above €10: there is exactly one, the book at €20. Check name **and** price.
+  explanation: |
+    `filteredOn` only keeps matching elements (in AssertJ it is not called `filter`). `extracting` with **two** functions returns a pair per element, which you describe with `tuple(…)`. That way you check name and price in one line.
+
+- id: ut-no-exception
+  title: Cart – throws or does not throw
+  prompt: |
+    An item can be added without an exception. `null`, on the other hand, is rejected with an `IllegalArgumentException` whose message contains `null`.
+  explanation: |
+    `assertThatCode(…).doesNotThrowAnyException()` makes it explicit that **nothing** may go wrong here. `assertThatIllegalArgumentException().isThrownBy(…)` is the short form for type and call; afterwards the checks are called `withMessage…` instead of `hasMessage…`.

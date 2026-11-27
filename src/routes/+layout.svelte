@@ -8,12 +8,14 @@
 	import Logo from '#lib/components/Logo.svelte';
 	import UpdateToast from '#lib/components/UpdateToast.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
+	import LangToggle from '#lib/components/LangToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import { progress } from '#lib/progress/store.svelte.js';
 	import { startSync } from '#lib/sync/runtime.svelte.ts';
 	import { session } from '#lib/sync/session.svelte.ts';
 	import { isNarrow, NARROW, setCollapsed, setDrawer, storedCollapsed } from '#lib/sidebar.js';
 	import { applyTheme } from '#lib/theme.js';
+	import { applyLang } from '#lib/lang.js';
 
 	let { children, data } = $props();
 
@@ -63,6 +65,9 @@
 	$effect(() => {
 		if (progress.loaded) applyTheme(progress.data.settings.theme);
 	});
+	$effect(() => {
+		if (progress.loaded) applyLang(progress.data.settings.lang);
+	});
 </script>
 
 <svelte:head>
@@ -91,7 +96,10 @@
 				<a class="optional" href={resolve('/woche')}>Woche</a>
 			{/if}
 		</nav>
-		<ThemeToggle />
+		<div class="toggles">
+			<LangToggle />
+			<ThemeToggle />
+		</div>
 	</header>
 	<div class="body">
 		<aside id="course-panel" class="panel">
@@ -197,6 +205,11 @@
 		margin-left: auto;
 		margin-right: 20px;
 	}
+	.toggles {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
 	.main-nav a {
 		color: var(--text-muted);
 		font-weight: 600;
@@ -264,6 +277,18 @@
 	@media (max-width: 480px) {
 		.main-nav .optional {
 			display: none;
+		}
+	}
+	@media (max-width: 420px) {
+		.toggles {
+			gap: 4px;
+		}
+		header {
+			gap: 8px;
+		}
+		.main-nav {
+			gap: 12px;
+			margin-right: 4px;
 		}
 	}
 	@media (max-width: 600px) {

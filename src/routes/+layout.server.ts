@@ -4,10 +4,11 @@ import type { LayoutServerLoad } from './$types';
 
 /** Course structure for the side panel. */
 export const load: LayoutServerLoad = () => ({
-	nav: MODULES.map(({ slug, title }) => ({
+	nav: MODULES.map(({ slug, title, titleEn }) => ({
 		slug,
 		title,
-		units: unitsOf(slug).map(({ id, slug, title, core }) => ({ id, slug, title, core })),
+		titleEn,
+		units: unitsOf(slug).map(({ id, slug, title, en, core }) => ({ id, slug, title, titleEn: en?.title, core })),
 		exercises: exercisesOf(slug).map(({ slug, title }) => ({ slug, title }))
 	}))
 });

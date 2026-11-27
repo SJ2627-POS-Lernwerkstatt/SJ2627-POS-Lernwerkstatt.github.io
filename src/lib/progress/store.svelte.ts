@@ -1,5 +1,6 @@
 import { browser } from '$app/env';
 import type { CurrentRun, GroupResult } from '#lib/quiz/run.js';
+import type { Lang } from '#lib/lang.js';
 import type { Theme } from '#lib/theme.js';
 import { updateGroupProgress } from '#lib/quiz/run.js';
 import { updateExercise } from './exercises.ts';
@@ -99,6 +100,11 @@ class ProgressStore {
 
 	setTheme(theme: Theme) {
 		this.data.settings.theme = theme;
+		this.save();
+	}
+
+	setLang(lang: Lang) {
+		this.data.settings.lang = lang;
 		this.save();
 	}
 

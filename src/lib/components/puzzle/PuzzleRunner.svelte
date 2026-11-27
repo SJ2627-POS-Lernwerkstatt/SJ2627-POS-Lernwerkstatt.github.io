@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Bi from '#lib/components/Bi.svelte';
 	import { onMount, untrack } from 'svelte';
 	import Button from '#lib/components/Button.svelte';
 	import TemplatePuzzle from '#lib/components/quiz/TemplatePuzzle.svelte';
@@ -9,6 +10,7 @@
 	import { reviewLines } from '#lib/quiz/answer.js';
 	import { shuffled } from '#lib/quiz/shuffle.js';
 	import { ghostGuard, puzzleMode } from '#lib/puzzle/mode.svelte.js';
+	import { progress } from '#lib/progress/store.svelte.js';
 	import LinePuzzle from './LinePuzzle.svelte';
 
 	interface Props {
@@ -36,6 +38,10 @@
 	let round = $state(0);
 
 	const correct = $derived(checked && puzzleCorrect(puzzle, gaps));
+	// Template text with translated comments: same gaps and pieces, so the answer and the score stay the same.
+	const english = $derived(progress.data.settings.lang === 'en');
+	const lines = $derived(puzzle.kind === 'template' ? (english && puzzle.en?.lines) || puzzle.lines : []);
+	const solutionHtml = $derived((english && puzzle.en?.solutionHtml) || puzzle.solutionHtml);
 
 	const split = $derived(puzzle.layout === 'split');
 	// Same width as the container queries here and in the puzzle components.
@@ -85,7 +91,7 @@
 				<span class="toggle">{briefOpen ? 'ausblenden' : 'einblenden'}</span>
 			</summary>
 			<div class="brief-body">
-				<div class="prompt">{@html puzzle.promptHtml}</div>
+				<div class="prompt"><Bi de={puzzle.promptHtml} en={puzzle.en?.promptHtml} html block /></div>
 
 				{#if puzzle.umlSrc}
 					<figure class="uml">
@@ -96,7 +102,7 @@
 				{#if puzzle.givenHtml}
 					<div class="given">
 						<p class="given-title">Gegeben</p>
-						<div class="code">{@html puzzle.givenHtml}</div>
+						<div class="code"><Bi de={puzzle.givenHtml} en={puzzle.en?.givenHtml} html block /></div>
 					</div>
 				{/if}
 			</div>
@@ -118,11 +124,11 @@
 					/>
 				{:else if checked}
 					<TemplateReview
-						lines={reviewLines(puzzle, gaps)}
+						lines={reviewLines({ ...puzzle, lines }, gaps)}
 						redHerrings={puzzle.tiles.filter((t) => t.herring).map((t) => t.text)}
 					/>
 				{:else}
-					<TemplatePuzzle lines={puzzle.lines} {pieces} placed={gaps} dock {split} onchange={change} />
+					<TemplatePuzzle {lines} {pieces} placed={gaps} dock {split} onchange={change} />
 				{/if}
 			{/key}
 
@@ -135,7 +141,7 @@
 				<div class="result" class:ok={correct} role="status">
 					{#if correct}
 						<p class="verdict">Richtig!</p>
-						<div class="explanation">{@html puzzle.explanationHtml}</div>
+						<div class="explanation"><Bi de={puzzle.explanationHtml} en={puzzle.en?.explanationHtml} html block /></div>
 					{:else}
 						<p class="verdict">Noch nicht ganz – {puzzlePercent(puzzle, gaps)} % richtig.</p>
 						<p class="hint">
@@ -160,8 +166,8 @@
 				{#if showSolution && !correct}
 					<section class="solution">
 						<h2>Lösung</h2>
-						<div class="code">{@html puzzle.solutionHtml}</div>
-						<div class="explanation">{@html puzzle.explanationHtml}</div>
+						<div class="code">{@html solutionHtml}</div>
+						<div class="explanation"><Bi de={puzzle.explanationHtml} en={puzzle.en?.explanationHtml} html block /></div>
 					</section>
 				{/if}
 			{/if}

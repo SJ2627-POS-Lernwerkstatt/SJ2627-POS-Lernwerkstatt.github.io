@@ -3,6 +3,8 @@
 	import { isCorrect, reviewLines, scorePercent, templateTiles } from '#lib/quiz/answer.js';
 	import { shuffled } from '#lib/quiz/shuffle.js';
 	import type { Answer, QuestionView } from '#lib/quiz/types.js';
+	import Bi from '#lib/components/Bi.svelte';
+	import { progress } from '#lib/progress/store.svelte.js';
 	import TemplatePuzzle from './TemplatePuzzle.svelte';
 	import TemplateReview from './TemplateReview.svelte';
 
@@ -20,8 +22,15 @@
 	let { question, answer, locked = false, reveal = false, id, onchange }: Props = $props();
 
 	const correct = $derived(isCorrect(question, answer));
-	// Pieces in random order, fixed for the lifetime of this component.
-	const pieces = untrack(() => (question.kind === 'template' ? shuffled(templateTiles(question)) : []));
+	// A template with translated pieces: the English template has the same gaps and pieces (piece n = "tn"), so the answer stays valid.
+	const shown = $derived(
+		question.kind === 'template' && question.en?.template && progress.data.settings.lang === 'en'
+			? { ...question, ...question.en.template }
+			: question
+	);
+	// Pieces in random order, fixed for the lifetime of this component; their text follows the language.
+	const order = untrack(() => (question.kind === 'template' ? shuffled(question.tiles.map((_, i) => i)) : []));
+	const pieces = $derived(shown.kind === 'template' ? order.map((i) => templateTiles(shown)[i]!) : []);
 
 	function choose(i: number) {
 		if (locked) return;
@@ -39,9 +48,9 @@
 </script>
 
 <div class="question" class:reveal>
-	<div class="prompt">{@html question.promptHtml}</div>
+	<div class="prompt"><Bi de={question.promptHtml} en={question.en?.promptHtml} html block /></div>
 	{#if question.codeHtml}
-		<div class="code">{@html question.codeHtml}</div>
+		<div class="code"><Bi de={question.codeHtml} en={question.en?.codeHtml} html block /></div>
 	{/if}
 
 	{#if question.kind === 'single' || question.kind === 'multi'}
@@ -61,21 +70,21 @@
 						disabled={locked}
 						onchange={() => choose(i)}
 					/>
-					<span class="text">{@html option}</span>
+					<span class="text"><Bi de={option} en={question.en?.optionsHtml?.[i]} html /></span>
 					{#if reveal && isRight(i)}<span class="mark" aria-label="richtige Antwort">✓</span>{/if}
 					{#if reveal && selected(i) && !isRight(i)}<span class="mark" aria-label="falsch gewählt">✕</span>{/if}
 				</label>
 			{/each}
 		</div>
-	{:else if answer.kind === 'template'}
+	{:else if answer.kind === 'template' && shown.kind === 'template'}
 		{#if reveal}
 			<TemplateReview
-				lines={reviewLines(question, answer.gaps)}
-				redHerrings={question.tiles.filter((t) => t.herring).map((t) => t.text)}
+				lines={reviewLines(shown, answer.gaps)}
+				redHerrings={shown.tiles.filter((t) => t.herring).map((t) => t.text)}
 			/>
 		{:else}
 			<TemplatePuzzle
-				lines={question.lines}
+				lines={shown.lines}
 				{pieces}
 				placed={answer.gaps}
 				disabled={locked}
@@ -89,7 +98,7 @@
 			<p class="verdict">
 				{#if correct}Richtig!{:else if question.kind === 'template'}Leider nicht ganz – {scorePercent(question, answer)} % richtig.{:else}Leider falsch.{/if}
 			</p>
-			<div class="explanation">{@html question.explanationHtml}</div>
+			<div class="explanation"><Bi de={question.explanationHtml} en={question.en?.explanationHtml} html block /></div>
 		</div>
 	{/if}
 </div>

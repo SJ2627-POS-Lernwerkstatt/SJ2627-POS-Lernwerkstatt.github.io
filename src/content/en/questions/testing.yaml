@@ -1,0 +1,384 @@
+# English text for src/content/questions/testing.yaml (same ids, same number of options and follow-ups).
+# String literals that appear in the (unchanged) code, like "Buch" or "Heft", stay German.
+
+- id: testing-aufbau-import
+  main:
+    prompt: Which import belongs to a JUnit Jupiter test?
+    options:
+      - "`import org.junit.Test;`"
+      - "`import org.junit.jupiter.api.Test;`"
+      - "`import org.springframework.test.Test;`"
+      - "`import org.assertj.core.api.Test;`"
+    explanation: |
+      All JUnit Jupiter annotations come from `org.junit.jupiter.api`. `org.junit.Test` is JUnit 4 – with it tests do not run properly in Spring projects.
+  followUps:
+    - prompt: Which statements about test methods in JUnit Jupiter are true?
+      options:
+        - "Test class and test methods do not have to be `public`."
+        - "A test method returns `void`."
+        - The tests of a class always run in the order in which they appear in the code.
+        - Every test gets a new instance of the test class.
+      explanation: |
+        The order of the tests is deliberately not fixed. Because every test gets a fresh instance, no test may rely on another one.
+
+- id: testing-aufbau-aaa
+  main:
+    prompt: Complete the test following the pattern arrange – act – assert.
+    explanation: |
+      Arrange builds the `PriceCalculator`, act calls **exactly one** method, assert checks the result with AssertJ: `assertThat(actual).isEqualTo(expected)`.
+  followUps:
+    - prompt: The class is in `src/main/java/shop/PriceCalculator.java`. Where is the test?
+      options:
+        - "`src/main/java/shop/PriceCalculatorTest.java`"
+        - "`src/test/java/PriceCalculatorTest.java`"
+        - "`src/test/java/shop/PriceCalculatorTest.java`"
+        - "`src/test/java/test/shop/PriceCalculatorTest.java`"
+      explanation: |
+        The same package (`shop`), but under `src/test/java`. That way the test can also use package-private classes and methods.
+
+- id: testing-aufbau-act
+  main:
+    prompt: What is problematic about this test?
+    options:
+      - Nothing – more assertions make a test better.
+      - The test checks several flows at once. If it fails, you do not know right away which behaviour is broken.
+      - "`isZero()` does not exist in AssertJ."
+    explanation: |
+      A test should check **one** behaviour: one *act*, then the matching assertions. Better would be three tests, e.g. `verify_total_of_one_item`, `verify_total_of_two_items` and `verify_clear_empties_cart`.
+
+- id: testing-lebenszyklus-order
+  main:
+    prompt: A test class has `@BeforeAll`, `@BeforeEach`, `@AfterEach` and **two** tests. How often does the `@BeforeEach` method run?
+    options: ["Once", "Twice", "Three times", "Not at all if there is a `@BeforeAll` method"]
+    explanation: |
+      `@BeforeEach` runs before **every** test, so twice. `@BeforeAll` runs once before the first test.
+  followUps:
+    - prompt: Why does a `@BeforeAll` method have to be `static`?
+      options:
+        - Because otherwise it is too slow.
+        - Because it runs before there is an instance of the test class.
+        - Because JUnit can only call static methods.
+      explanation: |
+        JUnit creates a new instance for every test. `@BeforeAll` runs once for the whole class, i.e. before any instance – hence `static`.
+    - prompt: Which data belongs in `@BeforeEach` instead of `@BeforeAll`?
+      options:
+        - A cart that the tests change
+        - A list that a test adds elements to
+        - An unmodifiable constant like a tax rate
+      explanation: |
+        Everything a test changes has to be created anew for every test. Otherwise the next test sees the changes of the previous one. Unmodifiable values can be a constant or go in `@BeforeAll`.
+
+- id: testing-lebenszyklus-fixture
+  main:
+    prompt: Before every test a new cart with one book should be ready. Complete the test class.
+    explanation: |
+      `@BeforeEach` builds the starting situation anew before **every** test. With `@BeforeAll` the method would have to be `static`, and all tests would share the same cart.
+
+- id: testing-lesbar-nested
+  main:
+    prompt: Why do the tests in `WithOneItem` not run as intended?
+    options:
+      - "`@Nested` only exists in JUnit 4."
+      - "The inner class is `static`. It cannot use `cart`, and the `@BeforeEach` of the outer class does not run for it."
+      - "Inner classes need `public`."
+    explanation: |
+      `@Nested` classes are **non-static** inner classes. Only then do they share the instance and the lifecycle methods of the outer class.
+  followUps:
+    - prompt: In which order do the methods run for a test in a `@Nested` class if there is a `@BeforeEach` both outside and inside?
+      options:
+        - "First the inner, then the outer `@BeforeEach`, then the test"
+        - "First the outer, then the inner `@BeforeEach`, then the test"
+        - "Only the inner `@BeforeEach`"
+      explanation: |
+        From the outside in: the outer `@BeforeEach` creates, for example, the empty cart, the inner one adds an item.
+
+- id: testing-lesbar-names
+  main:
+    prompt: Which test names describe behaviour and condition?
+    options: ["`test1()`", "`verify_discount_is_applied_above_100_euro()`", "`finalPrice_below100_returnsSamePrice()`", "`testCart()`"]
+    explanation: |
+      A good test name says **what** should happen and **when**. `test1` and `testCart` reveal nothing – you have to read the test to know what it checks.
+  followUps:
+    - prompt: What does `@DisplayName("Ab 100 Euro gibt es 10 % Rabatt")` on a test method do?
+      options:
+        - The text appears in the test report instead of the method name.
+        - The test only runs if the text appears in the code.
+        - The text is used as the error message when an assertion fails.
+      explanation: |
+        `@DisplayName` only changes the display in the IDE and in the test report. For error messages AssertJ has `as(...)`.
+
+- id: testing-assertj-bigdecimal
+  main:
+    prompt: Which assertion is **green**?
+    options:
+      - "`assertThat(new BigDecimal(\"2.50\")).isEqualTo(new BigDecimal(\"2.5\"));`"
+      - "`assertThat(new BigDecimal(\"2.50\")).isEqualByComparingTo(\"2.5\");`"
+      - "`assertThat(0.1 + 0.2).isEqualTo(0.3);`"
+    explanation: |
+      `BigDecimal.equals` also compares the decimal places (`2.50` ≠ `2.5`), `isEqualByComparingTo` only the numeric value. `0.1 + 0.2` gives `0.30000000000000004` with `double` – for that there is `isCloseTo(0.3, within(0.0001))`.
+  followUps:
+    - prompt: Check a calculated `double` value with a tolerance of 0.01.
+      explanation: |
+        `isCloseTo(expected, within(tolerance))` – `within` is imported statically from `org.assertj.core.api.Assertions`.
+
+- id: testing-assertj-order
+  main:
+    prompt: "Because of a bug `finalPrice(120.0)` returns `100.0` instead of `108.0`. The test reports: *expected: 100.0 but was: 108.0*. Why is the message the wrong way round?"
+    options:
+      - "JUnit always swaps the values for `double`."
+      - "The arguments of `assertEquals` are swapped – the expected value comes first, then the actual one."
+      - "`assertEquals` cannot compare `double` values."
+    explanation: |
+      In JUnit the order is `assertEquals(expected, actual)`. Here the actual value comes first, so JUnit takes `100.0` for the expected value. With AssertJ this does not happen: `assertThat(actual).isEqualTo(expected)`.
+  followUps:
+    - prompt: What is the difference between `isEqualTo` and `isSameAs`?
+      options:
+        - "None, both compare with `equals`."
+        - "`isEqualTo` compares the content with `equals`, `isSameAs` uses `==` to check whether it is the same object."
+        - "`isSameAs` ignores upper and lower case."
+      explanation: |
+        Two equal records are `isEqualTo`, but only `isSameAs` if they are the same instance.
+
+- id: testing-collections-exactly
+  main:
+    prompt: "`names` is `[\"Ben\", \"Anna\", \"Cem\"]`. Which assertion fails?"
+    options:
+      - "`assertThat(names).contains(\"Anna\", \"Ben\");`"
+      - "`assertThat(names).containsExactlyInAnyOrder(\"Anna\", \"Ben\", \"Cem\");`"
+      - "`assertThat(names).containsExactly(\"Anna\", \"Ben\", \"Cem\");`"
+      - "`assertThat(names).hasSize(3);`"
+    explanation: |
+      `containsExactly` demands all elements **in this order**. `contains` only demands that the named ones occur; `containsExactlyInAnyOrder` all of them, in any order.
+  followUps:
+    - prompt: A repository returns all students of a class, without `order by`. Which check is the right one?
+      options: ["`containsExactly(...)`", "`containsExactlyInAnyOrder(...)`", "`contains(...)`"]
+      explanation: |
+        Without sorting the order of the rows is not fixed. `containsExactlyInAnyOrder` still checks that exactly the right students come back – no more and no fewer.
+
+- id: testing-collections-extracting
+  main:
+    prompt: Check name and price of all items without building `Item` objects of your own.
+    explanation: |
+      `extracting` with several method references returns a tuple per element; with `tuple(...)` you give the expected values. In a record the getter is called `price()`, not `getPrice()`.
+  followUps:
+    - prompt: What does this assertion check?
+      options:
+        - That all items cost more than 10
+        - That exactly one item costs more than 10, namely "Buch"
+        - That "Buch" occurs in the list
+      explanation: |
+        `filteredOn` only leaves items above 10; their names are taken, and the result has to be exactly `["Buch"]`.
+
+- id: testing-verketten-optional
+  main:
+    prompt: Check that the saved station is found and that name and capacity are right.
+    explanation: |
+      `findById` returns an `Optional`. `hasValueSatisfying` checks that a value is there and passes it to the lambda. In the lambda you check `found` – the object read from the database, not `saved`.
+  followUps:
+    - prompt: What happens with `repository.findById(id).get()` if there is no row with this id?
+      options: ["`null` is returned.", "A `NoSuchElementException` is thrown.", "The test is skipped."]
+      explanation: |
+        `Optional.get()` on an empty `Optional` throws `NoSuchElementException: No value present`. With `hasValueSatisfying` you get a clear message instead.
+
+- id: testing-verketten-lists
+  main:
+    prompt: A query should return **exactly one** item, namely "Buch". Which assertion checks both?
+    options:
+      - "`assertThat(result).first().returns(\"Buch\", Item::name);`"
+      - "`assertThat(result).singleElement().returns(\"Buch\", Item::name);`"
+      - "`assertThat(result).anySatisfy(i -> assertThat(i.name()).isEqualTo(\"Buch\"));`"
+    explanation: |
+      `singleElement()` fails if the list does not have exactly one element. `first()` and `anySatisfy` would also be green with several hits.
+  followUps:
+    - prompt: "`items` is `[Buch 20.0, Stift 2.0]`. Which assertions are green?"
+      options:
+        - "`assertThat(items).allSatisfy(i -> assertThat(i.price()).isPositive());`"
+        - "`assertThat(items).noneSatisfy(i -> assertThat(i.price()).isGreaterThan(10));`"
+        - "`assertThat(items).element(1).returns(\"Stift\", Item::name);`"
+        - "`assertThat(items).first().returns(20.0, Item::price);`"
+      explanation: |
+        The book costs more than 10, so `noneSatisfy` is red. `element(1)` is the **second** element (index from 0), i.e. the pen ("Stift").
+
+- id: testing-exceptions-lambda
+  main:
+    prompt: The code correctly throws an `IllegalArgumentException`. Still the test is red. Why?
+    options:
+      - "`assertThatThrownBy` only works with exceptions of your own."
+      - The call is not in the lambda. The exception is thrown before AssertJ can catch it.
+      - "`hasMessage(...)` is missing."
+    explanation: |
+      Correct is `assertThatThrownBy(() -> cart.remove("Heft")).isInstanceOf(IllegalArgumentException.class);` – only then can AssertJ run the call itself and catch the exception.
+  followUps:
+    - prompt: Check the type and message of the exception.
+      explanation: |
+        `assertThatThrownBy(lambda)` runs the call; then you check the type with `isInstanceOf` and the message with `hasMessage`/`hasMessageContaining`. `isThrownBy` and `withMessage` belong to the other form, `assertThatExceptionOfType(...)`.
+
+- id: testing-exceptions-forms
+  main:
+    prompt: Which lines check that `calculator.finalPrice(-1)` throws an `IllegalArgumentException`?
+    options:
+      - "`assertThatIllegalArgumentException().isThrownBy(() -> calculator.finalPrice(-1));`"
+      - "`assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> calculator.finalPrice(-1));`"
+      - "`assertThrows(IllegalArgumentException.class, () -> calculator.finalPrice(-1));`"
+      - "`assertThat(calculator.finalPrice(-1)).isInstanceOf(IllegalArgumentException.class);`"
+    explanation: |
+      The first three are equivalent. The last one calls `finalPrice(-1)` directly – the exception is thrown before `assertThat` even gets anything.
+  followUps:
+    - prompt: How do you check that a valid item is added **without** an exception?
+      options:
+        - "`assertThatCode(() -> cart.add(item)).doesNotThrowAnyException();`"
+        - "`assertThatThrownBy(() -> cart.add(item)).isNull();`"
+        - "`assertThat(cart.add(item)).isNotNull();`"
+      explanation: |
+        `assertThatCode(...).doesNotThrowAnyException()` is made for exactly that. `assertThatThrownBy` always fails if nothing is thrown.
+
+- id: testing-param-csv
+  main:
+    prompt: Test the age boundary between youth and adult from both sides.
+    explanation: |
+      One run per row of `@CsvSource`. JUnit converts `"17"` into an `int` and `"YOUTH"` into the enum. A `@ParameterizedTest` needs no additional `@Test`.
+  followUps:
+    - prompt: A discount applies **from** 100 euros. Which values test the boundary best?
+      options: ["50 and 150", "99.99 and 100", "100 and 1000"]
+      explanation: |
+        Bugs happen at the boundary (`>` instead of `>=`). That is why you test the value right at the boundary and the one right next to it.
+
+- id: testing-param-null
+  main:
+    prompt: How often does this test run?
+    options: ["Twice", "Three times", "Four times"]
+    explanation: |
+      `@NullAndEmptySource` provides `null` and `""`, `@ValueSource` two more values – four runs together.
+  followUps:
+    - prompt: Which value does `code` get in the row `", false"` of a `@CsvSource`?
+      options: ["`\"\"` (empty string)", "`null`", "`\" \"` (one space)"]
+      explanation: |
+        A completely empty value becomes `null`. You write an empty string as `''`.
+    - prompt: What does `@EnumSource(Ticket.Category.class)` do?
+      options:
+        - The test runs once per value of the enum.
+        - The test only runs for the first enum value.
+        - The test gets all enum values as an array.
+      explanation: |
+        One run per enum value. With `names` and `mode = EXCLUDE` you can leave out individual values.
+
+- id: testing-param-method
+  main:
+    prompt: Provide the test data for a test with the parameters `(List<Item> items, double expected)`.
+    explanation: |
+      The source method is `static` and returns a `Stream<Arguments>`. Every `arguments(...)` is one run; the values come in the order of the parameters.
+  followUps:
+    - prompt: What happens if the source method `carts()` is not `static`?
+      options:
+        - Nothing, JUnit creates an instance for it.
+        - JUnit aborts with an error message before a run starts.
+        - The test runs without arguments.
+      explanation: |
+        Source methods have to be `static` (except with `@TestInstance(Lifecycle.PER_CLASS)`). Otherwise JUnit reports "must be static".
+
+- id: testing-param-names
+  main:
+    prompt: You want to see `[1] empty cart` in the test report instead of a long list of objects. What do you use in the source method?
+    options:
+      - "`arguments(\"empty cart\", List.of(), 0.0)`"
+      - "`argumentSet(\"empty cart\", List.of(), 0.0)`"
+      - "`@DisplayName(\"empty cart\")`"
+    explanation: |
+      `argumentSet(name, ...)` gives the case a name that is not passed as an argument. With `arguments(...)` the name would simply be an additional first argument.
+  followUps:
+    - prompt: Which sources provide objects (not just numbers and strings) to a parameterised test?
+      options: ["`@MethodSource`", "`@FieldSource`", "`@ValueSource`", "`@CsvSource`"]
+      explanation: |
+        `@ValueSource` and `@CsvSource` only contain text and simple values that JUnit converts. Arbitrary objects come from a method or a static field.
+
+- id: testing-testdaten-grenzen
+  main:
+    prompt: "Rule: *from 85 % utilisation the full price is charged, below that half.* Which test values check the boundary?"
+    options: ["84.99 %", "85 %", "50 %", "100 %"]
+    explanation: |
+      At the boundary you test **both sides**: the value just below and the value exactly on the boundary. 50 % and 100 % are typical values of their class – good as additional cases, but they do not find a `>`-instead-of-`>=` bug.
+  followUps:
+    - prompt: A test checks a function that should add two prices, with the values 10 and 10. The function, however, wrongly doubles the first price. What happens?
+      options:
+        - The test is red.
+        - The test is green – the bug does not show with these values.
+        - The test aborts with an exception.
+      explanation: |
+        10 + 10 and 2 × 10 both give 20. Choose test data with **different** values (e.g. 20 and 2) so that mix-ups stand out.
+
+- id: testing-testdaten-fixtures
+  main:
+    prompt: Why does `TestFixtures.book()` return a **new** object on every call instead of a static field `BOOK`?
+    options:
+      - Because static fields are forbidden in test classes.
+      - So that no test can change another test's data.
+      - Because records must not have static fields.
+    explanation: |
+      A shared, mutable object connects tests with each other: if one changes it, the result of the next depends on the order. Fresh objects keep every test independent. (With unmodifiable records a shared object would be no problem – with entities it is.)
+  followUps:
+    - prompt: Where does the class `TestFixtures` live?
+      options:
+        - "In `src/main/java`, so that the service can use it too"
+        - "In `src/test/java`, in the package of the tests"
+        - "In `src/test/resources`"
+      explanation: |
+        Test data belongs to the test code and does not end up in the finished program.
+
+- id: testing-mockito-setup
+  main:
+    prompt: Test `ShopService` with a mocked repository and notifier.
+    explanation: |
+      `MockitoExtension` creates the `@Mock` fields before every test and builds the service with `@InjectMocks`, passing the mocks via the constructor. You only need `@MockitoBean` in Spring tests like `@WebMvcTest`.
+  followUps:
+    - prompt: What does a mock return for `Optional<Item> findByName(String)` if you have not written a `when(...)` for it?
+      options: ["`null`", "An empty `Optional`", "An exception"]
+      explanation: |
+        Mockito returns "empty" default values: an empty `Optional`, an empty list, `0`, `false` and `null` for other objects.
+
+- id: testing-mockito-strict
+  main:
+    prompt: Why does this test fail with `UnnecessaryStubbingException`?
+    options:
+      - "`addItem` never calls `findByName` – the `when` is superfluous."
+      - "`thenReturn` must not return an `Optional`."
+      - "`verify` is missing."
+    explanation: |
+      The `MockitoExtension` reports every stubbing that was not used in the test. Delete the line – or think about whether the test should actually check something else.
+  followUps:
+    - prompt: How do you replace the service with a mock in a `@WebMvcTest` (Task 3)?
+      options: ["`@Mock`", "`@MockitoBean`", "`@InjectMocks`"]
+      explanation: |
+        In Spring tests the mock has to be a bean in the context so that the controller gets it – that is what `@MockitoBean` is for.
+
+- id: testing-mockito-verify
+  main:
+    prompt: Check that an unknown item is neither deleted nor reported.
+    explanation: |
+      `verify(mock, never())` checks that the method was never called; with `any()` the argument does not matter. `verifyNoInteractions` checks that nothing at all was called on the notifier. (`times(0)` would work too, but is harder to read.)
+  followUps:
+    - prompt: Which line is **wrong**?
+      options:
+        - "`verify(notifier).send(\"einkauf@shop.at\", \"Buch ausgelistet\");`"
+        - "`verify(notifier).send(eq(\"einkauf@shop.at\"), anyString());`"
+        - "`verify(notifier).send(\"einkauf@shop.at\", anyString());`"
+        - "`verify(notifier).send(anyString(), contains(\"Buch\"));`"
+      explanation: |
+        With one matcher **all** arguments have to be matchers. Wrap the fixed value in `eq(...)` – otherwise you get an `InvalidUseOfMatchersException`.
+
+- id: testing-mockito-dothrow
+  main:
+    prompt: "`Notifier.send(...)` is a `void` method. How do you make it throw an exception in the test?"
+    options:
+      - "`when(notifier.send(anyString(), anyString())).thenThrow(new IllegalStateException());`"
+      - "`doThrow(new IllegalStateException()).when(notifier).send(anyString(), anyString());`"
+      - "`verify(notifier).send(anyString(), anyString()).thenThrow(new IllegalStateException());`"
+    explanation: |
+      `when(...)` needs a return value and does not compile for `void` methods. The form `doThrow(...).when(mock).method(...)` works for all methods.
+  followUps:
+    - prompt: What does `when(repository.save(any(Item.class))).thenAnswer(returnsFirstArg());` do?
+      options:
+        - "`save` always returns `null`."
+        - "`save` returns the object that was passed in."
+        - "`save` really saves the object in the database."
+      explanation: |
+        `returnsFirstArg()` from `AdditionalAnswers` returns the first argument – like a real `save`, just without a database.

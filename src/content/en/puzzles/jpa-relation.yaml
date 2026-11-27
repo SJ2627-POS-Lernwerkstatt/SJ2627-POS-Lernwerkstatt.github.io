@@ -1,0 +1,116 @@
+# English text for src/content/puzzles/jpa-relation.yaml (same ids).
+
+- id: rel-player-team-fk
+  title: Player and team – the foreign key
+  prompt: |
+    Every player belongs to exactly one team, the team does not know its players. The foreign key column is called `team_id`, the constraint `fk_players_team`.
+  explanation: |
+    Many players belong to one team: `@ManyToOne` on the "many" side. The multiplicity `"1"` means mandatory, so `nullable = false`. `@ForeignKey(name = …)` replaces the generated constraint name with a descriptive one. `team` is a relation and therefore not in the business constructor.
+
+- id: rel-vehicle-constructor
+  title: Vehicle – entity with a relation
+  prompt: |
+    Write the entity `Vehicle` for the table `vehicles` with the relation to the garage. Fields in the order of the diagram, the relation last, then the business constructor.
+  explanation: |
+    With a relation there is no `@AllArgsConstructor` – it would take `garage` as a parameter. The business constructor only takes the attributes, the way the tests call it: `new Vehicle("W-123AB", 42000)`. You set the garage afterwards with `vehicle.setGarage(garage)` (from `@Setter`). `"0,1"` means: the garage may be missing, so no `nullable = false`.
+
+- id: rel-truck-driver-cascade
+  title: Truck and driver – cascade
+  prompt: |
+    A truck has exactly one driver. A new driver who has not been saved yet should be **saved along** when the truck is saved. Nothing is deleted along with it.
+  explanation: |
+    `CascadeType.PERSIST` only passes on saving – that is what the sample solutions do. `ALL` would also pass on deleting: a deleted truck would take its driver with it, even though they may drive other trucks too. Without cascade the flush fails with `TransientPropertyValueException`.
+
+- id: rel-album-songs-mapped-by
+  title: Album and songs – both sides
+  prompt: |
+    Album and song know each other. The foreign key `album_id` is in the table `songs`; **no** join table may come about.
+  replace:
+    - find: "// getSongs(), addSong(...), removeSong(...): Puzzle „Album – Hilfsmethoden“"
+      replace: "// getSongs(), addSong(...), removeSong(...): puzzle \"Album – helper methods\""
+  explanation: |
+    The owning side is `Song` with `@ManyToOne` – the foreign key is there. `mappedBy = "album"` names the **field** in `Song`, not the table. Without `mappedBy` Hibernate would take the list for a second relation and create `albums_songs`. The list is created at the field and is thus never `null`.
+
+- id: rel-album-helpers
+  title: Album – helper methods
+  prompt: |
+    Write the business constructor, the getter of the list and the helper methods `addSong` and `removeSong` in `Album` – in this order. In the helper methods change your own list first, then the other side.
+  replace:
+    - { find: "// ✎ Konstruktor, Getter, Hilfsmethoden", replace: "// ✎ constructor, getter, helper methods" }
+  explanation: |
+    The getter hands out an unmodifiable view – otherwise anyone could change the list past `addSong` with `getSongs().add(...)`. The helper methods set **both** sides: Hibernate only saves `song.album` (the owning side), but your Java code sees the list too. Lombok generates `setAlbum` in `Song`.
+
+- id: rel-recipe-ingredients-composition
+  title: Recipe and ingredients – composition
+  prompt: |
+    Ingredients belong to exactly one recipe. Saving and deleting a recipe also affect its ingredients, and an ingredient that is removed from the list is deleted.
+  explanation: |
+    The filled diamond in the diagram is a **composition**: ingredients do not live without their recipe. `CascadeType.ALL` passes on saving and deleting, `orphanRemoval = true` deletes an ingredient as soon as it is removed from the list. For a loose relation (branch – book) this does not fit.
+
+- id: rel-playlist-tracks-unidirectional
+  title: Playlist – one-sided to many
+  prompt: |
+    Only the playlist knows its tracks, a track has no field for its playlist. Still, the foreign key `playlist_id` should be in the table `tracks` – without a join table.
+  explanation: |
+    Without an inverse side there is no `mappedBy`. So that Hibernate does not create a join table `playlists_tracks`, `@JoinColumn` goes directly on the list: the column `playlist_id` still ends up in `tracks`. `Track` has no relation here and may therefore use `@AllArgsConstructor`.
+
+- id: rel-seminar-participants-join-table
+  title: Seminar and participants – join table
+  prompt: |
+    A seminar has many participants, a participant attends many seminars. The join table is called `seminar_participants` with the columns `seminar_id` and `participant_id`. The same person must not be in the same seminar twice.
+  explanation: |
+    `joinColumns` points to the **own** class (`seminar_id`), `inverseJoinColumns` to the other one (`participant_id`). With a `Set` the pair becomes the primary key of the join table – the same person cannot be in it twice. With `List` there would be no primary key.
+
+- id: rel-participant-inverse-side
+  title: Participant – the inverse side
+  prompt: |
+    Now the participant should know their seminars too. Write `Participant` for the table `participants`: annotations, fields, business constructor, then the getter of the set.
+  explanation: |
+    The inverse side gets `mappedBy` with the **field name** of the owning side: `participants` in `Seminar`. A second `@JoinTable` would be a second, independent relation. With the set, `Participant` now has a relation – so no `@AllArgsConstructor` any more, but a constructor of its own and an unmodifiable getter.
+
+- id: rel-seminar-helpers
+  title: Seminar – helper methods for n:m
+  prompt: |
+    Write the getter of the set in `Seminar`, then `addParticipant` and `removeParticipant`. First change your own set, then the other side via the methods `Participant` offers for that.
+  replace:
+    - { find: "// ✎ Getter und Hilfsmethoden", replace: "// ✎ getter and helper methods" }
+    - { find: "// package-private: nur Seminar ruft sie auf", replace: "// package-private: only Seminar calls them" }
+  explanation: |
+    `participant.getSeminars().add(this)` looks right, but throws an `UnsupportedOperationException`: the getter hands out an unmodifiable view. That is why `Participant` offers package-private methods that only `Seminar` calls. Only what is in `participants` is saved – the owning side.
+
+- id: rel-student-locker-one-to-one
+  title: Student and locker – 1:1
+  prompt: |
+    Every student has at most one locker, and every locker belongs to at most one student. The foreign key `locker_id` is in `students`, the constraint is called `fk_students_locker`.
+  explanation: |
+    `@OneToOne` with `@JoinColumn` looks like `@ManyToOne` – but Hibernate additionally creates the column `locker_id` as `unique`. That way the same locker cannot belong to two students. With `@ManyToOne` this rule would be missing.
+
+- id: rel-locker-student-both-sides
+  title: Locker knows student – setting both sides
+  prompt: |
+    Now the locker knows its student too. Add the inverse side and the setter in `Student` that sets both sides.
+  replace:
+    - { find: "// selbst geschrieben: Lombok erzeugt dann kein eigenes setLocker", replace: "// written by hand: Lombok then generates no setLocker of its own" }
+  explanation: |
+    `mappedBy = "locker"` names the field in `Student` that owns the foreign key. The hand-written `setLocker` sets both sides so that `locker.getStudent()` is right immediately and not only after the next read. If you write a method yourself, Lombok does not generate it – `setStudent` in `Locker` still comes from `@Setter`.
+
+- id: rel-article-keywords
+  title: Article – keywords as a collection
+  prompt: |
+    An article has a set of keywords (simple strings, at most 30 characters). They go into the table `article_keywords` with the columns `article_id` and `keyword`.
+  explanation: |
+    Keywords are not entities but simple values: `@ElementCollection` instead of `@OneToMany`. `@CollectionTable` names the table and the column that points to the article; `@Column` the column for the value. A collection counts as a relation too: no `@AllArgsConstructor`.
+
+- id: rel-ward-shifts-embeddable
+  title: Ward – shifts as value objects
+  prompt: |
+    A hospital ward has a list of shifts. A shift (weekday, start, end) is a value object without an id of its own. The shifts go into the table `ward_shifts`.
+  explanation: |
+    A value object is `@Embeddable` – a record fits because it is immutable. A **list** of value objects needs `@ElementCollection` (a single address would be `@Embedded`). Every row in `ward_shifts` has `ward_id`, `weekday`, `starts` and `ends`.
+
+- id: rel-song-owning-side
+  title: Song – the owning side, complete
+  prompt: |
+    Write the whole entity `Song` for the table `songs`: fields in the order of the diagram, then the relation to the album with the column `album_id` and the constraint `fk_songs_album`, finally the business constructor.
+  explanation: |
+    `Song` owns the relation: `@ManyToOne` with `@JoinColumn`. Every song belongs to exactly one album (`"1"`), so `nullable = false`. With the relation there is no `@AllArgsConstructor`; the business constructor only takes `title` and `seconds`, the album is set by `album.addSong(song)`.

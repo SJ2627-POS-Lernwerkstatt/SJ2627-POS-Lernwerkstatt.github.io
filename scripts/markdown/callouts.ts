@@ -13,8 +13,20 @@
 export const CALLOUTS = {
 	merke: 'Merke',
 	achtung: 'Achtung',
-	pruefung: 'Prüfung'
+	pruefung: 'Prüfung',
+	/** "Gut zu wissen": a shortcut or alternative that is nice but not needed. */
+	info: 'Gut zu wissen'
 } as const;
+
+/** Default titles in English translations (files under src/content/en/). */
+export const CALLOUTS_EN: Record<keyof typeof CALLOUTS, string> = {
+	merke: 'Remember',
+	achtung: 'Watch out',
+	pruefung: 'Exam',
+	info: 'Good to know'
+};
+
+const isEnglish = (file: string) => /(^|[/\\])content[/\\]en[/\\]/.test(file);
 
 const OPEN = /^:::(\w+)(?:[ \t]+(.+?))?[ \t]*$/;
 const CLOSE = /^:::[ \t]*$/;
@@ -56,7 +68,8 @@ export function transformCallouts(source: string, file = 'markdown'): string {
 			}
 			if (open) throw new Error(`${file}:${i + 1}: callouts cannot be nested (open since line ${open.line})`);
 			open = { kind, line: i + 1 };
-			const title = opening[2] ?? CALLOUTS[kind as keyof typeof CALLOUTS];
+			const defaults = isEnglish(file) ? CALLOUTS_EN : CALLOUTS;
+			const title = opening[2] ?? defaults[kind as keyof typeof CALLOUTS];
 			out.push(`<aside class="callout callout-${kind}">`, `<p class="callout-title">${titleHtml(title)}</p>`, '');
 			return;
 		}

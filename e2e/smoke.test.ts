@@ -138,7 +138,7 @@ test('puzzles: a template puzzle shows the solution after a wrong try', async ({
 	await page.getByRole('button', { name: 'Prüfen' }).click();
 	await page.getByRole('button', { name: 'Lösung zeigen' }).click();
 	await expect(page.getByRole('heading', { name: 'Lösung' })).toBeVisible();
-	await expect(page.getByText('@GeneratedValue', { exact: false }).last()).toBeVisible();
+	await expect(page.getByText('@GeneratedValue', { exact: false }).filter({ visible: true }).last()).toBeVisible();
 });
 
 test('puzzles: long puzzles keep the pieces in view (side by side, or docked on a phone)', async ({ page }) => {
